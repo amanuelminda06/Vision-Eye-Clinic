@@ -1,0 +1,136 @@
+import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
+import {
+  getClinicProfile,
+  getSiteContent,
+  pageMetadata,
+  pick,
+  workingHoursLines,
+  type WorkingHours,
+} from '@/modules/public-site';
+import { telHref, telegramHref, whatsappHref } from '@/modules/public-site/format';
+
+const DAY_KEYS: Record<keyof WorkingHours, string> = {
+  mon: 'dayMon',
+  tue: 'dayTue',
+  wed: 'dayWed',
+  thu: 'dayThu',
+  fri: 'dayFri',
+  sat: 'daySat',
+  sun: 'daySun',
+};
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('site');
+  return pageMetadata({
+    title: t('meta.contactTitle'),
+    description: t('meta.contactDescription'),
+    path: '/contact',
+  });
+}
+
+export default async function ContactPage() {
+  const t = await getTranslations('site');
+  const ts = await getTranslations('settings');
+  const locale = await getLocale();
+  const [content, profile] = await Promise.all([getSiteContent(), getClinicProfile()]);
+
+  const address = pick(locale, content.contact_address);
+  const phone = pick(locale, content.contact_phone);
+  const phoneHref = telHref(phone);
+  const mapUrl = pick(locale, content.contact_map_url);
+  const whatsapp = whatsappHref(pick(locale, content.contact_whatsapp));
+  const telegram = telegramHref(pick(locale, content.contact_telegram));
+  const hours = workingHoursLines(
+    profile.workingHours,
+    (day) => ts(DAY_KEYS[day] as never),
+    ts('closed'),
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+      <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        {t('contact.title')}
+      </h1>
+      <p className="mt-3 max-w-2xl text-lg text-slate-600">{t('contact.intro')}</p>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-slate-900">{t('contact.address')}</h2>
+          <p className="mt-3 text-slate-600">{address || t('contact.pending')}</p>
+          {mapUrl ? (
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block font-semibold text-teal-800 hover:text-teal-900"
+            >
+              {t('contact.directions')} →
+            </a>
+          ) : null}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-slate-900">{t('contact.phone')}</h2>
+          {phone && phoneHref ? (
+            <a href={phoneHref} className="mt-3 block text-lg font-semibold text-teal-800">
+              {phone}
+            </a>
+          ) : (
+            <p className="mt-3 text-slate-600">{t('phonePending')}</p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-3">
+            {whatsapp ? (
+              <a
+                href={whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                {t('contact.whatsapp')}
+              </a>
+            ) : null}
+            {telegram ? (
+              <a
+                href={telegram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700"
+              >
+                {t('contact.telegram')}
+              </a>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-slate-900">{t('contact.hours')}</h2>
+          <dl className="mt-3 space-y-1 text-sm">
+            {hours.map((line) => (
+              <div key={line.day} className="flex justify-between gap-4">
+                <dt className="text-slate-600">{line.day}</dt>
+                <dd className="font-medium text-slate-900">{line.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <p className="text-sm text-slate-500">{t('contact.map')}</p>
+        {mapUrl ? (
+          <a
+            href={mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-block font-semibold text-teal-800 hover:text-teal-900"
+          >
+            {address || t('contact.directions')} →
+          </a>
+        ) : (
+          <p className="mt-3 text-slate-500">{t('contact.pending')}</p>
+        )}
+      </div>
+    </div>
+  );
+}
