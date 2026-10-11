@@ -18,6 +18,7 @@ export { serviceFormSchema, MAX_SERVICE_NAME } from './schemas';
 export type { ServiceFormValues } from './schemas';
 export { SERVICE_CATEGORIES, CATEGORY_LABEL_KEYS, isServiceCategory } from './categories';
 export type { ServiceCategory } from './categories';
+export { serviceNameIn, receiptLabelIn } from './display';
 export { default as ServiceForm } from './components/ServiceForm';
 export { default as ServiceStatusButton } from './components/ServiceStatusButton';
 export { default as PriceHistoryModal } from './components/PriceHistoryModal';

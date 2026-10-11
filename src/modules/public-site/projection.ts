@@ -33,8 +33,10 @@ export const FORBIDDEN_PUBLIC_FIELDS = [
 export const PUBLIC_SERVICE_FIELDS = [
   'id',
   'name',
+  'nameEn',
   'nameAm',
   'category',
+  'displayOrder',
   'descriptionEn',
   'descriptionAm',
 ] as const;
@@ -53,8 +55,10 @@ export const PUBLIC_DOCTOR_FIELDS = [
 export type PublicService = {
   id: string;
   name: string;
+  nameEn: string;
   nameAm: string | null;
   category: string;
+  displayOrder: number;
   descriptionEn: string | null;
   descriptionAm: string | null;
 };
@@ -63,8 +67,10 @@ export type PublicService = {
 export type PublicServiceRow = {
   id: string;
   name: string;
+  nameEn: string;
   nameAm: string | null;
   category: string;
+  displayOrder: number;
   publicDescriptionEn: string | null;
   publicDescriptionAm: string | null;
 };
@@ -77,8 +83,10 @@ export function toPublicService(row: PublicServiceRow): PublicService {
   return {
     id: row.id,
     name: row.name,
+    nameEn: row.nameEn,
     nameAm: row.nameAm,
     category: row.category,
+    displayOrder: row.displayOrder,
     descriptionEn: row.publicDescriptionEn,
     descriptionAm: row.publicDescriptionAm,
   };

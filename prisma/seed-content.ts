@@ -1,44 +1,40 @@
 import type { PrismaClient } from '@prisma/client';
 import { CONTENT_KEYS, DEFAULT_CONTENT } from '../src/modules/public-site/content';
+import { REAL_SERVICES } from './seed-services';
 
 /**
  * Public website seed: bilingual CMS-lite copy + which services are listed
  * publicly. Idempotent and non-destructive: existing SiteContent edits are kept
- * (upsert with an empty update), and service flags are only set once.
+ * (upsert with an empty update), and service flags are only applied to the
+ * clinic's real six services.
  */
 
-const PUBLIC_SERVICES: Array<{ name: string; en: string; am: string }> = [
-  {
-    name: 'Eye Consultation',
-    en: 'A thorough examination to understand your vision and eye health, with clear next steps.',
-    am: 'የእይታዎንና የዓይን ጤናዎን ለመረዳት ጥልቅ ምርመራ፣ ከግልጽ ቀጣይ እርምጃዎች ጋር።',
+const PUBLIC_DESCRIPTIONS: Record<string, { en: string; am: string }> = {
+  'General Eye Care': {
+    en: 'A complete examination of your eyes and vision, with clear next steps and honest advice.',
+    am: 'የዓይንዎንና የእይታዎን አጠቃላይ ምርመራ፣ ግልጽ ቀጣይ እርምጃዎችና እውነተኛ ምክር ጋር።',
   },
-  {
-    name: 'Refraction Test',
-    en: 'Accurate measurement of your prescription for glasses or contact lenses.',
-    am: 'ለብርጭቆ ወይም ለዓይን ሌንስ ትክክለኛ የማዘዣ መለኪያ።',
+  'Eye Examination for Glasses (Modern Equipment)': {
+    en: 'A precise test using modern equipment to measure your prescription and find the right glasses.',
+    am: 'ማዘዣዎን ለመለካትና ትክክለኛ መነጽር ለማግኘት በዘመናዊ መሳሪያዎች የሚደረግ ትክክለኛ ምርመራ።',
   },
-  {
-    name: 'OCT Scan',
-    en: 'A quick, painless scan that images the retina and optic nerve in fine detail.',
-    am: 'ሬቲናንና የዓይን ነርቭን በዝርዝር የሚያሳይ ፈጣንና ህመም የሌለው ስካን።',
+  'Glasses Making and Sales': {
+    en: 'We make and sell glasses to match your prescription, chosen to fit your face and your budget.',
+    am: 'ማዘዣዎ የሚስማማ፣ ለፊትዎና ለበጀትዎ የሚመች መነጽር እንሰራለንና እንሸጣለን።',
   },
-  {
-    name: 'Glaucoma Screening',
-    en: 'Early detection of glaucoma — a leading cause of preventable sight loss.',
-    am: 'የግላኮማ ቀድሞ ማወቅ — ሊቀረች የሚችል የእይታ መጥፋት ዋነኛ መንስኤ።',
+  'Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients': {
+    en: 'Regular, careful eye checks and follow-up for patients managing diabetes or high blood pressure.',
+    am: 'የስኳር ወይም የደም ግፊት ያለባቸው ታካሚዎች መደበኛና ጥንቃቄ የተሞላበት የዓይን ምርመራና ክትትል።',
   },
-  {
-    name: 'Contact Lens Fitting',
-    en: 'Assessment and fitting for comfortable, correctly sized contact lenses.',
-    am: 'ምቹና ትክክለኛ መጠን ያላቸው የዓይን ሌንሶች ግምገማና ማስተካከል።',
+  "Children's Eye Exam and Treatment": {
+    en: 'Gentle, friendly eye examinations and treatment for children so problems are caught early.',
+    am: 'ለህጻናት ለስላሳና ወዳጃዊ የዓይን ምርመራና ህክምና፤ ችግሮች በቅርብ ጊዜ እንዲታወቁ ይረዳል።',
   },
-  {
-    name: 'Prescription Glasses Fitting',
-    en: 'Help choosing frames and lenses that fit your prescription and lifestyle.',
-    am: 'ከማዘዣዎና ከአኗኗርዎ ጋር የሚስማሙ ማዕቀፎችንና ሌንሶችን ለመምረጥ እርዳታ።',
+  'Minor Eye Surgery': {
+    en: 'Small, outpatient eye procedures performed in a clean, safe clinic setting.',
+    am: 'ንጹህና ደህንነቱ የተጠበቀ ክሊኒካዊ አካባቢ የሚደረጉ ትናንሽ የዓይን ቀዶ ህክምናዎች።',
   },
-];
+};
 
 export async function seedSiteContent(
   prisma: PrismaClient,
@@ -53,13 +49,14 @@ export async function seedSiteContent(
   }
 
   let publicServices = 0;
-  for (const service of PUBLIC_SERVICES) {
+  for (const service of REAL_SERVICES) {
+    const description = PUBLIC_DESCRIPTIONS[service.nameEn] ?? { en: '', am: '' };
     const result = await prisma.service.updateMany({
-      where: { name: service.name },
+      where: { nameEn: service.nameEn },
       data: {
         isPublic: true,
-        publicDescriptionEn: service.en,
-        publicDescriptionAm: service.am,
+        publicDescriptionEn: description.en,
+        publicDescriptionAm: description.am,
       },
     });
     publicServices += result.count;

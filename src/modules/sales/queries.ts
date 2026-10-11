@@ -175,7 +175,9 @@ const DETAIL_INCLUDE = {
   doctor: { select: { id: true, fullName: true } },
   lines: {
     orderBy: { id: 'asc' },
-    include: { service: { select: { id: true, category: true } } },
+    include: {
+      service: { select: { id: true, category: true, receiptLabelEn: true, receiptLabelAm: true } },
+    },
   },
 } satisfies Prisma.SaleInclude;
 
@@ -193,6 +195,8 @@ export type SaleDetail = {
     serviceId: string;
     serviceNameSnapshot: string;
     category: string;
+    receiptLabelEn: string | null;
+    receiptLabelAm: string | null;
     qty: number;
     unitPrice: string;
     lineTotal: string;
@@ -240,6 +244,8 @@ export async function getSale(id: string): Promise<SaleDetail | null> {
       serviceId: line.serviceId,
       serviceNameSnapshot: line.serviceNameSnapshot,
       category: line.service.category,
+      receiptLabelEn: line.service.receiptLabelEn,
+      receiptLabelAm: line.service.receiptLabelAm,
       qty: line.qty,
       unitPrice: toDecimalString(line.unitPrice),
       lineTotal: toDecimalString(line.lineTotal),

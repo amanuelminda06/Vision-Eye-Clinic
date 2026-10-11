@@ -14,8 +14,10 @@ describe('public projection allow-lists', () => {
     const row = {
       id: 'svc-1',
       name: 'Eye examination',
+      nameEn: 'Eye examination',
       nameAm: 'የዓይን ምርመራ',
-      category: 'CONSULTATION',
+      category: 'consultation',
+      displayOrder: 2,
       publicDescriptionEn: 'A thorough exam.',
       publicDescriptionAm: 'ጥልቅ ምርመራ።',
       // Extra private columns that must never survive the projection:

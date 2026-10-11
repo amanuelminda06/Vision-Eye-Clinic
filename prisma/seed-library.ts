@@ -7,14 +7,13 @@ import { messageBodyHash } from '../src/modules/messaging/message-hash';
  * normalised body hash per language, so English/Amharic never collide).
  * Idempotent via fixed ids + update.
  */
-export async function seedMessageLibrary(prisma: PrismaClient, createdBy: string): Promise<number> {
-  const pairs: {
-    id: string;
-    category: 'REMINDER' | 'GREETING' | 'ANNOUNCEMENT' | 'FOLLOWUP' | 'OTHER';
-    title: string;
-    bodyEn: string;
-    bodyAm: string;
-  }[] = [
+export const LIBRARY_PAIRS: {
+  id: string;
+  category: 'REMINDER' | 'GREETING' | 'ANNOUNCEMENT' | 'FOLLOWUP' | 'OTHER';
+  title: string;
+  bodyEn: string;
+  bodyAm: string;
+}[] = [
     {
       id: 'lib-reminder-appointment',
       category: 'REMINDER',
@@ -127,7 +126,8 @@ export async function seedMessageLibrary(prisma: PrismaClient, createdBy: string
     },
   ];
 
-  for (const item of pairs) {
+export async function seedMessageLibrary(prisma: PrismaClient, createdBy: string): Promise<number> {
+  for (const item of LIBRARY_PAIRS) {
     await prisma.messageLibraryItem.upsert({
       where: { id: item.id },
       update: {
@@ -158,7 +158,7 @@ export async function seedMessageLibrary(prisma: PrismaClient, createdBy: string
       },
     });
   }
-  return pairs.length * 2;
+  return LIBRARY_PAIRS.length * 2;
 }
 
 const AUDIENCES: { id: string; name: string; filter: Record<string, unknown> }[] = [

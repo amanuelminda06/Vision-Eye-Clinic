@@ -13,12 +13,16 @@ import { listPriceHistory, type PriceHistoryRow } from './queries';
 function readServiceForm(formData: FormData) {
   return {
     name: String(formData.get('name') ?? ''),
+    nameEn: String(formData.get('nameEn') ?? ''),
     nameAm: String(formData.get('nameAm') ?? ''),
     category: String(formData.get('category') ?? ''),
     currentPrice: String(formData.get('currentPrice') ?? ''),
     isPublic: String(formData.get('isPublic') ?? ''),
     publicDescriptionEn: String(formData.get('publicDescriptionEn') ?? ''),
     publicDescriptionAm: String(formData.get('publicDescriptionAm') ?? ''),
+    receiptLabelEn: String(formData.get('receiptLabelEn') ?? ''),
+    receiptLabelAm: String(formData.get('receiptLabelAm') ?? ''),
+    displayOrder: String(formData.get('displayOrder') ?? ''),
   };
 }
 
@@ -31,7 +35,8 @@ export async function createServiceAction(
 
     const created = await prisma.service.create({
       data: {
-        name: values.name,
+        name: values.nameEn,
+        nameEn: values.nameEn,
         nameAm: values.nameAm || null,
         category: values.category,
         currentPrice: values.currentPrice,
@@ -39,6 +44,9 @@ export async function createServiceAction(
         isPublic: values.isPublic,
         publicDescriptionEn: values.publicDescriptionEn,
         publicDescriptionAm: values.publicDescriptionAm,
+        receiptLabelEn: values.receiptLabelEn,
+        receiptLabelAm: values.receiptLabelAm,
+        displayOrder: values.displayOrder,
       },
     });
 
@@ -76,13 +84,17 @@ export async function updateServiceAction(
     const updated = await prisma.service.update({
       where: { id },
       data: {
-        name: values.name,
+        name: values.nameEn,
+        nameEn: values.nameEn,
         nameAm: values.nameAm || null,
         category: values.category,
         currentPrice: values.currentPrice,
         isPublic: values.isPublic,
         publicDescriptionEn: values.publicDescriptionEn,
         publicDescriptionAm: values.publicDescriptionAm,
+        receiptLabelEn: values.receiptLabelEn,
+        receiptLabelAm: values.receiptLabelAm,
+        displayOrder: values.displayOrder,
       },
     });
 

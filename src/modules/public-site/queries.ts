@@ -26,12 +26,14 @@ export const getPublicServices = cache(async (): Promise<PublicService[]> => {
     select: {
       id: true,
       name: true,
+      nameEn: true,
       nameAm: true,
       category: true,
+      displayOrder: true,
       publicDescriptionEn: true,
       publicDescriptionAm: true,
     },
-    orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    orderBy: [{ displayOrder: 'asc' }, { category: 'asc' }, { name: 'asc' }],
   });
   return rows.map((row) => toPublicService(row as PublicServiceRow));
 });

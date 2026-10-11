@@ -8,36 +8,85 @@ import {
 } from '../src/lib/datetime';
 
 /**
- * Demo services + ~40 sales spread over the past 60 days for the revenue
- * dashboard. Deterministic (no Math.random) and idempotent: services are
- * upserted by name, sales are only generated when the table is empty.
+ * The clinic's real six services + ~40 demo sales spread over the past 60 days
+ * for the revenue dashboard. Deterministic (no Math.random) and idempotent:
+ * services are keyed on `nameEn` (found by nameEn/name, never by a unique
+ * constraint), clinic-set prices are preserved, the legacy demo services are
+ * deactivated (never deleted), and sales are only generated when the table is
+ * empty.
  */
 
 export type ServiceSeed = {
-  name: string;
+  nameEn: string;
   nameAm?: string;
   category: string;
   price: string;
+  displayOrder: number;
+  receiptLabelEn?: string;
+  receiptLabelAm?: string;
 };
 
-export const SERVICE_SEED: ServiceSeed[] = [
-  { name: 'Eye Consultation', nameAm: 'የአይን ምክር', category: 'consultation', price: '300.00' },
-  { name: 'Cataract Consultation', category: 'consultation', price: '500.00' },
-  { name: 'Post-Op Follow-up', category: 'consultation', price: '350.00' },
-  { name: 'Refraction Test', nameAm: 'ሪፍራክሽን ፈተና', category: 'refraction', price: '400.00' },
-  { name: 'OCT Scan', nameAm: 'OCT ስካን', category: 'diagnostics', price: '1500.00' },
-  { name: 'Visual Field Test', category: 'diagnostics', price: '900.00' },
-  { name: 'Slit Lamp Examination', category: 'diagnostics', price: '500.00' },
-  { name: 'Glaucoma Screening', category: 'tests', price: '700.00' },
-  { name: 'Eye Pressure Check', category: 'tests', price: '250.00' },
+export const REAL_SERVICES: ServiceSeed[] = [
   {
-    name: 'Prescription Glasses Fitting',
-    nameAm: 'መነጽር ማስተካከል',
-    category: 'glasses',
-    price: '600.00',
+    nameEn: 'General Eye Care',
+    nameAm: 'ጠቅላላ የዓይን ህክምና',
+    category: 'consultation',
+    price: '300.00',
+    displayOrder: 1,
   },
-  { name: 'Contact Lens Fitting', category: 'contact_lenses', price: '800.00' },
-  { name: 'Minor Eye Procedure', category: 'surgery', price: '2500.00' },
+  {
+    nameEn: 'Eye Examination for Glasses (Modern Equipment)',
+    nameAm: 'በዘመናዊ መሳሪያዎች የመነጽር ምርመራ',
+    category: 'diagnostics',
+    price: '500.00',
+    displayOrder: 2,
+  },
+  {
+    nameEn: 'Glasses Making and Sales',
+    nameAm: 'የመነጽር ስራ እና ሽያጭ',
+    category: 'optical',
+    price: '1500.00',
+    displayOrder: 3,
+  },
+  {
+    nameEn: 'Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients',
+    nameAm: 'ለስኳርና ደም ግፊት ህመምተኞች ልዩ የዓይን ምርመራና ክትትል',
+    category: 'specialist',
+    price: '400.00',
+    displayOrder: 4,
+    receiptLabelEn: 'Specialist eye check-up',
+    receiptLabelAm: 'ልዩ የዓይን ክትትል',
+  },
+  {
+    nameEn: "Children's Eye Exam and Treatment",
+    nameAm: 'የህጻናት የዓይን ምርመራና ህክምና',
+    category: 'specialist',
+    price: '400.00',
+    displayOrder: 5,
+  },
+  {
+    nameEn: 'Minor Eye Surgery',
+    nameAm: 'መለስተኛ የዓይን ቀዶ ህክምና',
+    category: 'surgery',
+    price: '5000.00',
+    displayOrder: 6,
+  },
+];
+
+/** The pre-existing demo services that are retired (kept for history). */
+export const LEGACY_DEMO_SERVICES = [
+  'Eye Consultation',
+  'Cataract Consultation',
+  'Post-Op Follow-up',
+  'Refraction Test',
+  'OCT Scan',
+  'Visual Field Test',
+  'Slit Lamp Examination',
+  'Glaucoma Screening',
+  'Eye Pressure Check',
+  'Prescription Glasses Fitting',
+  'Contact Lens Fitting',
+  'Minor Eye Procedure',
 ];
 
 const PAYMENTS = ['CASH', 'MOBILE_MONEY', 'BANK', 'CARD', 'OTHER'] as const;
@@ -53,30 +102,53 @@ function makeRandom(seed: number): () => number {
 
 type ServiceRow = { id: string; name: string; currentPrice: string };
 
+function matches(seed: ServiceSeed, existing: { name: string; nameEn: string }): boolean {
+  return existing.nameEn === seed.nameEn || existing.name === seed.nameEn;
+}
+
 async function upsertServices(prisma: PrismaClient): Promise<ServiceRow[]> {
   const existing = await prisma.service.findMany({
-    select: { id: true, name: true, currentPrice: true },
+    select: { id: true, name: true, nameEn: true, currentPrice: true },
   });
-  const byName = new Map(existing.map((service) => [service.name, service]));
   const rows: ServiceRow[] = [];
 
-  for (const seed of SERVICE_SEED) {
-    const found = byName.get(seed.name);
+  for (const seed of REAL_SERVICES) {
+    const found = existing.find((service) => matches(seed, service));
     if (found) {
+      await prisma.service.update({
+        where: { id: found.id },
+        data: {
+          name: seed.nameEn,
+          nameEn: seed.nameEn,
+          nameAm: seed.nameAm ?? null,
+          category: seed.category,
+          active: true,
+          isPublic: true,
+          displayOrder: seed.displayOrder,
+          receiptLabelEn: seed.receiptLabelEn ?? null,
+          receiptLabelAm: seed.receiptLabelAm ?? null,
+        },
+      });
       rows.push({
         id: found.id,
-        name: found.name,
+        name: seed.nameEn,
         currentPrice: toDecimalString(found.currentPrice),
       });
       continue;
     }
+
     const created = await prisma.service.create({
       data: {
-        name: seed.name,
+        name: seed.nameEn,
+        nameEn: seed.nameEn,
         nameAm: seed.nameAm ?? null,
         category: seed.category,
         currentPrice: seed.price,
         active: true,
+        isPublic: true,
+        displayOrder: seed.displayOrder,
+        receiptLabelEn: seed.receiptLabelEn ?? null,
+        receiptLabelAm: seed.receiptLabelAm ?? null,
       },
       select: { id: true, name: true, currentPrice: true },
     });
@@ -86,6 +158,12 @@ async function upsertServices(prisma: PrismaClient): Promise<ServiceRow[]> {
       currentPrice: toDecimalString(created.currentPrice),
     });
   }
+
+  await prisma.service.updateMany({
+    where: { name: { in: LEGACY_DEMO_SERVICES } },
+    data: { active: false, isPublic: false },
+  });
+
   return rows;
 }
 

@@ -426,8 +426,10 @@ model PatientTag {
 
 model Service {
   id           String   @id @default(cuid())
-  /// English display name.
+  /// English display name (historical, kept for completed sales and old reads).
   name         String
+  /// Current English display name (equals `name` for seeded services).
+  nameEn       String   @default("")
   /// Amharic display name (optional — falls back to `name`).
   nameAm       String?
   /// Stable category key, validated against the app's fixed list.
@@ -436,11 +438,17 @@ model Service {
   currentPrice Decimal  @default(0) @db.Decimal(12, 2)
   active       Boolean  @default(true)
   /// Listed on the public website. The price is NEVER exposed publicly.
-  isPublic             Boolean @default(false)
+  isPublic             Boolean @default(true)
   /// Website description (en); falls back to nothing when blank.
   publicDescriptionEn  String?
   /// Website description (am); falls back to the en text when blank.
   publicDescriptionAm  String?
+  /// Optional short name printed on receipts in each language. Blank falls
+  /// back to the full service name captured at sale time.
+  receiptLabelEn  String?
+  receiptLabelAm  String?
+  /// Order on the public services page (lower appears first).
+  displayOrder    Int     @default(0)
   createdAt    DateTime @default(now()) @db.Timestamptz
   updatedAt    DateTime @updatedAt @db.Timestamptz
 

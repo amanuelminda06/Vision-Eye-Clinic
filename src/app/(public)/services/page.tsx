@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { CATEGORY_LABEL_KEYS, isServiceCategory } from '@/modules/services/categories';
 import { getPublicServices, pageMetadata } from '@/modules/public-site';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ServicesPage() {
   const t = await getTranslations('site');
+  const ts = await getTranslations('services');
   const locale = await getLocale();
   const services = await getPublicServices();
 
@@ -22,6 +24,11 @@ export default async function ServicesPage() {
     const list = byCategory.get(service.category) ?? [];
     list.push(service);
     byCategory.set(service.category, list);
+  }
+
+  function categoryLabel(category: string): string {
+    if (isServiceCategory(category)) return ts(CATEGORY_LABEL_KEYS[category] as never);
+    return category;
   }
 
   return (
@@ -43,11 +50,14 @@ export default async function ServicesPage() {
                 <span className="text-sm font-semibold uppercase tracking-wide text-orange-700">
                   {t('services.category')}:{' '}
                 </span>
-                {category}
+                {categoryLabel(category)}
               </h2>
               <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {list.map((service) => {
-                  const name = locale === 'am' ? service.nameAm || service.name : service.name;
+                  const name =
+                    locale === 'am'
+                      ? service.nameAm || service.nameEn || service.name
+                      : service.nameEn || service.name;
                   const description =
                     locale === 'am'
                       ? service.descriptionAm || service.descriptionEn

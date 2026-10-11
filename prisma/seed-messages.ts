@@ -8,7 +8,7 @@ import type { PrismaClient } from '@prisma/client';
 
 type Language = 'en' | 'am';
 
-const TEMPLATES: Record<string, Record<Language, string>> = {
+export const TEMPLATES: Record<string, Record<Language, string>> = {
   APPT_REMINDER: {
     en: 'Hello {name}, this is a reminder of your appointment at {clinic} on {date} at {time} with {doctor}. Reply or call if you need to change it.',
     am: 'ሰላም {name}፣ በ{clinic} ቀን {date} ሰዓት {time} ከ{doctor} ጋር ያለዎትን ቀጠሮ እናስታውስዎታለን። መቀየር ከፈለጉ ይደውሉ።',

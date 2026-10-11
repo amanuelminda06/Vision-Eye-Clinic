@@ -9,7 +9,9 @@ export const SERVICE_CATEGORIES = [
   'diagnostics',
   'tests',
   'glasses',
+  'optical',
   'contact_lenses',
+  'specialist',
   'surgery',
   'other',
 ] as const;
@@ -27,7 +29,9 @@ export const CATEGORY_LABEL_KEYS: Record<ServiceCategory, string> = {
   diagnostics: 'catDiagnostics',
   tests: 'catTests',
   glasses: 'catGlasses',
+  optical: 'catOptical',
   contact_lenses: 'catContactLenses',
+  specialist: 'catSpecialist',
   surgery: 'catSurgery',
   other: 'catOther',
 };

@@ -13,7 +13,15 @@ export type ServiceListFilters = {
 export function buildServiceWhere(filters: ServiceListFilters): Prisma.ServiceWhereInput {
   const and: Prisma.ServiceWhereInput[] = [];
   const q = filters.q?.trim();
-  if (q) and.push({ name: { contains: q, mode: 'insensitive' } });
+  if (q) {
+    and.push({
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { nameAm: { contains: q, mode: 'insensitive' } },
+        { nameEn: { contains: q, mode: 'insensitive' } },
+      ],
+    });
+  }
   if (filters.category && isServiceCategory(filters.category)) {
     and.push({ category: filters.category });
   }
@@ -25,6 +33,7 @@ export function buildServiceWhere(filters: ServiceListFilters): Prisma.ServiceWh
 export type ServiceRow = {
   id: string;
   name: string;
+  nameEn: string;
   nameAm: string | null;
   category: string;
   /** Decimal serialized as a string (safe across the RSC boundary). */
@@ -33,6 +42,9 @@ export type ServiceRow = {
   isPublic: boolean;
   publicDescriptionEn: string | null;
   publicDescriptionAm: string | null;
+  receiptLabelEn: string | null;
+  receiptLabelAm: string | null;
+  displayOrder: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -40,6 +52,7 @@ export type ServiceRow = {
 type ServiceDbRow = {
   id: string;
   name: string;
+  nameEn: string;
   nameAm: string | null;
   category: string;
   currentPrice: Decimal;
@@ -47,6 +60,9 @@ type ServiceDbRow = {
   isPublic: boolean;
   publicDescriptionEn: string | null;
   publicDescriptionAm: string | null;
+  receiptLabelEn: string | null;
+  receiptLabelAm: string | null;
+  displayOrder: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -55,6 +71,7 @@ function serialize(row: ServiceDbRow): ServiceRow {
   return {
     id: row.id,
     name: row.name,
+    nameEn: row.nameEn,
     nameAm: row.nameAm,
     category: row.category,
     currentPrice: toDecimalString(row.currentPrice),
@@ -62,6 +79,9 @@ function serialize(row: ServiceDbRow): ServiceRow {
     isPublic: row.isPublic,
     publicDescriptionEn: row.publicDescriptionEn,
     publicDescriptionAm: row.publicDescriptionAm,
+    receiptLabelEn: row.receiptLabelEn,
+    receiptLabelAm: row.receiptLabelAm,
+    displayOrder: row.displayOrder,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -70,6 +90,7 @@ function serialize(row: ServiceDbRow): ServiceRow {
 const SELECT = {
   id: true,
   name: true,
+  nameEn: true,
   nameAm: true,
   category: true,
   currentPrice: true,
@@ -77,6 +98,9 @@ const SELECT = {
   isPublic: true,
   publicDescriptionEn: true,
   publicDescriptionAm: true,
+  receiptLabelEn: true,
+  receiptLabelAm: true,
+  displayOrder: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -95,7 +119,7 @@ export async function listActiveServices(): Promise<ServiceRow[]> {
   const rows = await prisma.service.findMany({
     where: { active: true },
     select: SELECT,
-    orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
   });
   return rows.map(serialize);
 }
@@ -141,9 +165,9 @@ export async function listPriceHistory(serviceId: string): Promise<PriceHistoryR
 }
 
 /** Minimal option list for filters (id + name). */
-export async function listServiceOptions(): Promise<Array<{ id: string; name: string }>> {
+export async function listServiceOptions(): Promise<Array<{ id: string; name: string; nameEn: string }>> {
   return prisma.service.findMany({
-    select: { id: true, name: true },
+    select: { id: true, name: true, nameEn: true },
     orderBy: { name: 'asc' },
   });
 }

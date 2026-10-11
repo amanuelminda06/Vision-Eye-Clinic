@@ -9,7 +9,8 @@ export const MAX_PUBLIC_DESCRIPTION = 2000;
 const PRICE_RE = /^\d{1,10}(\.\d{1,2})?$/;
 
 export const serviceFormSchema = z.object({
-  name: z.string().trim().min(1, 'required').max(MAX_SERVICE_NAME, 'tooLong'),
+  /** English display name; `name` on the row is kept in sync with this. */
+  nameEn: z.string().trim().min(1, 'required').max(MAX_SERVICE_NAME, 'tooLong'),
   nameAm: z.string().trim().max(MAX_SERVICE_NAME, 'tooLong'),
   category: z.enum(SERVICE_CATEGORIES, 'invalidCategory'),
   currentPrice: z
@@ -34,6 +35,28 @@ export const serviceFormSchema = z.object({
     .max(MAX_PUBLIC_DESCRIPTION, 'tooLong')
     .optional()
     .transform((value) => value || null),
+  /** Optional short names printed on receipts (per language). */
+  receiptLabelEn: z
+    .string()
+    .trim()
+    .max(MAX_SERVICE_NAME, 'tooLong')
+    .optional()
+    .transform((value) => value || null),
+  receiptLabelAm: z
+    .string()
+    .trim()
+    .max(MAX_SERVICE_NAME, 'tooLong')
+    .optional()
+    .transform((value) => value || null),
+  /** Order on the public services page (lower appears first). */
+  displayOrder: z
+    .string()
+    .trim()
+    .default('0')
+    .transform((value) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 0;
+    }),
 });
 
 export type ServiceFormValues = z.infer<typeof serviceFormSchema>;

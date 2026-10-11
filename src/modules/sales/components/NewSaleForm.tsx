@@ -16,6 +16,7 @@ import type { ActionResult } from '@/lib/action';
 type ServiceOption = {
   id: string;
   name: string;
+  nameEn: string;
   nameAm: string | null;
   currentPrice: string;
 };
@@ -47,7 +48,10 @@ function initialLines(
     ? [
         {
           serviceId: line.id,
-          name: locale === 'am' && line.nameAm ? line.nameAm : line.name,
+          name:
+            locale === 'am' && line.nameAm
+              ? line.nameAm
+              : line.nameEn || line.name,
           unitPrice: line.currentPrice,
           qty: 1,
         },
@@ -89,6 +93,7 @@ export default function NewSaleForm({ services, doctors, locale, prefill }: Prop
     return services
       .filter(
         (service) =>
+          service.nameEn.toLowerCase().includes(q) ||
           service.name.toLowerCase().includes(q) ||
           (service.nameAm ?? '').toLowerCase().includes(q),
       )
@@ -130,7 +135,10 @@ export default function NewSaleForm({ services, doctors, locale, prefill }: Prop
         ...current,
         {
           serviceId: service.id,
-          name: locale === 'am' && service.nameAm ? service.nameAm : service.name,
+          name:
+            locale === 'am' && service.nameAm
+              ? service.nameAm
+              : service.nameEn || service.name,
           unitPrice: service.currentPrice,
           qty: 1,
         },
@@ -257,7 +265,7 @@ export default function NewSaleForm({ services, doctors, locale, prefill }: Prop
                       className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50"
                       onClick={() => addService(service)}
                     >
-                      <span className="font-medium text-slate-900">{service.name}</span>
+                      <span className="font-medium text-slate-900">{service.nameEn || service.name}</span>
                       <span className="text-xs text-slate-500">
                         {formatMoney(service.currentPrice)}
                       </span>

@@ -43,6 +43,7 @@ export default async function NewSalePage({ searchParams }: { searchParams: Sear
         services={services.map((service) => ({
           id: service.id,
           name: service.name,
+          nameEn: service.nameEn,
           nameAm: service.nameAm,
           currentPrice: service.currentPrice,
         }))}

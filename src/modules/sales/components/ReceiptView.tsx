@@ -1,6 +1,7 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { formatMoney } from '@/lib/money';
 import { formatInTz } from '@/lib/datetime';
+import { receiptLabelIn } from '@/modules/services/display';
 import { PAYMENT_LABEL_KEYS } from '../constants';
 import type { SaleDetail } from '../queries';
 
@@ -13,7 +14,7 @@ type Props = {
 
 /** Printable receipt — A5 by default, 80mm thermal via PrintButtons. */
 export default async function ReceiptView({ sale, clinicName, currency, timeZone }: Props) {
-  const t = await getTranslations('sales');
+  const [t, locale] = await Promise.all([getTranslations('sales'), getLocale()]);
 
   return (
     <div
@@ -58,7 +59,13 @@ export default async function ReceiptView({ sale, clinicName, currency, timeZone
         <tbody>
           {sale.lines.map((line) => (
             <tr key={line.id} className="border-b border-slate-100 last:border-0">
-              <td className="py-1 pr-2">{line.serviceNameSnapshot}</td>
+              <td className="py-1 pr-2">
+                {receiptLabelIn(locale, {
+                  receiptLabelEn: line.receiptLabelEn,
+                  receiptLabelAm: line.receiptLabelAm,
+                  fallback: line.serviceNameSnapshot,
+                })}
+              </td>
               <td className="py-1 px-2 text-right">{line.qty}</td>
               <td className="py-1 pl-2 text-right">{formatMoney(line.lineTotal, currency)}</td>
             </tr>

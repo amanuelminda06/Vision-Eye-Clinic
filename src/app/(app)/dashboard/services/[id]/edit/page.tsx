@@ -40,13 +40,16 @@ export default async function EditServicePage({ params }: { params: Params }) {
         route="/dashboard/services"
         service={{
           id: service.id,
-          name: service.name,
+          nameEn: service.nameEn,
           nameAm: service.nameAm,
           category: service.category,
           currentPrice: service.currentPrice,
           isPublic: service.isPublic,
           publicDescriptionEn: service.publicDescriptionEn,
           publicDescriptionAm: service.publicDescriptionAm,
+          receiptLabelEn: service.receiptLabelEn,
+          receiptLabelAm: service.receiptLabelAm,
+          displayOrder: service.displayOrder,
         }}
       />
 

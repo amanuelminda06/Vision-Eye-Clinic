@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import ActionError from '@/components/ActionError';
@@ -11,13 +11,16 @@ import type { ActionResult } from '@/lib/action';
 
 type Values = {
   id: string;
-  name: string;
+  nameEn: string;
   nameAm: string | null;
   category: string;
   currentPrice: string;
   isPublic: boolean;
   publicDescriptionEn: string | null;
   publicDescriptionAm: string | null;
+  receiptLabelEn: string | null;
+  receiptLabelAm: string | null;
+  displayOrder: number;
 };
 
 type Props = {
@@ -37,6 +40,9 @@ export default function ServiceForm({ mode, service, route }: Props) {
     FormData
   >(action, null);
 
+  const [isPublic, setIsPublic] = useState(service?.isPublic ?? false);
+  const [publicDescriptionAm, setPublicDescriptionAm] = useState(service?.publicDescriptionAm ?? '');
+
   const failed = !!state && !state.ok;
   const fields = failed ? state.fields : undefined;
   const fieldError = (key: string): string | undefined =>
@@ -54,23 +60,24 @@ export default function ServiceForm({ mode, service, route }: Props) {
       {mode === 'edit' ? <input type="hidden" name="id" value={service?.id} /> : null}
 
       <div>
-        <label className="label" htmlFor="name">
-          {t('name')}
+        <label className="label" htmlFor="nameEn">
+          {t('nameEn')}
         </label>
         <input
           className="input-field"
-          id="name"
-          name="name"
+          id="nameEn"
+          name="nameEn"
           type="text"
           required
           autoComplete="off"
-          defaultValue={service?.name ?? ''}
+          defaultValue={service?.nameEn ?? ''}
           disabled={pending}
-          aria-invalid={!!fieldError('name')}
+          aria-invalid={!!fieldError('nameEn')}
         />
-        {fieldError('name') ? (
+        <p className="mt-1 text-xs text-slate-500">{t('nameEnHint')}</p>
+        {fieldError('nameEn') ? (
           <p role="alert" className="mt-1 text-xs font-medium text-red-600">
-            {fieldError('name')}
+            {fieldError('nameEn')}
           </p>
         ) : null}
       </div>
@@ -155,6 +162,73 @@ export default function ServiceForm({ mode, service, route }: Props) {
 
       {mode === 'edit' ? <p className="text-xs text-slate-500">{t('priceChangeNote')}</p> : null}
 
+      <fieldset className="space-y-3 rounded-lg border border-slate-200 p-4">
+        <legend className="px-1 text-sm font-semibold text-slate-800">Receipt</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label" htmlFor="receiptLabelEn">
+              {t('receiptLabelEn')}
+            </label>
+            <input
+              className="input-field"
+              id="receiptLabelEn"
+              name="receiptLabelEn"
+              type="text"
+              autoComplete="off"
+              defaultValue={service?.receiptLabelEn ?? ''}
+              disabled={pending}
+              aria-invalid={!!fieldError('receiptLabelEn')}
+            />
+            {fieldError('receiptLabelEn') ? (
+              <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+                {fieldError('receiptLabelEn')}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <label className="label" htmlFor="receiptLabelAm">
+              {t('receiptLabelAm')}
+            </label>
+            <input
+              className="input-field"
+              id="receiptLabelAm"
+              name="receiptLabelAm"
+              type="text"
+              autoComplete="off"
+              defaultValue={service?.receiptLabelAm ?? ''}
+              disabled={pending}
+              aria-invalid={!!fieldError('receiptLabelAm')}
+            />
+            {fieldError('receiptLabelAm') ? (
+              <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+                {fieldError('receiptLabelAm')}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <p className="text-xs text-slate-500">{t('receiptLabelsHint')}</p>
+      </fieldset>
+
+      <div>
+        <label className="label" htmlFor="displayOrder">
+          {t('displayOrder')}
+        </label>
+        <input
+          className="input-field w-full sm:w-40"
+          id="displayOrder"
+          name="displayOrder"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          step={1}
+          autoComplete="off"
+          defaultValue={service?.displayOrder ?? 0}
+          disabled={pending}
+          aria-invalid={!!fieldError('displayOrder')}
+        />
+        <p className="mt-1 text-xs text-slate-500">{t('displayOrderHint')}</p>
+      </div>
+
       <fieldset className="space-y-4 rounded-lg border border-slate-200 p-4">
         <legend className="px-1 text-sm font-semibold text-slate-800">{t('publicTitle')}</legend>
         <label className="flex items-start gap-3 text-sm text-slate-700">
@@ -162,7 +236,8 @@ export default function ServiceForm({ mode, service, route }: Props) {
             type="checkbox"
             name="isPublic"
             value="true"
-            defaultChecked={service?.isPublic ?? false}
+            checked={isPublic}
+            onChange={(event) => setIsPublic(event.target.checked)}
             disabled={pending}
             className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-700 focus:ring-orange-500"
           />
@@ -204,10 +279,16 @@ export default function ServiceForm({ mode, service, route }: Props) {
             name="publicDescriptionAm"
             rows={3}
             maxLength={2000}
-            defaultValue={service?.publicDescriptionAm ?? ''}
+            value={publicDescriptionAm}
+            onChange={(event) => setPublicDescriptionAm(event.target.value)}
             disabled={pending}
             aria-invalid={!!fieldError('publicDescriptionAm')}
           />
+          {isPublic && !publicDescriptionAm.trim() ? (
+            <p className="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+              {t('toBeProvided')}
+            </p>
+          ) : null}
           {fieldError('publicDescriptionAm') ? (
             <p role="alert" className="mt-1 text-xs font-medium text-red-600">
               {fieldError('publicDescriptionAm')}
