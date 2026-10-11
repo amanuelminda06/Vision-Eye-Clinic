@@ -44,7 +44,7 @@ export const WEEKDAY_LABEL_KEYS = [
 /** Deterministic per-person colours for the schedule grid. */
 export const SHIFT_COLORS = [
   '#2563eb',
-  '#0d9488',
+  '#d946ef',
   '#db2777',
   '#d97706',
   '#7c3aed',

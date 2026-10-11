@@ -164,7 +164,7 @@ export default function ServiceForm({ mode, service, route }: Props) {
             value="true"
             defaultChecked={service?.isPublic ?? false}
             disabled={pending}
-            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-500"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-700 focus:ring-orange-500"
           />
           <span>
             {t('publicLabel')}

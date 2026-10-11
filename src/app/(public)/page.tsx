@@ -12,6 +12,7 @@ import {
   pick,
 } from '@/modules/public-site';
 import { telHref } from '@/modules/public-site/format';
+import Reveal from '@/components/Reveal';
 import DoctorAvatar from '@/modules/public-site/components/DoctorAvatar';
 import DoctorStatusBadge from '@/modules/public-site/components/DoctorStatusBadge';
 
@@ -64,7 +65,7 @@ export default async function HomePage() {
         />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
-            <p className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-teal-800 ring-1 ring-teal-100">
+            <p className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-orange-800 ring-1 ring-orange-100">
               {pick(locale, content.hero_promise)}
             </p>
             <h1 className="mt-5 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
@@ -76,21 +77,22 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/book"
-                className="rounded-lg bg-teal-700 px-6 py-3 text-base font-semibold text-white hover:bg-teal-800"
+                className="rounded-xl bg-orange-800 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-orange-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
               >
                 {t('bookAppointment')}
               </Link>
               {phoneHref ? (
                 <a
                   href={phoneHref}
-                  className="rounded-lg border border-slate-300 px-6 py-3 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                  className="rounded-xl border border-orange-300 px-6 py-3 text-base font-semibold text-orange-900 transition-colors hover:bg-orange-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
                 >
                   {t('callNow')}
                 </a>
               ) : null}
             </div>
           </div>
-          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-100">
+          <Reveal delay={100} className="rounded-3xl bg-white p-8 shadow-md ring-1 ring-orange-100">
+            <div className="accent-line mb-4" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-slate-900">{t('home.whyTitle')}</h2>
             <ul className="mt-5 space-y-5">
               {(
@@ -101,7 +103,7 @@ export default async function HomePage() {
                 ] as const
               ).map(([titleKey, textKey]) => (
                 <li key={titleKey} className="flex gap-4">
-                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-800">
+                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-800">
                     <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
                       <path
                         d="M5 10.5 8.5 14 15 6.5"
@@ -119,43 +121,46 @@ export default async function HomePage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+        <div className="accent-line mb-4" aria-hidden="true" />
         <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{t('home.servicesTitle')}</h2>
         <p className="mt-2 max-w-2xl text-slate-600">{t('home.servicesIntro')}</p>
         {featured.length ? (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((service) => (
-              <article
-                key={service.id}
-                className="rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-md"
-              >
-                <span className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-                  {service.category}
-                </span>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">
-                  {locale === 'am' ? service.nameAm || service.name : service.name}
-                </h3>
-                {service.descriptionEn || service.descriptionAm ? (
-                  <p className="mt-2 text-sm text-slate-600">
-                    {locale === 'am'
-                      ? service.descriptionAm || service.descriptionEn
-                      : service.descriptionEn}
-                  </p>
-                ) : null}
-              </article>
-            ))}
-          </div>
+          <Reveal delay={40}>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((service) => (
+                <article
+                  key={service.id}
+                  className="card card-hover p-6"
+                >
+                  <span className="text-xs font-semibold uppercase tracking-wide text-orange-700">
+                    {service.category}
+                  </span>
+                  <h3 className="mt-2 text-lg font-semibold text-slate-900">
+                    {locale === 'am' ? service.nameAm || service.name : service.name}
+                  </h3>
+                  {service.descriptionEn || service.descriptionAm ? (
+                    <p className="mt-2 text-sm text-slate-600">
+                      {locale === 'am'
+                        ? service.descriptionAm || service.descriptionEn
+                        : service.descriptionEn}
+                    </p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </Reveal>
         ) : (
           <p className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-slate-600">
             {t('services.empty')}
           </p>
         )}
         <div className="mt-8">
-          <Link href="/services" className="font-semibold text-teal-800 hover:text-teal-900">
+          <Link href="/services" className="font-semibold text-orange-800 hover:text-orange-900">
             {t('home.viewAllServices')} →
           </Link>
         </div>
@@ -163,17 +168,19 @@ export default async function HomePage() {
 
       <section className="bg-slate-50">
         <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+          <div className="accent-line mb-4" aria-hidden="true" />
           <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
             {t('home.doctorsTitle')}
           </h2>
           <p className="mt-2 text-slate-600">{t('home.doctorsIntro')}</p>
           {shownDoctors.length ? (
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {shownDoctors.map((doctor) => (
-                <div
-                  key={doctor.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-6 text-center"
-                >
+            <Reveal delay={40}>
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {shownDoctors.map((doctor) => (
+                  <div
+                    key={doctor.id}
+                    className="card card-hover p-6 text-center"
+                  >
                   <div className="flex justify-center">
                     <DoctorAvatar
                       doctorId={doctor.id}
@@ -196,12 +203,13 @@ export default async function HomePage() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            </Reveal>
           ) : (
             <p className="mt-6 text-slate-600">{t('doctors.empty')}</p>
           )}
           <div className="mt-8">
-            <Link href="/doctors" className="font-semibold text-teal-800 hover:text-teal-900">
+            <Link href="/doctors" className="font-semibold text-orange-800 hover:text-orange-900">
               {t('home.viewAllDoctors')} →
             </Link>
           </div>
@@ -210,52 +218,57 @@ export default async function HomePage() {
 
       {testimonials.length ? (
         <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+          <div className="accent-line mb-4" aria-hidden="true" />
           <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
             {t('home.testimonialsTitle')}
           </h2>
           <p className="mt-2 text-slate-600">{t('home.testimonialsIntro')}</p>
-          <div className="mt-8 grid gap-5 sm:grid-cols-3">
-            {testimonials.map((item, index) => (
-              <blockquote
-                key={index}
-                className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-700"
-              >
-                <p className="text-sm">“{item.text}”</p>
-                <footer className="mt-4 text-sm font-semibold text-slate-900">{item.name}</footer>
-              </blockquote>
-            ))}
-          </div>
+          <Reveal delay={40}>
+            <div className="mt-8 grid gap-5 sm:grid-cols-3">
+              {testimonials.map((item, index) => (
+                <blockquote
+                  key={index}
+                  className="card card-hover p-6 text-slate-700"
+                >
+                  <p className="text-sm">“{item.text}”</p>
+                  <footer className="mt-4 text-sm font-semibold text-slate-900">
+                    {item.name}
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
+          </Reveal>
           <p className="mt-4 text-xs text-slate-400">{t('home.testimonialsPlaceholder')}</p>
         </section>
       ) : null}
 
-      <section className="bg-teal-800 text-white">
+      <section className="bg-orange-800 text-white">
         <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-14 sm:px-6 md:grid-cols-2 md:items-center">
           <div>
             <h2 className="text-2xl font-bold sm:text-3xl">{t('home.ctaTitle')}</h2>
-            <p className="mt-3 max-w-lg text-teal-50">{t('home.ctaText')}</p>
+            <p className="mt-3 max-w-lg text-orange-50">{t('home.ctaText')}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/book"
-                className="rounded-lg bg-white px-6 py-3 text-base font-semibold text-teal-800 hover:bg-teal-50"
+                className="rounded-xl bg-white px-6 py-3 text-base font-semibold text-orange-900 transition-colors hover:bg-orange-50"
               >
                 {t('bookAppointment')}
               </Link>
               {phoneHref ? (
                 <a
                   href={phoneHref}
-                  className="rounded-lg border border-teal-200 px-6 py-3 text-base font-semibold text-white hover:bg-teal-700"
+                  className="rounded-xl border border-orange-200 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-orange-700"
                 >
                   {phone}
                 </a>
               ) : null}
             </div>
           </div>
-          <div className="rounded-2xl bg-teal-900/40 p-6 ring-1 ring-teal-700">
+          <div className="rounded-2xl bg-orange-900/40 p-6 ring-1 ring-orange-700">
             <h3 className="text-lg font-semibold">{t('home.locationTitle')}</h3>
-            {address ? <p className="mt-2 text-teal-50">{address}</p> : null}
+            {address ? <p className="mt-2 text-orange-50">{address}</p> : null}
             <h3 className="mt-5 text-lg font-semibold">{t('home.hoursTitle')}</h3>
-            <p className="mt-2 text-teal-50">{pick(locale, content.hours_text)}</p>
+            <p className="mt-2 text-orange-50">{pick(locale, content.hours_text)}</p>
           </div>
         </div>
       </section>

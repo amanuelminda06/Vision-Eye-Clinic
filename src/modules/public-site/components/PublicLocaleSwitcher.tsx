@@ -42,7 +42,7 @@ export default function PublicLocaleSwitcher() {
           onClick={() => switchTo(code)}
           aria-pressed={active === code}
           className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-            active === code ? 'bg-teal-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+            active === code ? 'bg-orange-800 text-white' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           {label}

@@ -40,7 +40,7 @@ export default async function ServicesPage() {
           {[...byCategory.entries()].map(([category, list]) => (
             <section key={category}>
               <h2 className="text-xl font-bold text-slate-900">
-                <span className="text-sm font-semibold uppercase tracking-wide text-teal-700">
+                <span className="text-sm font-semibold uppercase tracking-wide text-orange-700">
                   {t('services.category')}:{' '}
                 </span>
                 {category}
@@ -65,7 +65,7 @@ export default async function ServicesPage() {
                       )}
                       <Link
                         href="/book"
-                        className="mt-4 font-semibold text-teal-800 hover:text-teal-900"
+                        className="mt-4 font-semibold text-orange-800 hover:text-orange-900"
                       >
                         {t('services.bookService')} →
                       </Link>

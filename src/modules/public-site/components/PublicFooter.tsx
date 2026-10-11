@@ -32,7 +32,7 @@ export default async function PublicFooter({
   ];
 
   return (
-    <footer className="mt-16 border-t border-slate-200 bg-slate-50">
+    <footer className="mt-16 border-t-2 border-orange-600 bg-slate-50">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2.5">
@@ -48,7 +48,7 @@ export default async function PublicFooter({
           <ul className="mt-3 space-y-2">
             {quickLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-sm text-slate-600 hover:text-teal-800">
+                <Link href={link.href} className="text-sm text-slate-600 hover:text-orange-800">
                   {link.label}
                 </Link>
               </li>
@@ -62,7 +62,7 @@ export default async function PublicFooter({
             {address ? <li>{address}</li> : null}
             {phone && phoneHref ? (
               <li>
-                <a href={phoneHref} className="hover:text-teal-800">
+                <a href={phoneHref} className="hover:text-orange-800">
                   {phone}
                 </a>
               </li>

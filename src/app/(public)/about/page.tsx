@@ -50,7 +50,7 @@ export default async function AboutPage() {
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
           href="/book"
-          className="rounded-lg bg-teal-700 px-6 py-3 text-base font-semibold text-white hover:bg-teal-800"
+          className="rounded-xl bg-orange-800 px-6 py-3 text-base font-semibold text-white hover:bg-orange-900"
         >
           {t('bookAppointment')}
         </Link>

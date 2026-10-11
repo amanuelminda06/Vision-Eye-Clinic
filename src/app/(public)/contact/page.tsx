@@ -63,7 +63,7 @@ export default async function ContactPage() {
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-block font-semibold text-teal-800 hover:text-teal-900"
+              className="mt-4 inline-block font-semibold text-orange-800 hover:text-orange-900"
             >
               {t('contact.directions')} →
             </a>
@@ -73,7 +73,7 @@ export default async function ContactPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900">{t('contact.phone')}</h2>
           {phone && phoneHref ? (
-            <a href={phoneHref} className="mt-3 block text-lg font-semibold text-teal-800">
+            <a href={phoneHref} className="mt-3 block text-lg font-semibold text-orange-800">
               {phone}
             </a>
           ) : (
@@ -123,7 +123,7 @@ export default async function ContactPage() {
             href={mapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-block font-semibold text-teal-800 hover:text-teal-900"
+            className="mt-3 inline-block font-semibold text-orange-800 hover:text-orange-900"
           >
             {address || t('contact.directions')} →
           </a>

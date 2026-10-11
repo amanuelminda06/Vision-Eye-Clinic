@@ -37,7 +37,7 @@ export default async function FaqPage() {
                 {item.question}
                 <span
                   aria-hidden="true"
-                  className="text-teal-700 transition-transform group-open:rotate-45"
+                  className="text-orange-700 transition-transform group-open:rotate-45"
                 >
                   +
                 </span>
@@ -49,7 +49,7 @@ export default async function FaqPage() {
       )}
 
       <div className="mt-8">
-        <Link href="/contact" className="font-semibold text-teal-800 hover:text-teal-900">
+        <Link href="/contact" className="font-semibold text-orange-800 hover:text-orange-900">
           {t('navContact')} →
         </Link>
       </div>

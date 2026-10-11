@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="Vision Eye Clinic diagnostic equipment illustration">
   <defs>
     <linearGradient id="bg" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0" stop-color="#99f6e4"/>
-      <stop offset="0.35" stop-color="#ccfbf1"/>
-      <stop offset="0.7" stop-color="#f0fdfa"/>
+      <stop offset="0" stop-color="#fdba74"/>
+      <stop offset="0.35" stop-color="#fed7aa"/>
+      <stop offset="0.7" stop-color="#fff7ed"/>
       <stop offset="1" stop-color="#ffffff"/>
     </linearGradient>
     <radialGradient id="blob1" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#5eead4" stop-opacity="0.5"/>
-      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="0" stop-color="#fb923c" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#fb923c" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="blob2" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.4"/>
-      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+      <stop offset="0" stop-color="#f97316" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
     </radialGradient>
     <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="40"/>
@@ -22,28 +22,28 @@
   <rect width="1200" height="720" fill="url(#bg)"/>
 
   <g filter="url(#soft)">
-    <circle cx="1180" cy="40" r="240" fill="#5eead4" opacity="0.4"/>
-    <circle cx="640" cy="60" r="190" fill="#99f6e4" opacity="0.55"/>
-    <circle cx="1040" cy="460" r="260" fill="#2dd4bf" opacity="0.22"/>
-    <circle cx="460" cy="620" r="220" fill="#ccfbf1" opacity="0.5"/>
+    <circle cx="1180" cy="40" r="240" fill="#fb923c" opacity="0.4"/>
+    <circle cx="640" cy="60" r="190" fill="#fdba74" opacity="0.55"/>
+    <circle cx="1040" cy="460" r="260" fill="#f97316" opacity="0.22"/>
+    <circle cx="460" cy="620" r="220" fill="#fed7aa" opacity="0.5"/>
   </g>
 
   <!-- cross-hair scanning circles (top right) -->
-  <g transform="translate(640,120)" opacity="0.5" fill="none" stroke="#0f766e">
+  <g transform="translate(640,120)" opacity="0.5" fill="none" stroke="#9a3412">
     <circle r="88" stroke-width="5"/>
     <circle r="112" stroke-width="2" stroke-dasharray="4 10"/>
     <circle r="36" stroke-width="4"/>
-    <circle r="10" fill="#0f766e" stroke="none"/>
+    <circle r="10" fill="#9a3412" stroke="none"/>
     <path d="M -112 0 H 112 M 0 -112 V 112" stroke-width="2" opacity="0.7"/>
   </g>
 
   <!-- slit lamp -->
-  <g transform="translate(830,120)" opacity="0.55" fill="none" stroke="#0f766e">
+  <g transform="translate(830,120)" opacity="0.55" fill="none" stroke="#9a3412">
     <path d="M 0 300 V 40 M -90 300 H 90 M -60 260 H 60" stroke-width="8" stroke-linecap="round"/>
     <path d="M 0 40 V -40" stroke-width="6"/>
     <path d="M 0 -20 L 130 -70" stroke-width="7"/>
     <circle cx="142" cy="-82" r="34" stroke-width="7"/>
-    <circle cx="142" cy="-82" r="12" fill="#14b8a6" stroke="none" opacity="0.8"/>
+    <circle cx="142" cy="-82" r="12" fill="#ea580c" stroke="none" opacity="0.8"/>
     <path d="M 112 -60 L 96 6 L 170 6 L 158 -48" stroke-width="5" opacity="0.85"/>
     <ellipse cx="96" cy="14" rx="10" ry="16" stroke-width="5"/>
     <ellipse cx="168" cy="14" rx="10" ry="16" stroke-width="5"/>
@@ -52,22 +52,22 @@
   <!-- Snellen chart -->
   <g transform="translate(950,170)" opacity="0.9">
     <rect width="180" height="250" rx="18" fill="#ffffff" opacity="0.94"/>
-    <rect x="10" y="10" width="160" height="230" rx="12" fill="none" stroke="#99f6e4" stroke-width="3"/>
-    <text x="90" y="86" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="800" fill="#115e59">E</text>
-    <text x="90" y="136" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#0f766e">F P</text>
-    <text x="90" y="176" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#0d9488">T O Z</text>
-    <text x="90" y="210" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#14b8a6" letter-spacing="6">L P E D</text>
+    <rect x="10" y="10" width="160" height="230" rx="12" fill="none" stroke="#fdba74" stroke-width="3"/>
+    <text x="90" y="86" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="800" fill="#7c2d12">E</text>
+    <text x="90" y="136" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#9a3412">F P</text>
+    <text x="90" y="176" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#c2410c">T O Z</text>
+    <text x="90" y="210" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#ea580c" letter-spacing="6">L P E D</text>
   </g>
 
   <!-- handheld ophthalmoscope -->
   <g transform="translate(600,380)" opacity="0.7">
-    <path d="M 26 0 C 26 70 -6 120 -8 176" fill="none" stroke="#0f766e" stroke-width="14" stroke-linecap="round"/>
-    <circle cx="40" cy="0" r="52" fill="#f0fdfa" stroke="#0d9488" stroke-width="10"/>
-    <circle cx="40" cy="0" r="22" fill="#14b8a6" opacity="0.5"/>
-    <rect x="6" y="150" width="22" height="34" rx="6" fill="#0d9488"/>
+    <path d="M 26 0 C 26 70 -6 120 -8 176" fill="none" stroke="#9a3412" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="40" cy="0" r="52" fill="#fff7ed" stroke="#c2410c" stroke-width="10"/>
+    <circle cx="40" cy="0" r="22" fill="#ea580c" opacity="0.5"/>
+    <rect x="6" y="150" width="22" height="34" rx="6" fill="#c2410c"/>
   </g>
 
   <!-- ECG pulse line -->
   <path d="M 380 560 H 470 L 486 560 L 498 470 L 512 640 L 526 496 L 538 560 H 620 L 636 560 L 648 470 L 662 640 L 676 496 L 688 560 H 880 L 896 560 L 908 470 L 922 640 L 936 496 L 948 560 H 1030 L 1046 560 L 1058 470 L 1072 640 L 1086 496 L 1098 560 H 1200"
-        fill="none" stroke="#0d9488" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+        fill="none" stroke="#c2410c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
 </svg>

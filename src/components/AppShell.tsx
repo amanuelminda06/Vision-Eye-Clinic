@@ -145,8 +145,8 @@ function Shell({
         className={
           className +
           (pathname === item.href
-            ? ' bg-slate-100 text-slate-900'
-            : ' text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+            ? ' bg-orange-100 text-orange-900'
+            : ' text-slate-600 hover:bg-orange-50 hover:text-orange-900')
         }
       >
         {tn(item.labelKey as 'dashboard')}
@@ -237,7 +237,7 @@ function Shell({
 
       <div className="mx-auto flex w-full max-w-7xl">
         <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col gap-1 overflow-y-auto border-r border-slate-200 p-3 md:flex">
-          {navLinks('block rounded-md px-3 py-2 text-sm font-medium transition-colors')}
+          {navLinks('block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600')}
         </aside>
 
         <main className="min-w-0 flex-1 px-4 py-6 md:px-6">{forced ? null : children}</main>
@@ -263,7 +263,7 @@ function Shell({
               </button>
             </div>
             <div className="flex flex-col gap-1">
-              {navLinks('block rounded-md px-3 py-2 text-sm font-medium transition-colors')}
+              {navLinks('block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600')}
             </div>
             <button
               type="button"
