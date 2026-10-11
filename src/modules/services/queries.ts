@@ -45,6 +45,7 @@ export type ServiceRow = {
   receiptLabelEn: string | null;
   receiptLabelAm: string | null;
   displayOrder: number;
+  imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -63,6 +64,7 @@ type ServiceDbRow = {
   receiptLabelEn: string | null;
   receiptLabelAm: string | null;
   displayOrder: number;
+  imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -82,6 +84,7 @@ function serialize(row: ServiceDbRow): ServiceRow {
     receiptLabelEn: row.receiptLabelEn,
     receiptLabelAm: row.receiptLabelAm,
     displayOrder: row.displayOrder,
+    imageUrl: row.imageUrl,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -101,6 +104,7 @@ const SELECT = {
   receiptLabelEn: true,
   receiptLabelAm: true,
   displayOrder: true,
+  imageUrl: true,
   createdAt: true,
   updatedAt: true,
 } as const;

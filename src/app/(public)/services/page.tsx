@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { CATEGORY_LABEL_KEYS, isServiceCategory } from '@/modules/services/categories';
@@ -65,20 +66,31 @@ export default async function ServicesPage() {
                   return (
                     <article
                       key={service.id}
-                      className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6"
+                      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
                     >
-                      <h3 className="text-lg font-semibold text-slate-900">{name}</h3>
-                      {description ? (
-                        <p className="mt-2 flex-1 text-sm text-slate-600">{description}</p>
-                      ) : (
-                        <div className="flex-1" />
-                      )}
-                      <Link
-                        href="/book"
-                        className="mt-4 font-semibold text-orange-800 hover:text-orange-900"
-                      >
-                        {t('services.bookService')} →
-                      </Link>
+                      {service.imageUrl ? (
+                        <Image
+                          src={service.imageUrl}
+                          alt={name}
+                          width={1200}
+                          height={800}
+                          className="h-40 w-full object-cover"
+                        />
+                      ) : null}
+                      <div className="flex flex-1 flex-col p-6">
+                        <h3 className="text-lg font-semibold text-slate-900">{name}</h3>
+                        {description ? (
+                          <p className="mt-2 flex-1 text-sm text-slate-600">{description}</p>
+                        ) : (
+                          <div className="flex-1" />
+                        )}
+                        <Link
+                          href="/book"
+                          className="mt-4 font-semibold text-orange-800 hover:text-orange-900"
+                        >
+                          {t('services.bookService')} →
+                        </Link>
+                      </div>
                     </article>
                   );
                 })}

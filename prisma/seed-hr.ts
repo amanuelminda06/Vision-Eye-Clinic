@@ -20,6 +20,18 @@ type StaffSeed = {
   specialty: string | null;
   showOnWebsite: boolean;
   annualLeaveDays: number | null;
+  photoUrl?: string;
+};
+
+/**
+ * Demo profile photos for the published doctors (site-relative, served from
+ * `/public/doctors`). Only backfilled when a doctor has no photo yet, so a real
+ * uploaded photo is never overwritten on re-seed.
+ */
+const DOCTOR_PHOTOS: Record<string, string> = {
+  'staff-doctor-1': '/doctors/dr-abebe-kebede.png',
+  'staff-doctor-2': '/doctors/dr-tigist-alemu.png',
+  'staff-doctor-3': '/doctors/dr-dawit-bekele.png',
 };
 
 export const HR_STAFF: StaffSeed[] = [
@@ -31,6 +43,7 @@ export const HR_STAFF: StaffSeed[] = [
     specialty: 'Ophthalmology',
     showOnWebsite: true,
     annualLeaveDays: 20,
+    photoUrl: '/doctors/dr-tigist-alemu.png',
   },
   {
     id: 'staff-doctor-3',
@@ -40,6 +53,7 @@ export const HR_STAFF: StaffSeed[] = [
     specialty: 'Optometry',
     showOnWebsite: true,
     annualLeaveDays: 18,
+    photoUrl: '/doctors/dr-dawit-bekele.png',
   },
   {
     id: 'staff-nurse-1',
@@ -110,13 +124,18 @@ export async function seedHr(prisma: PrismaClient): Promise<void> {
     await prisma.staff.upsert({
       where: { id: seed.id },
       update: data,
-      create: { id: seed.id, ...data },
+      create: { id: seed.id, ...data, photoUrl: seed.photoUrl ?? null },
     });
   }
   await prisma.staff.update({
     where: { id: 'staff-doctor-1' },
     data: { annualLeaveDays: 20 },
   });
+
+  // Backfill demo profile photos only where none is set (never clobber uploads).
+  for (const [id, photoUrl] of Object.entries(DOCTOR_PHOTOS)) {
+    await prisma.staff.updateMany({ where: { id, photoUrl: null }, data: { photoUrl } });
+  }
   console.log(`✓ HR staff (${HR_STAFF.length + 1})`);
 
   const owner = await prisma.user.findFirst({

@@ -21,6 +21,7 @@ type Values = {
   receiptLabelEn: string | null;
   receiptLabelAm: string | null;
   displayOrder: number;
+  imageUrl: string | null;
 };
 
 type Props = {
@@ -246,6 +247,29 @@ export default function ServiceForm({ mode, service, route }: Props) {
             <span className="mt-0.5 block text-xs text-slate-500">{t('publicHint')}</span>
           </span>
         </label>
+
+        <div>
+          <label className="label" htmlFor="imageUrl">
+            {t('imageUrl')}
+          </label>
+          <input
+            className="input-field"
+            id="imageUrl"
+            name="imageUrl"
+            type="text"
+            autoComplete="off"
+            placeholder="/services/general-eye-care.png"
+            defaultValue={service?.imageUrl ?? ''}
+            disabled={pending}
+            aria-invalid={!!fieldError('imageUrl')}
+          />
+          <p className="mt-1 text-xs text-slate-500">{t('imageUrlHint')}</p>
+          {fieldError('imageUrl') ? (
+            <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+              {fieldError('imageUrl')}
+            </p>
+          ) : null}
+        </div>
 
         <div>
           <label className="label" htmlFor="publicDescriptionEn">

@@ -449,6 +449,9 @@ model Service {
   receiptLabelAm  String?
   /// Order on the public services page (lower appears first).
   displayOrder    Int     @default(0)
+  /// Optional image shown on the public services page (site-relative path in
+  /// `/public`, e.g. `/services/general-eye-care.png`).
+  imageUrl        String?
   createdAt    DateTime @default(now()) @db.Timestamptz
   updatedAt    DateTime @updatedAt @db.Timestamptz
 

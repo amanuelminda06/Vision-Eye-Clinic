@@ -50,6 +50,7 @@ export default async function EditServicePage({ params }: { params: Params }) {
           receiptLabelEn: service.receiptLabelEn,
           receiptLabelAm: service.receiptLabelAm,
           displayOrder: service.displayOrder,
+          imageUrl: service.imageUrl,
         }}
       />
 

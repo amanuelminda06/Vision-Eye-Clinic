@@ -3,30 +3,43 @@ import Image from 'next/image';
 type Props = {
   doctorId: string;
   name: string;
-  /** Whether the doctor has a stored photo (served via the public photo route). */
-  hasPhoto: boolean;
+  /**
+   * Stored photo URL. Uploaded staff photos (`/api/uploads/…`) are served
+   * through the public, allow-listed `/api/public/doctors/[id]/photo` route;
+   * site-relative paths (e.g. `/doctors/…png`) are used as-is.
+   */
+  photoUrl: string | null;
   alt: string;
   size?: number;
   className?: string;
 };
 
+const UPLOAD_PREFIX = '/api/uploads/';
+
 /**
- * Doctor avatar. Photos are served only through the public, allow-listed
- * `/api/public/doctors/[id]/photo` route (published doctors only); otherwise a
- * deterministic initials placeholder is shown (no layout shift).
+ * Doctor avatar. Uploaded photos are served only through the public,
+ * allow-listed route (published doctors only); a site-relative path is used
+ * directly; otherwise a deterministic initials placeholder is shown (no layout
+ * shift).
  */
 export default function DoctorAvatar({
   doctorId,
   name,
-  hasPhoto,
+  photoUrl,
   alt,
   size = 80,
   className = '',
 }: Props) {
-  if (hasPhoto) {
+  const src = photoUrl
+    ? photoUrl.startsWith(UPLOAD_PREFIX)
+      ? `/api/public/doctors/${doctorId}/photo`
+      : photoUrl
+    : null;
+
+  if (src) {
     return (
       <Image
-        src={`/api/public/doctors/${doctorId}/photo`}
+        src={src}
         alt={alt}
         width={size}
         height={size}

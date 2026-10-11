@@ -18,6 +18,7 @@ describe('public projection allow-lists', () => {
       nameAm: 'የዓይን ምርመራ',
       category: 'consultation',
       displayOrder: 2,
+      imageUrl: '/services/eye-examination-glasses.png',
       publicDescriptionEn: 'A thorough exam.',
       publicDescriptionAm: 'ጥልቅ ምርመራ።',
       // Extra private columns that must never survive the projection:

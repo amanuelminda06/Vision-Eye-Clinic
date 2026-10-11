@@ -575,8 +575,10 @@
    "receiptLabelAm": "Receipt label (Amharic)",
    "receiptLabelsHint": "Optional short names printed on receipts. Leave blank to print the full service name.",
    "displayOrder": "Display order",
-   "displayOrderHint": "Lower numbers appear first on the website.",
-   "toBeProvided": "To be provided"
+    "displayOrderHint": "Lower numbers appear first on the website.",
+    "imageUrl": "Image path",
+    "imageUrlHint": "Optional image shown on the website (e.g. /services/general-eye-care.png).",
+    "toBeProvided": "To be provided"
   },
  "sales": {
   "title": "Sales",

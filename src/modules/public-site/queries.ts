@@ -30,6 +30,7 @@ export const getPublicServices = cache(async (): Promise<PublicService[]> => {
       nameAm: true,
       category: true,
       displayOrder: true,
+      imageUrl: true,
       publicDescriptionEn: true,
       publicDescriptionAm: true,
     },

@@ -4,6 +4,7 @@ import { SERVICE_CATEGORIES } from './categories';
 
 export const MAX_SERVICE_NAME = 120;
 export const MAX_PUBLIC_DESCRIPTION = 2000;
+export const MAX_IMAGE_URL = 500;
 
 /** Prices are NUMERIC(12,2): up to 10 integer digits and at most 2 decimals. */
 const PRICE_RE = /^\d{1,10}(\.\d{1,2})?$/;
@@ -57,6 +58,13 @@ export const serviceFormSchema = z.object({
       const parsed = Number(value);
       return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 0;
     }),
+  /** Optional image shown on the public services page (site-relative path). */
+  imageUrl: z
+    .string()
+    .trim()
+    .max(MAX_IMAGE_URL, 'tooLong')
+    .optional()
+    .transform((value) => value || null),
 });
 
 export type ServiceFormValues = z.infer<typeof serviceFormSchema>;

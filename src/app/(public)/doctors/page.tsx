@@ -50,7 +50,7 @@ export default async function DoctorsPage() {
                 <DoctorAvatar
                   doctorId={doctor.id}
                   name={doctor.name}
-                  hasPhoto={Boolean(doctor.photoUrl)}
+                  photoUrl={doctor.photoUrl}
                   alt={t('doctors.photoAlt', { name: doctor.name })}
                   size={64}
                 />

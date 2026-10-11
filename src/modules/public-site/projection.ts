@@ -37,6 +37,7 @@ export const PUBLIC_SERVICE_FIELDS = [
   'nameAm',
   'category',
   'displayOrder',
+  'imageUrl',
   'descriptionEn',
   'descriptionAm',
 ] as const;
@@ -59,6 +60,7 @@ export type PublicService = {
   nameAm: string | null;
   category: string;
   displayOrder: number;
+  imageUrl: string | null;
   descriptionEn: string | null;
   descriptionAm: string | null;
 };
@@ -71,6 +73,7 @@ export type PublicServiceRow = {
   nameAm: string | null;
   category: string;
   displayOrder: number;
+  imageUrl: string | null;
   publicDescriptionEn: string | null;
   publicDescriptionAm: string | null;
 };
@@ -87,6 +90,7 @@ export function toPublicService(row: PublicServiceRow): PublicService {
     nameAm: row.nameAm,
     category: row.category,
     displayOrder: row.displayOrder,
+    imageUrl: row.imageUrl,
     descriptionEn: row.publicDescriptionEn,
     descriptionAm: row.publicDescriptionAm,
   };

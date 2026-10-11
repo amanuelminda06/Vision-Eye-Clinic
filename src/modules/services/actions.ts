@@ -23,6 +23,7 @@ function readServiceForm(formData: FormData) {
     receiptLabelEn: String(formData.get('receiptLabelEn') ?? ''),
     receiptLabelAm: String(formData.get('receiptLabelAm') ?? ''),
     displayOrder: String(formData.get('displayOrder') ?? ''),
+    imageUrl: String(formData.get('imageUrl') ?? ''),
   };
 }
 
@@ -47,6 +48,7 @@ export async function createServiceAction(
         receiptLabelEn: values.receiptLabelEn,
         receiptLabelAm: values.receiptLabelAm,
         displayOrder: values.displayOrder,
+        imageUrl: values.imageUrl,
       },
     });
 
@@ -95,6 +97,7 @@ export async function updateServiceAction(
         receiptLabelEn: values.receiptLabelEn,
         receiptLabelAm: values.receiptLabelAm,
         displayOrder: values.displayOrder,
+        imageUrl: values.imageUrl,
       },
     });
 

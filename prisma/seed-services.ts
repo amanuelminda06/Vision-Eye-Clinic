@@ -22,6 +22,7 @@ export type ServiceSeed = {
   category: string;
   price: string;
   displayOrder: number;
+  imageUrl?: string;
   receiptLabelEn?: string;
   receiptLabelAm?: string;
 };
@@ -33,6 +34,7 @@ export const REAL_SERVICES: ServiceSeed[] = [
     category: 'consultation',
     price: '300.00',
     displayOrder: 1,
+    imageUrl: '/services/general-eye-care.png',
   },
   {
     nameEn: 'Eye Examination for Glasses (Modern Equipment)',
@@ -40,6 +42,7 @@ export const REAL_SERVICES: ServiceSeed[] = [
     category: 'diagnostics',
     price: '500.00',
     displayOrder: 2,
+    imageUrl: '/services/eye-examination-glasses.png',
   },
   {
     nameEn: 'Glasses Making and Sales',
@@ -47,6 +50,7 @@ export const REAL_SERVICES: ServiceSeed[] = [
     category: 'optical',
     price: '1500.00',
     displayOrder: 3,
+    imageUrl: '/services/glasses-making-sales.png',
   },
   {
     nameEn: 'Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients',
@@ -54,6 +58,7 @@ export const REAL_SERVICES: ServiceSeed[] = [
     category: 'specialist',
     price: '400.00',
     displayOrder: 4,
+    imageUrl: '/services/specialist-diabetes-bp.png',
     receiptLabelEn: 'Specialist eye check-up',
     receiptLabelAm: 'ልዩ የዓይን ክትትል',
   },
@@ -63,6 +68,7 @@ export const REAL_SERVICES: ServiceSeed[] = [
     category: 'specialist',
     price: '400.00',
     displayOrder: 5,
+    imageUrl: '/services/children-eye-exam.png',
   },
   {
     nameEn: 'Minor Eye Surgery',
@@ -70,6 +76,7 @@ export const REAL_SERVICES: ServiceSeed[] = [
     category: 'surgery',
     price: '5000.00',
     displayOrder: 6,
+    imageUrl: '/services/minor-eye-surgery.png',
   },
 ];
 
@@ -125,6 +132,7 @@ async function upsertServices(prisma: PrismaClient): Promise<ServiceRow[]> {
           active: true,
           isPublic: true,
           displayOrder: seed.displayOrder,
+          imageUrl: seed.imageUrl ?? null,
           receiptLabelEn: seed.receiptLabelEn ?? null,
           receiptLabelAm: seed.receiptLabelAm ?? null,
         },
@@ -147,6 +155,7 @@ async function upsertServices(prisma: PrismaClient): Promise<ServiceRow[]> {
         active: true,
         isPublic: true,
         displayOrder: seed.displayOrder,
+        imageUrl: seed.imageUrl ?? null,
         receiptLabelEn: seed.receiptLabelEn ?? null,
         receiptLabelAm: seed.receiptLabelAm ?? null,
       },
