@@ -48,8 +48,21 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="bg-gradient-to-b from-teal-50 to-white">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
+      <section className="relative overflow-hidden bg-white">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/hero-medical.svg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/10"
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
             <p className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-teal-800 ring-1 ring-teal-100">
               {pick(locale, content.hero_promise)}
