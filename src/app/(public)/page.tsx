@@ -13,6 +13,7 @@ import {
 } from '@/modules/public-site';
 import { telHref } from '@/modules/public-site/format';
 import Reveal from '@/components/Reveal';
+import SiteLogo from '@/components/SiteLogo';
 import DoctorAvatar from '@/modules/public-site/components/DoctorAvatar';
 import DoctorStatusBadge from '@/modules/public-site/components/DoctorStatusBadge';
 
@@ -53,19 +54,27 @@ export default async function HomePage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: 'url(/hero-medical.svg)',
+            backgroundImage: 'url(/hero.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            filter: 'blur(20px)',
+            transform: 'scale(1.12)',
           }}
           aria-hidden="true"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/10"
+          className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/25"
           aria-hidden="true"
         />
+        <div className="absolute inset-0 bg-orange-900/10" aria-hidden="true" />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
-            <p className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-orange-800 ring-1 ring-orange-100">
+            <SiteLogo
+              height={60}
+              priority
+              className="rounded-2xl bg-white/95 p-3 shadow-md ring-1 ring-orange-100"
+            />
+            <p className="mt-5 inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-orange-800 ring-1 ring-orange-100">
               {pick(locale, content.hero_promise)}
             </p>
             <h1 className="mt-5 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">

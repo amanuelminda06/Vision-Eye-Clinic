@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { SessionProvider, signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import type { Role } from '@prisma/client';
+import SiteLogo from '@/components/SiteLogo';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
 import GlobalSearch from '@/components/GlobalSearch';
 
@@ -172,8 +173,9 @@ function Shell({
             ☰
           </button>
 
-          <Link href="/dashboard" className="text-sm font-semibold text-slate-900">
-            {t('shortName')}
+          <Link href="/dashboard" className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <SiteLogo height={28} className="rounded-md" />
+            <span className="hidden sm:inline">{t('shortName')}</span>
           </Link>
 
           {user.role !== 'STAFF' ? (

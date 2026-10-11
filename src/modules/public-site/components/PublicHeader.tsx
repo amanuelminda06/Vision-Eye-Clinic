@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import SiteLogo from '@/components/SiteLogo';
 import PublicLocaleSwitcher from './PublicLocaleSwitcher';
 
 type NavLink = { href: string; labelKey: string };
@@ -16,32 +17,6 @@ const LINKS: NavLink[] = [
   { href: '/contact', labelKey: 'navContact' },
   { href: '/faq', labelKey: 'navFaq' },
 ];
-
-export function BrandMark({ className = 'h-9 w-9' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true" role="img">
-      <defs>
-        <linearGradient id="vx" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#c2410c" />
-          <stop offset="100%" stopColor="#7c2d12" />
-        </linearGradient>
-        <radialGradient id="vx-guard" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="32" height="32" rx="8" fill="url(#vx)" />
-      <path
-        d="M16 9c-4.5 0-7.9 3.4-9.2 6.4a1.6 1.6 0 0 0 0 1.2C8.1 19.6 11.5 23 16 23s7.9-3.4 9.2-6.4a1.6 1.6 0 0 0 0-1.2C23.9 12.4 20.5 9 16 9Z"
-        fill="url(#vx-guard)"
-        stroke="#fff"
-        strokeWidth="1.6"
-      />
-      <circle cx="16" cy="16" r="3.4" fill="#fff" />
-      <circle cx="14" cy="14" r="1.1" fill="#9a3412" opacity="0.9" />
-    </svg>
-  );
-}
 
 type Props = {
   clinicName: string;
@@ -76,10 +51,7 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5" aria-label={clinicName}>
-          <BrandMark />
-          <span className="text-base font-semibold tracking-tight text-slate-900">
-            {clinicName}
-          </span>
+          <SiteLogo height={36} priority />
         </Link>
 
         <nav className="ml-4 hidden items-center gap-0.5 lg:flex" aria-label={t('menuLabel')}>

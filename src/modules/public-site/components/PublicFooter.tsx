@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { BrandMark } from './PublicHeader';
+import { SiteLogoDark } from '@/components/SiteLogo';
 
 type Props = {
   clinicName: string;
@@ -35,9 +35,8 @@ export default async function PublicFooter({
     <footer className="mt-16 border-t-2 border-orange-600 bg-slate-50">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
-          <div className="flex items-center gap-2.5">
-            <BrandMark className="h-9 w-9" />
-            <span className="text-base font-semibold text-slate-900">{clinicName}</span>
+          <div className="inline-flex rounded-2xl bg-stone-900 p-3 ring-1 ring-orange-600/60">
+            <SiteLogoDark height={40} />
           </div>
           <p className="mt-3 max-w-xs text-sm text-slate-600">{t('footerAbout')}</p>
           {footerNote ? <p className="mt-3 max-w-xs text-xs text-slate-500">{footerNote}</p> : null}
