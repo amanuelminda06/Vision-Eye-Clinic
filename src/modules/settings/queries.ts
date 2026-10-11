@@ -68,5 +68,7 @@ export function settingsFromMap(map: Record<string, unknown>): SettingsFormValue
     digest_enabled: map.digest_enabled === true,
     digest_email: str(map.digest_email, ''),
     default_language: map.default_language === 'am' ? 'am' : 'en',
+    group_sms_allow_for_filtered: map.group_sms_allow_for_filtered === true,
+    group_sms_max_recipients: Math.min(100, Math.max(1, num(map.group_sms_max_recipients, 15))),
   };
 }

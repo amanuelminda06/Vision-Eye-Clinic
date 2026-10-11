@@ -1,5 +1,8 @@
 import type {
+  CampaignBatchStatus,
+  CampaignDeliveryMode,
   CampaignStatus,
+  MessageLibraryCategory,
   MessageSourceType,
   MessageStatus,
   MessageTemplateKey,
@@ -81,6 +84,46 @@ export const CAMPAIGN_STATUS_LABEL_KEYS: Record<CampaignStatus, string> = {
   ACTIVE: 'campaignActive',
   COMPLETED: 'campaignCompleted',
   CANCELLED: 'campaignCancelled',
+};
+
+export const CAMPAIGN_DELIVERY_MODES = ['INDIVIDUAL', 'GROUP'] as const satisfies readonly CampaignDeliveryMode[];
+export type CampaignDelivery = (typeof CAMPAIGN_DELIVERY_MODES)[number];
+
+export const DELIVERY_MODE_LABEL_KEYS: Record<CampaignDeliveryMode, string> = {
+  INDIVIDUAL: 'deliveryIndividual',
+  GROUP: 'deliveryGroup',
+};
+
+export const BATCH_STATUS_LABEL_KEYS: Record<CampaignBatchStatus, string> = {
+  PENDING: 'batchPending',
+  SENT: 'batchSent',
+  SKIPPED: 'batchSkipped',
+};
+
+export const LIBRARY_CATEGORIES = [
+  'REMINDER',
+  'GREETING',
+  'ANNOUNCEMENT',
+  'FOLLOWUP',
+  'OTHER',
+] as const satisfies readonly MessageLibraryCategory[];
+
+export const LIBRARY_CATEGORY_LABEL_KEYS: Record<MessageLibraryCategory, string> = {
+  REMINDER: 'libReminder',
+  GREETING: 'libGreeting',
+  ANNOUNCEMENT: 'libAnnouncement',
+  FOLLOWUP: 'libFollowup',
+  OTHER: 'libOther',
+};
+
+/** Why group delivery is blocked by default — `messages.groupBlock.*` keys. */
+export const GROUP_BLOCK_LABEL_KEYS: Record<string, string> = {
+  service: 'groupBlockService',
+  tag: 'groupBlockTag',
+  category: 'groupBlockCategory',
+  upcoming: 'groupBlockUpcoming',
+  purchase: 'groupBlockPurchase',
+  filtered: 'groupBlockFiltered',
 };
 
 /** Eligibility reasons — map to `messages.blocked.*` i18n keys. */

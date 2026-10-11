@@ -51,6 +51,8 @@ const SETTINGS: SettingSeed[] = [
   { key: 'digest_enabled', value: false },
   { key: 'digest_email', value: '' },
   { key: 'default_language', value: 'en' },
+  { key: 'group_sms_allow_for_filtered', value: false },
+  { key: 'group_sms_max_recipients', value: 15 },
 ];
 
 async function main(): Promise<void> {
@@ -62,6 +64,7 @@ async function main(): Promise<void> {
   const { seedHr } = await import('./seed-hr');
   const { seedAppointments } = await import('./seed-appointments');
     const { seedMessageTemplates } = await import('./seed-messages');
+  const { seedMessageLibrary, seedAudiences } = await import('./seed-library');
     const { seedSiteContent } = await import('./seed-content');
   const prisma = new PrismaClient();
 
@@ -211,6 +214,11 @@ async function main(): Promise<void> {
     // --- SMS templates: English + Amharic drafts (idempotent) ---
     const templates = await seedMessageTemplates(prisma);
     console.log(`✓ ${templates} message templates (en + am)`);
+
+    // --- Message library + saved audiences (idempotent) ---
+    const library = await seedMessageLibrary(prisma, owner?.id ?? 'seed');
+    const audiences = await seedAudiences(prisma, owner?.id ?? 'seed');
+    console.log(`✓ ${library} library messages, ${audiences} saved audiences`);
 
     // --- Public website content + public services (idempotent) ---
     const content = await seedSiteContent(prisma);

@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { requirePageRole } from '@/lib/require-role';
 import { MESSAGE_ROLES, canSendCampaigns } from '@/modules/messaging';
 import { CAMPAIGN_STATUS_LABEL_KEYS } from '@/modules/messaging/constants';
-import { getCampaign, listCampaignQueue } from '@/modules/messaging/queries';
+import { getCampaign, listCampaignBatches, listCampaignQueue } from '@/modules/messaging/queries';
 import CampaignQueue from '@/modules/messaging/components/CampaignQueue';
 
 type Params = { params: Promise<{ id: string }> };
@@ -18,6 +18,8 @@ export default async function CampaignDetailPage({ params }: Params) {
   if (!campaign) notFound();
 
   const items = await listCampaignQueue(id);
+  const batches =
+    campaign.deliveryMode === 'GROUP' ? await listCampaignBatches(id) : [];
   const canManage = canSendCampaigns(user.role, true);
 
   return (
@@ -42,6 +44,8 @@ export default async function CampaignDetailPage({ params }: Params) {
         campaignId={campaign.id}
         items={items}
         canManage={canManage}
+        deliveryMode={campaign.deliveryMode}
+        batches={batches}
         progress={{
           sent: campaign.sent,
           pending: campaign.pending,

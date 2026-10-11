@@ -3,14 +3,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import type { CampaignQueueItem } from '../queries';
-import { MESSAGE_STATUS_LABEL_KEYS } from '../constants';
-import { buildSmsLink, detectPlatform } from '../provider';
+import type { CampaignBatchRow, CampaignQueueItem } from '../queries';
+import { BATCH_STATUS_LABEL_KEYS, MESSAGE_STATUS_LABEL_KEYS } from '../constants';
+import { buildGroupSmsLink, buildSmsLink, detectPlatform } from '../provider';
 import {
   acknowledgeGroupCopyAction,
   cancelCampaignAction,
   confirmMessageSentAction,
   openMessageTaskAction,
+  setCampaignBatchStatusAction,
   skipMessageTaskAction,
 } from '../actions';
 
@@ -18,13 +19,24 @@ type Props = {
   campaignId: string;
   items: CampaignQueueItem[];
   canManage: boolean;
+  deliveryMode: 'INDIVIDUAL' | 'GROUP';
+  batches: CampaignBatchRow[];
   progress: { sent: number; pending: number; skipped: number; total: number };
 };
 
-export default function CampaignQueue({ campaignId, items, canManage, progress }: Props) {
+export default function CampaignQueue({
+  campaignId,
+  items,
+  canManage,
+  deliveryMode,
+  batches,
+  progress,
+}: Props) {
   const t = useTranslations('messages');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [active, setActive] = useState<CampaignQueueItem | null>(null);
+  const [activeBatch, setActiveBatch] = useState<CampaignBatchRow | null>(null);
   const [message, setMessage] = useState('');
   const [skipOpen, setSkipOpen] = useState(false);
   const [skipReason, setSkipReason] = useState('');
@@ -32,9 +44,16 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
   const [ack, setAck] = useState(false);
   const [toast, setToast] = useState('');
 
+  const isGroup = deliveryMode === 'GROUP';
+
   const pending = useMemo(
     () => items.filter((item) => item.status === 'PENDING' || item.status === 'OPENED'),
     [items],
+  );
+
+  const pendingBatches = useMemo(
+    () => batches.filter((batch) => batch.status === 'PENDING'),
+    [batches],
   );
 
   const send = useCallback(async (task: CampaignQueueItem) => {
@@ -66,6 +85,36 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
     setActive(null);
     router.refresh();
   }, [active, router]);
+
+  const sendBatch = useCallback((batch: CampaignBatchRow) => {
+    setActiveBatch(batch);
+    window.location.href = buildGroupSmsLink(
+      batch.phones,
+      batch.message,
+      detectPlatform(navigator.userAgent),
+    );
+  }, []);
+
+  const handleBatch = useCallback(
+    async (status: 'SENT' | 'SKIPPED') => {
+      if (!activeBatch) return;
+      if (status === 'SKIPPED' && !skipReason.trim()) return;
+      const fd = new FormData();
+      fd.set('batchId', activeBatch.id);
+      fd.set('status', status);
+      fd.set('reason', skipReason.trim());
+      const result = await setCampaignBatchStatusAction(null, fd);
+      if (!result.ok) {
+        setToast(result.error ?? tc('unknownError'));
+        return;
+      }
+      setActiveBatch(null);
+      setSkipOpen(false);
+      setSkipReason('');
+      router.refresh();
+    },
+    [activeBatch, skipReason, router, tc],
+  );
 
   const doSkip = useCallback(async () => {
     if (!active || !skipReason.trim()) return;
@@ -113,25 +162,41 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
         <p className="text-xs text-slate-600">
           {t('progress', { sent: progress.sent, total: progress.total, skipped: progress.skipped })}
         </p>
+        {isGroup ? (
+          <p className="rounded-md bg-amber-50 p-2 text-xs text-amber-800">{t('groupBatchNote')}</p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="btn-primary"
-          disabled={pending.length === 0}
-          onClick={() => pending[0] && void send(pending[0])}
-        >
-          {t('sendNext')}
-        </button>
-        <button
-          type="button"
-          className="btn-secondary"
-          disabled={pending.length === 0}
-          onClick={() => setCopyOpen(true)}
-        >
-          {t('copyAllNumbers')}
-        </button>
+        {isGroup ? (
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={pendingBatches.length === 0}
+            onClick={() => pendingBatches[0] && sendBatch(pendingBatches[0])}
+          >
+            {t('sendNextBatch')}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={pending.length === 0}
+            onClick={() => pending[0] && void send(pending[0])}
+          >
+            {t('sendNext')}
+          </button>
+        )}
+        {!isGroup ? (
+          <button
+            type="button"
+            className="btn-secondary"
+            disabled={pending.length === 0}
+            onClick={() => setCopyOpen(true)}
+          >
+            {t('copyAllNumbers')}
+          </button>
+        ) : null}
         {canManage ? (
           <button
             type="button"
@@ -143,25 +208,58 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
         ) : null}
       </div>
 
-      <ul className="card divide-y divide-slate-100">
-        {items.map((item) => (
-          <li key={item.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
-            <div className="min-w-0 flex-1">
-              <span className="font-medium text-slate-900">{item.patientName}</span>{' '}
-              <span className="text-xs text-slate-500">{item.patientPhoneE164}</span>
-              <p className="truncate text-xs text-slate-600">{item.renderedMessage}</p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
-              {t(MESSAGE_STATUS_LABEL_KEYS[item.status] as never)}
-            </span>
-            {item.status === 'PENDING' || item.status === 'OPENED' ? (
-              <button type="button" className="btn-primary" onClick={() => void send(item)}>
-                {t('send')}
-              </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
+      {isGroup ? (
+        <ul className="card divide-y divide-slate-100">
+          {batches.length === 0 ? (
+            <li className="px-4 py-3 text-sm text-slate-500">{t('noBatches')}</li>
+          ) : (
+            batches.map((batch) => (
+              <li key={batch.id} className="space-y-1 px-4 py-3 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium text-slate-900">
+                    {t('batchLabel', { number: batch.batchNumber, count: batch.size })}
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
+                    {t(BATCH_STATUS_LABEL_KEYS[batch.status] as never)}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  {batch.sample.map((row) => `${row.fullName} ${row.phoneE164}`).join(' · ')}
+                  {batch.size > batch.sample.length
+                    ? ` · ${t('sampleOf', { shown: batch.sample.length, total: batch.size })}`
+                    : ''}
+                </p>
+                <p className="whitespace-pre-wrap text-xs text-slate-600">{batch.message}</p>
+                {batch.status === 'PENDING' ? (
+                  <button type="button" className="btn-primary" onClick={() => sendBatch(batch)}>
+                    {t('sendThisBatch')}
+                  </button>
+                ) : null}
+              </li>
+            ))
+          )}
+        </ul>
+      ) : (
+        <ul className="card divide-y divide-slate-100">
+          {items.map((item) => (
+            <li key={item.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
+              <div className="min-w-0 flex-1">
+                <span className="font-medium text-slate-900">{item.patientName}</span>{' '}
+                <span className="text-xs text-slate-500">{item.patientPhoneE164}</span>
+                <p className="truncate text-xs text-slate-600">{item.renderedMessage}</p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
+                {t(MESSAGE_STATUS_LABEL_KEYS[item.status] as never)}
+              </span>
+              {item.status === 'PENDING' || item.status === 'OPENED' ? (
+                <button type="button" className="btn-primary" onClick={() => void send(item)}>
+                  {t('send')}
+                </button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {active ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
@@ -178,7 +276,42 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
                 {t('skip')}
               </button>
               <button type="button" className="btn-secondary" onClick={() => setActive(null)}>
-                {t('close')}
+                {tc('close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {activeBatch ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="w-full max-w-md space-y-3 rounded-xl bg-white p-5 shadow-xl">
+            <h3 className="text-base font-semibold text-slate-900">
+              {t('batchLabel', { number: activeBatch.batchNumber, count: activeBatch.size })}
+            </h3>
+            <p className="rounded-md bg-amber-50 p-3 text-xs text-amber-800">
+              {t('groupBatchConfirm')}
+            </p>
+            <p className="whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-sm text-slate-700">
+              {activeBatch.message}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => void handleBatch('SENT')}
+              >
+                {t('yesSent')}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setSkipOpen(true)}>
+                {t('skip')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setActiveBatch(null)}
+              >
+                {tc('close')}
               </button>
             </div>
           </div>
@@ -195,14 +328,23 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
               onChange={(event) => setSkipReason(event.target.value)}
             />
             <div className="flex justify-end gap-2">
-              <button type="button" className="btn-secondary" onClick={() => setSkipOpen(false)}>
-                {t('close')}
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setSkipOpen(false);
+                  setSkipReason('');
+                }}
+              >
+                {tc('close')}
               </button>
               <button
                 type="button"
                 className="btn-primary"
                 disabled={!skipReason.trim()}
-                onClick={() => void doSkip()}
+                onClick={() =>
+                  activeBatch ? void handleBatch('SKIPPED') : void doSkip()
+                }
               >
                 {t('skip')}
               </button>
@@ -226,7 +368,7 @@ export default function CampaignQueue({ campaignId, items, canManage, progress }
             </label>
             <div className="flex justify-end gap-2">
               <button type="button" className="btn-secondary" onClick={() => setCopyOpen(false)}>
-                {t('close')}
+                {tc('close')}
               </button>
               <button
                 type="button"

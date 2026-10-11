@@ -62,6 +62,8 @@ bash scripts/smoke.sh  # production smoke test, 173 checks (server must be runni
 ## Documentation
 
 - `docs/roles.md` — what OWNER, RECEPTION and STAFF can do.
+- `docs/messaging-6b-manual.md` — richer filters, drafts, Message Library and
+  the One-group-chat delivery flow.
 - `docs/deployment.md` — production install, proxy, jobs, upgrades.
 - `docs/go-live.md` — pre-launch checklist (critical / content / people).
 - `docs/uat.md` — user acceptance test script + sign-off table.
@@ -87,7 +89,9 @@ erp/
 │   ├── seed-services.ts       # 12 services + 40 sales over 60 days (deterministic, idempotent)
 │   ├── seed-hr.ts             # 6 staff + 4 templates + 72 shifts + 2 leave requests (deterministic, idempotent)
 │   ├── seed-appointments.ts   # 20 appointments + 5 website requests + 5 follow-ups (deterministic, idempotent)
-│   └── seed-messages.ts       # 13 template keys × en/am (26 rows, idempotent upsert)
+│   ├── seed-messages.ts       # 13 template keys × en/am (26 rows, idempotent upsert)
+│   ├── seed-library.ts        # 10 library messages × en/am + 2 saved audiences
+│   ├── seed-group-e2e.ts      # deterministic 40-patient fixture for the group E2E
 ├── scripts/
 │   ├── db.mjs                 # embedded Postgres lifecycle
 │   ├── messages-check.mjs     # i18n completeness gate
@@ -168,20 +172,27 @@ erp/
     │   └── messaging/         # manual-link SMS outbox (no gateway): templates, tasks,
     │       │                  # campaigns, opt-out, digest; SmsProvider seam (GatewayProvider stub)
     │       ├── constants.ts   # template/status/source/blocked-reason key maps, language rules
-    │       ├── templates.ts   # built-in en/am bodies + variable registry
+    │       ├── templates.ts   # built-in en/am bodies + variable registry + message-body validation
     │       ├── provider.ts    # SmsProvider: ManualLinkProvider + GatewayProvider (throws)
     │       ├── render.ts      # variable substitution + GSM-7/Unicode segment counting (pure, tested)
     │       ├── schedule.ts    # task timing rules in clinic time (pure, tested)
     │       ├── eligibility.ts # active + consent + not-opted-out + valid phone (pure, tested)
     │       ├── campaign-filter.ts # audience matcher + exclusion counts (pure, tested)
+    │       ├── recipient-filter.ts # 6B richer filter + group-safe rules (pure, tested)
+    │       ├── group-plan.ts  # batch splitting, e.g. 40 → [15,15,10] (pure, tested)
+    │       ├── message-hash.ts # library duplicate guard (pure, tested)
+    │       ├── recipients.ts  # server-side resolveRecipients + patient type-ahead
     │       ├── generate.ts    # idempotent task generation + expiry + cancelPending*
-    │       ├── campaign.ts    # campaign loader/materialize (server)
-    │       ├── actions.ts     # open/confirm/postpone/skip/edit, jobs, templates, campaigns
-    │       ├── queries.ts     # outbox groups, counts, templates, campaigns, expired report
-    │       ├── roles.ts       # MESSAGE_ROLES, MESSAGE_OWNER_ROLES
+    │       ├── campaign.ts    # campaign loader/preview/materialize (server)
+    │       ├── actions.ts     # open/confirm/postpone/skip/edit, jobs, templates, campaigns,
+    │       │                  # drafts, library, audiences, batch handling, patient search
+    │       ├── queries.ts     # outbox groups, counts, templates, campaigns, batches, library,
+    │       │                  # drafts, audiences, expired report
+    │       ├── roles.ts       # MESSAGE_ROLES, MESSAGE_OWNER_ROLES, library/audience/override rules
     │       ├── schemas.ts     # zod form schemas (i18n messages)
     │       └── components/    # OutboxBoard, PatientMessagesList, TemplateEditor,
-    │                          # CampaignBuilder, CampaignQueue, RunJobsButton, MessagesTicker
+    │                          # MessageWizard (replaces CampaignBuilder), CampaignQueue,
+    │                          # LibraryBoard, DraftsBoard, RunJobsButton, MessagesTicker
     │   └── public-site/       # public website: content (CMS-lite keys/defaults),
     │       │                  # queries (cached, whitelisted), projection (allow-list
     │       │                  # + leak scanner, tested), schemas (booking), actions
@@ -285,7 +296,7 @@ Automated: with the production server running, `bash scripts/smoke.sh` covers
 items 1–5, 10, 13, parts of 15–24, the HR role/model checks, the
 appointments/requests/follow-ups + public-intake checks and the messaging
 page/role/API checks (173 checks, exits non-zero on failure); `npm test` adds
-217 unit tests (28 files: phone normalization, duplicate detection, CSV import,
+335 unit tests (41 files: phone normalization, duplicate detection, CSV import,
 consent/audit helpers, role gates, money rounding, sale line snapshots, receipt
 numbers + timezone boundary, revenue aggregation + period presets, shift
 template generation + overlap + week grids, leave balances/overlap/duty
@@ -293,12 +304,15 @@ suppression, public doctor status projection, appointment status transitions +
 double-booking/working-minutes, public request validation, message template
 rendering, GSM-7/Unicode segment counting, SMS link building, task timing
 (birthday/same-day/thank-you in Addis time), eligibility blocking, campaign
-audience matching + exclusion counts, messaging role rules, the XLSX writer +
+audience matching + exclusion counts, 6B recipient filters + group-safe rules,
+group batch planning (40 → 15/15/10), library duplicate hashing, message-body
+validation, messaging role rules, the XLSX writer +
 export row/naming rules, and the public-site
 privacy projection + booking schema + SEO/hreflang + announcement window). The
 browser-level items below still need a human. The Playwright specs under `e2e/`
 (`npm run test:e2e`) automate the authentication, role-access, patient→sale,
-request→appointment, leave and messages flows against a seeded database.
+request→appointment, leave and messages flows against a seeded database; the
+group-chat batch flow runs on the `mobile` project (`e2e/group-batch.spec.ts`).
 
 1. `/login/wrong` → 404; `/login` → 404; correct secret → login page.
 2. Wrong password ×5 → account locked (15 min), `LOGIN_FAILED` rows with IP.

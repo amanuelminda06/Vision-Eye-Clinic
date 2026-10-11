@@ -31,9 +31,10 @@ export default function LoginForm() {
     }
 
     // First-login forced change: the JWT still says mustChangePassword, so
-    // send the user straight to /change-password instead of the dashboard.
+    // send the user straight to /change-password instead of the app. Otherwise
+    // land on the dashboard (the app root `/` is the public marketing site).
     const session = await getSession();
-    router.push(session?.user?.mustChangePassword ? '/change-password' : '/');
+    router.push(session?.user?.mustChangePassword ? '/change-password' : '/dashboard');
     router.refresh();
   }
 

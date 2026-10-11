@@ -1,4 +1,10 @@
-import { GSM7_BASIC, GSM7_EXTENSION, TEMPLATE_VARIABLES, type TemplateVariable } from './constants';
+import {
+  GSM7_BASIC,
+  GSM7_EXTENSION,
+  MAX_CAMPAIGN_MESSAGE,
+  TEMPLATE_VARIABLES,
+  type TemplateVariable,
+} from './constants';
 
 /**
  * Pure template rules: variable validation, rendering, and the SMS character
@@ -109,4 +115,66 @@ export function previewTemplate(
   const merged = { ...SAMPLE_DATA, ...sample };
   const text = renderTemplate(body, merged);
   return { text, count: countSms(text), unknown: unknownVariables(body) };
+}
+
+/**
+ * Clinical/financial terms that must not appear in a message (rule: no
+ * diagnoses, treatments, doctor specialties, or prices). Checked
+ * case-insensitively; both English and Amharic triggers are listed.
+ */
+export const SENSITIVE_TERMS = [
+  'diagnosis',
+  'diagnosed',
+  'treatment',
+  'prescription',
+  'medicine',
+  'medication',
+  'surgery',
+  'cataract',
+  'glaucoma',
+  'price',
+  'birr',
+  'etb',
+  'discount',
+  'ምርመራ',
+  'ህክምና',
+  'መድኃኒት',
+  'ቀዶ',
+  'ዋጋ',
+  'ብር',
+] as const;
+
+/** Returns the sensitive terms found in a body (empty = clean). */
+export function scanSensitiveContent(body: string): string[] {
+  const lower = body.toLowerCase();
+  const hits: string[] = [];
+  for (const term of SENSITIVE_TERMS) {
+    if (lower.includes(term.toLowerCase())) hits.push(term);
+  }
+  return hits;
+}
+
+export type MessageBodyCheck = {
+  ok: boolean;
+  /** i18n key under `messages.` describing the first problem, if any. */
+  error?: 'messageRequired' | 'messageTooLong' | 'unknownVariable';
+  unknown: string[];
+  sensitive: string[];
+};
+
+/**
+ * Validates a composer/library/picker message body: non-empty after trim,
+ * within the campaign length cap, and using only known variables. Sensitive
+ * terms are reported but do not block (they are surfaced as a warning).
+ */
+export function validateMessageBody(body: string): MessageBodyCheck {
+  const trimmed = body.trim();
+  const unknown = unknownVariables(body);
+  const sensitive = scanSensitiveContent(body);
+  if (!trimmed) return { ok: false, error: 'messageRequired', unknown, sensitive };
+  if (trimmed.length > MAX_CAMPAIGN_MESSAGE) {
+    return { ok: false, error: 'messageTooLong', unknown, sensitive };
+  }
+  if (unknown.length > 0) return { ok: false, error: 'unknownVariable', unknown, sensitive };
+  return { ok: true, unknown, sensitive };
 }

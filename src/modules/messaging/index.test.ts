@@ -46,8 +46,10 @@ function candidate(overrides: Partial<CampaignCandidate> = {}): CampaignCandidat
     birthDate: null,
     tags: [],
     lastVisitAt: null,
+    lastPurchaseAt: null,
     hasUpcoming: false,
     categories: [],
+    serviceIds: [],
     ...overrides,
   };
 }

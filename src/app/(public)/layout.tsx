@@ -16,6 +16,10 @@ import AnnouncementBanner from '@/modules/public-site/components/AnnouncementBan
 import Analytics from '@/modules/public-site/components/Analytics';
 import JsonLd from '@/modules/public-site/components/JsonLd';
 
+// These pages embed current-time state (announcement windows, "on duty now")
+// and query the DB per request — render them on demand instead of as a shell.
+export const ensureStatic = false;
+
 export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -20,6 +20,8 @@ export const SETTING_KEYS = [
   'digest_enabled',
   'digest_email',
   'default_language',
+  'group_sms_allow_for_filtered',
+  'group_sms_max_recipients',
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];
@@ -88,6 +90,14 @@ export const settingsFormSchema = z.object({
     .max(200, 'tooLong')
     .refine((v) => v === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), 'invalidEmail'),
   default_language: z.string().refine((v) => v === 'en' || v === 'am', 'invalid'),
+  group_sms_allow_for_filtered: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .transform((v) => v === true || v === 'true'),
+  group_sms_max_recipients: z.coerce
+    .number('invalid')
+    .int('invalid')
+    .min(1, 'positive')
+    .max(100, 'tooHigh'),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -110,5 +120,7 @@ export function toSettingValues(values: SettingsFormValues): Record<SettingKey, 
     digest_enabled: values.digest_enabled,
     digest_email: values.digest_email,
     default_language: values.default_language,
+    group_sms_allow_for_filtered: values.group_sms_allow_for_filtered,
+    group_sms_max_recipients: values.group_sms_max_recipients,
   };
 }

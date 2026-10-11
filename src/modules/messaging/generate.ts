@@ -78,6 +78,7 @@ export type NewTaskInput = {
   sourceType: MessageSourceType;
   sourceId: string;
   campaignId?: string | null;
+  campaignBatchId?: string | null;
   language: string;
   renderedMessage: string;
   dueAt: Date;
@@ -100,6 +101,7 @@ export async function createTask(input: NewTaskInput): Promise<'created' | 'exis
         sourceType: input.sourceType,
         sourceId: input.sourceId,
         campaignId: input.campaignId ?? null,
+        campaignBatchId: input.campaignBatchId ?? null,
         language: input.language,
         renderedMessage: input.renderedMessage,
         dueAt: input.dueAt,

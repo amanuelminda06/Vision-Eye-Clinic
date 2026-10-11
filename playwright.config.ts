@@ -33,10 +33,26 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+      testIgnore: /group-batch\.spec\.ts/,
+    },
+    {
+      // The group-chat batch flow is exercised on a phone viewport (the clinic
+      // sends from its handset via the `sms:` link), so the dedicated spec runs
+      // only under this mobile project.
+      name: 'mobile',
+      use: { ...devices['Pixel 7'] },
+      testMatch: /group-batch\.spec\.ts/,
+    },
+  ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    // E2E runs against the production build: `next dev` wedges the login form
+    // under Playwright (Next 16 instant-shell), so we test the built app.
+    command: 'npm run start',
+    port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

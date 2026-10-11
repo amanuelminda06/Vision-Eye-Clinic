@@ -22,8 +22,17 @@ export default async function MessagesPage() {
           <p className="mt-1 text-sm text-slate-600">{t('subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link href="/messages/new" className="btn-primary">
+            {t('newMessageLink')}
+          </Link>
           <ExportLinks base="/api/messages/export" />
           {user.role === 'OWNER' ? <RunJobsButton /> : null}
+          <Link href="/messages/library" className="btn-secondary">
+            {t('libraryLink')}
+          </Link>
+          <Link href="/messages/drafts" className="btn-secondary">
+            {t('draftsLink')}
+          </Link>
           <Link href="/messages/templates" className="btn-secondary">
             {t('templatesLink')}
           </Link>

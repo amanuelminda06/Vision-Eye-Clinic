@@ -43,8 +43,16 @@ function assertConfigured(role: RoleKey) {
 }
 
 async function submitCredentials(page: Page, email: string, password: string) {
-  await page.fill('#email', email);
-  await page.fill('#password', password);
+  // In dev, the first navigation is followed by an HMR tree swap that can
+  // transiently leave the form inputs disabled; retry until they settle.
+  await expect(async () => {
+    const emailInput = page.locator('#email');
+    const passwordInput = page.locator('#password');
+    await expect(emailInput).toBeEnabled();
+    await expect(passwordInput).toBeEnabled();
+    await emailInput.fill(email);
+    await passwordInput.fill(password);
+  }).toPass({ timeout: 30_000 });
   await page.getByRole('button', { name: /sign in/i }).click();
 }
 

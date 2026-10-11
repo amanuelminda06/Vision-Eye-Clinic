@@ -3,13 +3,13 @@ import { getTranslations } from 'next-intl/server';
 import { requirePageRole } from '@/lib/require-role';
 import { getSettingsMap } from '@/modules/settings';
 import { MESSAGE_ROLES, canSendCampaigns } from '@/modules/messaging';
-import { listTemplates } from '@/modules/messaging/queries';
-import CampaignBuilder from '@/modules/messaging/components/CampaignBuilder';
+import { loadWizardData } from '@/modules/messaging/wizard-data';
+import MessageWizard from '@/modules/messaging/components/MessageWizard';
 
 export default async function NewCampaignPage() {
   const user = await requirePageRole(MESSAGE_ROLES);
   const t = await getTranslations('messages');
-  const [settings, templates] = await Promise.all([getSettingsMap(), listTemplates()]);
+  const [settings, data] = await Promise.all([getSettingsMap(), loadWizardData(user.id, user.role)]);
   const canSend = canSendCampaigns(user.role, settings.reception_can_send_campaigns === true);
 
   return (
@@ -20,7 +20,14 @@ export default async function NewCampaignPage() {
           {t('backToCampaigns')}
         </Link>
       </div>
-      <CampaignBuilder templates={templates} canSend={canSend} />
+      <MessageWizard
+        {...data}
+        canSend={canSend}
+        canManageLibrary={user.role === 'OWNER'}
+        canManageAudiences={user.role === 'OWNER'}
+        presetDelivery="INDIVIDUAL"
+        createLabelKey="createCampaign"
+      />
     </div>
   );
 }

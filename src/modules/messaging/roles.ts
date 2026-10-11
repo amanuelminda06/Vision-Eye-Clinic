@@ -10,6 +10,21 @@ export function canEditTemplates(role: Role | null | undefined): boolean {
   return role === 'OWNER';
 }
 
+/** Curating the Message Library (archive/edit/hide) is owner-only; everyone may reuse. */
+export function canManageLibrary(role: Role | null | undefined): boolean {
+  return role === 'OWNER';
+}
+
+/** Saved audiences ("Audience" list) are owner-managed. */
+export function canManageAudiences(role: Role | null | undefined): boolean {
+  return role === 'OWNER';
+}
+
+/** The group-delivery override setting is owner-only. */
+export function canOverrideGroupFilter(role: Role | null | undefined): boolean {
+  return role === 'OWNER';
+}
+
 export function canSendMessages(role: Role | null | undefined): boolean {
   return role === 'OWNER' || role === 'RECEPTION';
 }

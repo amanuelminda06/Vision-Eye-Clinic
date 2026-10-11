@@ -9,18 +9,26 @@ import {
   type RenderContext,
 } from './render';
 import { createTask } from './generate';
-import type { CampaignLanguageMode } from './constants';
-import type { CampaignFilterValues } from './schemas';
+import type { CampaignLanguageMode, CampaignDelivery } from './constants';
+import type { CampaignCandidate } from './campaign-filter';
 import {
-  summarizeCandidates,
-  type CampaignCandidate,
-  type CampaignPreview,
-} from './campaign-filter';
+  normalizeRecipientFilter,
+  resolvePresetRange,
+  summarizeRecipients,
+  type RecipientFilter,
+} from './recipient-filter';
+import { planBatches, resolveGroupBatchSize } from './group-plan';
 
 /**
  * Campaign audience: DB candidate loader + materialisation. The pure matcher
- * lives in `campaign-filter.ts`.
+ * lives in `recipient-filter.ts`.
  */
+
+/** Resolves quick date presets against the clinic "today" before matching. */
+function withResolvedPreset(filter: RecipientFilter, nowKey: string): RecipientFilter {
+  const range = resolvePresetRange(filter, nowKey);
+  return { ...filter, ...range };
+}
 
 /** Loads every patient (with tags, last visit, purchases, upcoming) for filtering. */
 export async function loadCampaignCandidates(now: Date = new Date()): Promise<CampaignCandidate[]> {
@@ -59,7 +67,7 @@ export async function loadCampaignCandidates(now: Date = new Date()): Promise<Ca
       }),
       prisma.saleLine.findMany({
         where: { sale: { status: 'CONFIRMED', patientId: { not: null } } },
-        select: { sale: { select: { patientId: true } }, service: { select: { category: true } } },
+        select: { sale: { select: { patientId: true } }, service: { select: { id: true, category: true } } },
         take: 10000,
       }),
     ]);
@@ -74,12 +82,16 @@ export async function loadCampaignCandidates(now: Date = new Date()): Promise<Ca
   }
   const upcomingSet = new Set(upcoming.map((row) => row.patientId));
   const categories = new Map<string, Set<string>>();
+  const serviceIds = new Map<string, Set<string>>();
   for (const line of purchaseLines) {
     const patientId = line.sale.patientId;
     if (!patientId) continue;
     const set = categories.get(patientId) ?? new Set<string>();
     set.add(line.service.category);
     categories.set(patientId, set);
+    const ids = serviceIds.get(patientId) ?? new Set<string>();
+    ids.add(line.service.id);
+    serviceIds.set(patientId, ids);
   }
 
   return patients.map((patient) => {
@@ -102,20 +114,25 @@ export async function loadCampaignCandidates(now: Date = new Date()): Promise<Ca
       birthDate: patient.birthDate,
       tags: patient.tags.map((link) => link.tag.name),
       lastVisitAt,
+      lastPurchaseAt: saleAt ?? null,
       hasUpcoming: upcomingSet.has(patient.id),
       categories: [...(categories.get(patient.id) ?? [])],
+      serviceIds: [...(serviceIds.get(patient.id) ?? [])],
     };
   });
 }
 
 export async function previewCampaign(
-  filter: CampaignFilterValues,
-  now: Date = new Date(),
-): Promise<CampaignPreview> {
+  filter: RecipientFilter,
+  options: { now?: Date; allowOverride?: boolean } = {},
+): Promise<ReturnType<typeof summarizeRecipients>['preview']> {
+  const now = options.now ?? new Date();
   const map = await getSettingsMap();
   const cap = Number(map.campaign_max_recipients ?? 300);
+  const allow = (options.allowOverride ?? false) && map.group_sms_allow_for_filtered === true;
   const candidates = await loadCampaignCandidates(now);
-  return summarizeCandidates(candidates, filter, cap).preview;
+  const resolved = withResolvedPreset(filter, clinicDateKey(now, timezoneFrom(map)));
+  return summarizeRecipients(candidates, resolved, cap, allow).preview;
 }
 
 export type CampaignTemplate = {
@@ -156,30 +173,54 @@ export type CreateCampaignResult = {
   eligible: number;
   created: number;
   overCap: boolean;
+  batches: number;
 };
 
-/** Creates one MessageTask per eligible recipient. Never one group message. */
+/**
+ * Creates one MessageTask per eligible recipient (never one group message). For
+ * GROUP delivery the tasks are also grouped into `CampaignBatch` rows so the
+ * queue can open the phone's SMS app once per batch.
+ */
 export async function materializeCampaign(params: {
   campaignId: string;
   campaignTitle: string;
-  filter: CampaignFilterValues;
+  filter: RecipientFilter;
   template: CampaignTemplate;
+  deliveryMode: CampaignDelivery;
   expiresAt: Date | null;
   now?: Date;
 }): Promise<CreateCampaignResult> {
   const now = params.now ?? new Date();
   const map = await getSettingsMap();
   const cap = Number(map.campaign_max_recipients ?? 300);
+  const tz = timezoneFrom(map);
   const candidates = await loadCampaignCandidates(now);
-  const { eligible, preview } = summarizeCandidates(candidates, params.filter, cap);
-  if (preview.overCap) return { eligible: eligible.length, created: 0, overCap: true };
+  const filter = withResolvedPreset(params.filter, clinicDateKey(now, tz));
+  const { eligible, preview } = summarizeRecipients(candidates, filter, cap, true);
+  if (preview.overCap) return { eligible: eligible.length, created: 0, overCap: true, batches: 0 };
 
   const bodies = await loadTemplateBodies();
-  const tz = timezoneFrom(map);
   const clinicName = typeof map.clinic_name === 'string' ? map.clinic_name : 'Vision Eye Clinic';
   const reviewLink = typeof map.review_link === 'string' ? map.review_link : '';
 
+  const batchSize =
+    params.deliveryMode === 'GROUP' ? resolveGroupBatchSize(map.group_sms_max_recipients) : 1;
+  const sizes = params.deliveryMode === 'GROUP' ? planBatches(eligible.length, batchSize) : [];
+  const batchIdByNumber = new Map<number, string>();
+  for (let index = 0; index < sizes.length; index += 1) {
+    const batch = await prisma.campaignBatch.create({
+      data: {
+        campaignId: params.campaignId,
+        batchNumber: index + 1,
+        size: sizes[index],
+      },
+      select: { id: true },
+    });
+    batchIdByNumber.set(index + 1, batch.id);
+  }
+
   let created = 0;
+  let recipientIndex = 0;
   for (const candidate of eligible) {
     const { language, message } = campaignMessage(
       bodies,
@@ -189,6 +230,8 @@ export async function materializeCampaign(params: {
       reviewLink,
       tz,
     );
+    const batchNumber = params.deliveryMode === 'GROUP' ? Math.floor(recipientIndex / batchSize) + 1 : 0;
+    recipientIndex += 1;
     const result = await createTask({
       patient: {
         id: candidate.id,
@@ -203,6 +246,8 @@ export async function materializeCampaign(params: {
       sourceType: 'CAMPAIGN',
       sourceId: params.campaignId,
       campaignId: params.campaignId,
+      campaignBatchId:
+        params.deliveryMode === 'GROUP' ? (batchIdByNumber.get(batchNumber) ?? null) : null,
       language,
       renderedMessage: message,
       dueAt: now,
@@ -211,7 +256,7 @@ export async function materializeCampaign(params: {
     });
     if (result === 'created') created += 1;
   }
-  return { eligible: eligible.length, created, overCap: false };
+  return { eligible: eligible.length, created, overCap: false, batches: sizes.length };
 }
 
-export { clinicDateKey };
+export { clinicDateKey, normalizeRecipientFilter };

@@ -26,6 +26,8 @@ function validRaw() {
     digest_enabled: false,
     digest_email: '',
     default_language: 'en',
+    group_sms_allow_for_filtered: false,
+    group_sms_max_recipients: '15',
   };
 }
 

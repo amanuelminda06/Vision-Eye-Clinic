@@ -11,6 +11,14 @@ seam for a follow-up slice.
   `sms:` links for the receptionist to send from the clinic phone.
   `GatewayProvider` (`src/modules/messaging/provider.ts`) is where a real SMS
   API would plug in.
+- **Delivery is operator-confirmed, not verified.** The app cannot know an SMS
+  was actually delivered; individual messages and group batches are marked sent
+  by the operator (`docs/messaging-6b-manual.md` § 4).
+- **Group chat is wizard/campaign-only.** One-group-chat delivery is never used
+  by automatic task types (reminders, follow-ups, recalls).
+- **Group messages share one body.** A group `sms:` link carries a single text;
+  if a template personalises with `{name}`/`{date}`, the group shows the first
+  recipient's values — use generic wording for groups.
 - **Email** (daily summary) uses `EmailProvider`, console by default until an
   SMTP/API provider is configured.
 - **Revenue** is preset-based (today/week/month/last-month/custom). No arbitrary

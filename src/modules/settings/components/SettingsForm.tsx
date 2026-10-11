@@ -389,6 +389,42 @@ export default function SettingsForm({ initial }: Props) {
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex items-start gap-2 self-end text-sm text-slate-700">
+            <input
+              type="checkbox"
+              name="group_sms_allow_for_filtered"
+              value="true"
+              defaultChecked={initial.group_sms_allow_for_filtered}
+              disabled={pending}
+            />
+            {t('groupSmsAllowFiltered')}
+          </label>
+          <div>
+            <label className="label" htmlFor="group_sms_max_recipients">
+              {t('groupSmsMaxRecipients')}
+            </label>
+            <input
+              className="input-field"
+              id="group_sms_max_recipients"
+              name="group_sms_max_recipients"
+              type="number"
+              min={1}
+              max={100}
+              step={1}
+              defaultValue={initial.group_sms_max_recipients}
+              disabled={pending}
+              aria-invalid={!!fieldError('group_sms_max_recipients')}
+            />
+            {fieldError('group_sms_max_recipients') ? (
+              <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+                {fieldError('group_sms_max_recipients')}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <p className="text-xs text-slate-500">{t('groupSmsHint')}</p>
+
+        <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex items-center gap-2 self-end text-sm text-slate-700">
             <input
               type="checkbox"

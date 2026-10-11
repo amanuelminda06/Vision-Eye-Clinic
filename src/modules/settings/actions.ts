@@ -45,7 +45,12 @@ export async function saveSettingsAction(
       review_link: String(formData.get('review_link') ?? ''),
       sms_mode: String(formData.get('sms_mode') ?? ''),
       reception_can_send_campaigns: formData.get('reception_can_send_campaigns') === 'true',
+      campaign_max_recipients: String(formData.get('campaign_max_recipients') ?? ''),
+      digest_enabled: formData.get('digest_enabled') === 'true',
+      digest_email: String(formData.get('digest_email') ?? ''),
       default_language: String(formData.get('default_language') ?? ''),
+      group_sms_allow_for_filtered: formData.get('group_sms_allow_for_filtered') === 'true',
+      group_sms_max_recipients: String(formData.get('group_sms_max_recipients') ?? ''),
     };
 
     const values = validate(settingsFormSchema, raw);

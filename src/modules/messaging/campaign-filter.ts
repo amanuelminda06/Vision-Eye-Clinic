@@ -18,8 +18,12 @@ export type CampaignCandidate = {
   birthDate: Date | null;
   tags: string[];
   lastVisitAt: Date | null;
+  /** Date of the most recent CONFIRMED sale, if any (for "bought between"). */
+  lastPurchaseAt: Date | null;
   hasUpcoming: boolean;
   categories: string[];
+  /** Service ids purchased (for service-level filters). */
+  serviceIds: string[];
 };
 
 export function matchesFilter(candidate: CampaignCandidate, filter: CampaignFilterValues): boolean {

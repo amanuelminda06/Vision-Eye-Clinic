@@ -5,19 +5,30 @@ import { writeAudit } from '@/lib/audit';
 import { ok, fail, withAuth, type ActionResult } from '@/lib/action';
 import { validate } from '@/lib/errors';
 import { getSettingsMap } from '@/modules/settings';
-import { MESSAGE_OWNER_ROLES, MESSAGE_ROLES, canSendCampaigns } from './roles';
+import {
+  MESSAGE_OWNER_ROLES,
+  MESSAGE_ROLES,
+  canOverrideGroupFilter,
+  canSendCampaigns,
+} from './roles';
 import {
   campaignFormSchema,
+  messageDraftSchema,
+  libraryItemSchema,
+  audienceFormSchema,
   taskEditSchema,
   taskSendSchema,
   taskSkipSchema,
   templateSaveSchema,
-  type CampaignFilterValues,
+  type RecipientFilterValues,
 } from './schemas';
 import { blockedReason } from './eligibility';
 import { generateScheduleChangeTask, runMessageJobs, type JobSummary } from './generate';
 import { previewCampaign, materializeCampaign } from './campaign';
-import { validateTemplateBody } from './templates';
+import { groupAllowed } from './recipient-filter';
+import { searchPickablePatients, type PickablePatient } from './recipients';
+import { messageBodyHash, titleFromBody } from './message-hash';
+import { validateMessageBody, validateTemplateBody } from './templates';
 
 /** Re-checks a task's eligibility against the live patient + source status. */
 async function taskPatient(task: {
@@ -297,113 +308,192 @@ export async function saveMessageTemplateAction(
   });
 }
 
-/** Previews a campaign audience (used by the builder's Preview step). */
+/** Previews a recipient audience (used by the builder's preview step). */
 export async function previewCampaignAction(
   _prev: ActionResult | null,
   formData: FormData,
-): Promise<ActionResult<{ eligible: number; matched: number; overCap: boolean }>> {
-  return withAuth(MESSAGE_ROLES, async () => {
-    const filter = readCampaignFilter(formData);
-    const preview = await previewCampaign(filter);
-    return ok({ eligible: preview.eligible, matched: preview.matched, overCap: preview.overCap });
+): Promise<
+  ActionResult<{
+    eligible: number;
+    matched: number;
+    overCap: boolean;
+    groupSafe: boolean;
+    groupBlockReasons: string[];
+  }>
+> {
+  return withAuth(MESSAGE_ROLES, async (actor) => {
+    const filter = readRecipientFilter(formData);
+    const preview = await previewCampaign(filter, {
+      allowOverride: canOverrideGroupFilter(actor.role),
+    });
+    return ok({
+      eligible: preview.eligible,
+      matched: preview.matched,
+      overCap: preview.overCap,
+      groupSafe: preview.groupSafe,
+      groupBlockReasons: preview.groupBlockReasons,
+    });
   });
 }
 
-function readCampaignFilter(formData: FormData): CampaignFilterValues {
+/** Reads the richer recipient filter from a form (accepts list + CSV fields). */
+function readRecipientFilter(formData: FormData): RecipientFilterValues {
+  const list = (name: string): string[] => {
+    const values = formData.getAll(name).flatMap((value) => String(value).split(','));
+    return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+  };
+  const one = (name: string, fallback = ''): string => String(formData.get(name) ?? fallback);
   return {
-    tags: String(formData.get('tags') ?? '')
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean),
-    tagMode: String(formData.get('tagMode') ?? 'ANY') as 'ANY' | 'ALL',
-    language: String(formData.get('language') ?? '') as '' | 'en' | 'am',
-    lastVisitFrom: String(formData.get('lastVisitFrom') ?? ''),
-    lastVisitTo: String(formData.get('lastVisitTo') ?? ''),
-    upcoming: String(formData.get('upcoming') ?? 'ANY') as 'ANY' | 'HAS' | 'NONE',
-    serviceCategory: String(
-      formData.get('serviceCategory') ?? '',
-    ) as CampaignFilterValues['serviceCategory'],
-    birthdayMonth: Number(formData.get('birthdayMonth') ?? 0),
+    tags: list('tags'),
+    tagMode: one('tagMode', 'ANY') as RecipientFilterValues['tagMode'],
+    serviceIds: list('serviceIds'),
+    serviceCategory: one('serviceCategory') as RecipientFilterValues['serviceCategory'],
+    language: one('language') as RecipientFilterValues['language'],
+    lastVisitFrom: one('lastVisitFrom'),
+    lastVisitTo: one('lastVisitTo'),
+    boughtServiceFrom: one('boughtServiceFrom'),
+    boughtServiceTo: one('boughtServiceTo'),
+    upcoming: one('upcoming', 'ANY') as RecipientFilterValues['upcoming'],
+    birthdayMonth: Number(one('birthdayMonth', '0')),
+    handPickedIds: list('handPickedIds'),
+    presetRange: one('presetRange') as RecipientFilterValues['presetRange'],
   };
 }
 
 export async function createCampaignAction(
   _prev: ActionResult | null,
   formData: FormData,
-): Promise<ActionResult<{ id: string; created: number }>> {
-  return withAuth<{ id: string; created: number }>(MESSAGE_ROLES, async (actor) => {
-    const settings = await getSettingsMap();
-    const receptionAllowed = settings.reception_can_send_campaigns === true;
-    if (!canSendCampaigns(actor.role, receptionAllowed)) return fail('forbidden');
+): Promise<ActionResult<{ id: string; created: number; batches: number }>> {
+  return withAuth<{ id: string; created: number; batches: number }>(
+    MESSAGE_ROLES,
+    async (actor) => {
+      const settings = await getSettingsMap();
+      const receptionAllowed = settings.reception_can_send_campaigns === true;
+      if (!canSendCampaigns(actor.role, receptionAllowed)) return fail('forbidden');
 
-    const values = validate(campaignFormSchema, {
-      ...readCampaignFilter(formData),
-      title: formData.get('title') ?? '',
-      templateKey: formData.get('templateKey') ?? '',
-      customBody: formData.get('customBody') ?? '',
-      languageMode: formData.get('languageMode') ?? 'PATIENT',
-      fixedLanguage: formData.get('fixedLanguage') ?? 'en',
-      expiresAt: formData.get('expiresAt') ?? '',
-      acknowledgedGroupWarning: formData.get('acknowledgedGroupWarning') ?? 'false',
-    });
+      const values = validate(campaignFormSchema, {
+        ...readRecipientFilter(formData),
+        title: formData.get('title') ?? '',
+        templateKey: formData.get('templateKey') ?? '',
+        customBody: formData.get('customBody') ?? '',
+        libraryItemId: formData.get('libraryItemId') ?? '',
+        languageMode: formData.get('languageMode') ?? 'PATIENT',
+        fixedLanguage: formData.get('fixedLanguage') ?? 'en',
+        deliveryMode: formData.get('deliveryMode') ?? 'INDIVIDUAL',
+        expiresAt: formData.get('expiresAt') ?? '',
+        acknowledgedGroupWarning: formData.get('acknowledgedGroupWarning') ?? 'false',
+      });
 
-    if (values.templateKey === 'CUSTOM' && !(values.customBody ?? '').trim()) {
-      return fail('validationError', { customBody: 'required' });
-    }
+      let customBody = (values.customBody ?? '').trim();
+      let templateKey = values.templateKey;
+      let libraryItemId: string | null = null;
+      if (values.libraryItemId) {
+        const item = await prisma.messageLibraryItem.findUnique({
+          where: { id: values.libraryItemId },
+          select: { id: true, body: true, active: true },
+        });
+        if (!item || !item.active) return fail('notFound');
+        customBody = item.body;
+        templateKey = 'CUSTOM';
+        libraryItemId = item.id;
+      }
 
-    const filter = {
-      tags: values.tags,
-      tagMode: values.tagMode,
-      language: values.language,
-      lastVisitFrom: values.lastVisitFrom,
-      lastVisitTo: values.lastVisitTo,
-      upcoming: values.upcoming,
-      serviceCategory: values.serviceCategory,
-      birthdayMonth: values.birthdayMonth,
-    };
+      if (templateKey === 'CUSTOM' && !customBody) {
+        return fail('validationError', { customBody: 'required' });
+      }
+      if (templateKey === 'CUSTOM') {
+        const check = validateMessageBody(customBody);
+        if (!check.ok && check.error) {
+          return fail('validationError', { customBody: check.error });
+        }
+      }
 
-    const campaign = await prisma.campaign.create({
-      data: {
-        title: values.title,
-        templateKey: values.templateKey,
-        customBody: values.templateKey === 'CUSTOM' ? (values.customBody ?? null) : null,
-        languageMode: values.languageMode,
-        fixedLanguage: values.languageMode === 'FIXED' ? values.fixedLanguage : null,
-        filterJson: filter,
-        status: 'ACTIVE',
-        expiresAt: values.expiresAt ? new Date(`${values.expiresAt}T23:59:00.000Z`) : null,
-        createdBy: actor.id,
-      },
-      select: { id: true },
-    });
+      const finalTitle =
+        (values.title ?? '').trim() || titleFromBody(customBody) || templateKey || 'Message';
 
-    const result = await materializeCampaign({
-      campaignId: campaign.id,
-      campaignTitle: values.title,
-      filter,
-      template: {
-        templateKey: values.templateKey,
-        customBody: values.customBody ?? null,
-        languageMode: values.languageMode,
-        fixedLanguage: values.fixedLanguage,
-      },
-      expiresAt: values.expiresAt ? new Date(`${values.expiresAt}T23:59:00.000Z`) : null,
-    });
+      const filter: RecipientFilterValues = {
+        tags: values.tags,
+        tagMode: values.tagMode,
+        serviceIds: values.serviceIds,
+        serviceCategory: values.serviceCategory,
+        language: values.language,
+        lastVisitFrom: values.lastVisitFrom,
+        lastVisitTo: values.lastVisitTo,
+        boughtServiceFrom: values.boughtServiceFrom,
+        boughtServiceTo: values.boughtServiceTo,
+        upcoming: values.upcoming,
+        birthdayMonth: values.birthdayMonth,
+        handPickedIds: values.handPickedIds,
+        presetRange: values.presetRange,
+      };
 
-    if (result.overCap) {
-      await prisma.campaign.update({ where: { id: campaign.id }, data: { status: 'CANCELLED' } });
-      return fail('campaignOverCap');
-    }
+      if (values.deliveryMode === 'GROUP') {
+        const allowFiltered =
+          canOverrideGroupFilter(actor.role) && settings.group_sms_allow_for_filtered === true;
+        if (!groupAllowed(filter, allowFiltered)) return fail('groupNotAllowed');
+        if (!values.acknowledgedGroupWarning) return fail('groupWarningRequired');
+      }
 
-    await writeAudit({
-      user: actor,
-      entity: 'Campaign',
-      entityId: campaign.id,
-      action: 'CAMPAIGN_ACTIVATED',
-      new: { title: values.title, recipients: result.created, filter },
-    });
-    return ok({ id: campaign.id, created: result.created });
-  });
+      const expiresAt = values.expiresAt ? new Date(`${values.expiresAt}T23:59:00.000Z`) : null;
+      const campaign = await prisma.campaign.create({
+        data: {
+          title: finalTitle,
+          templateKey,
+          customBody: templateKey === 'CUSTOM' ? customBody : null,
+          languageMode: values.languageMode,
+          fixedLanguage: values.languageMode === 'FIXED' ? values.fixedLanguage : null,
+          filterJson: filter,
+          deliveryMode: values.deliveryMode,
+          libraryItemId,
+          status: 'ACTIVE',
+          expiresAt,
+          createdBy: actor.id,
+        },
+        select: { id: true },
+      });
+
+      const result = await materializeCampaign({
+        campaignId: campaign.id,
+        campaignTitle: finalTitle,
+        filter,
+        template: {
+          templateKey,
+          customBody: customBody || null,
+          languageMode: values.languageMode,
+          fixedLanguage: values.fixedLanguage,
+        },
+        deliveryMode: values.deliveryMode,
+        expiresAt,
+      });
+
+      if (result.overCap) {
+        await prisma.campaign.update({ where: { id: campaign.id }, data: { status: 'CANCELLED' } });
+        return fail('campaignOverCap');
+      }
+
+      if (libraryItemId) {
+        await prisma.messageLibraryItem.update({
+          where: { id: libraryItemId },
+          data: { useCount: { increment: 1 }, lastUsedAt: new Date() },
+        });
+      }
+
+      await writeAudit({
+        user: actor,
+        entity: 'Campaign',
+        entityId: campaign.id,
+        action: 'CAMPAIGN_ACTIVATED',
+        new: {
+          title: finalTitle,
+          recipients: result.created,
+          deliveryMode: values.deliveryMode,
+          batches: result.batches,
+          filter,
+        },
+      });
+      return ok({ id: campaign.id, created: result.created, batches: result.batches });
+    },
+  );
 }
 
 export async function cancelCampaignAction(
@@ -423,6 +513,15 @@ export async function cancelCampaignAction(
       prisma.messageTask.updateMany({
         where: { campaignId: id, status: { in: ['PENDING', 'OPENED'] } },
         data: { status: 'CANCELLED' },
+      }),
+      prisma.campaignBatch.updateMany({
+        where: { campaignId: id, status: 'PENDING' },
+        data: {
+          status: 'SKIPPED',
+          handledBy: actor.id,
+          handledAt: new Date(),
+          skipReason: 'cancelled',
+        },
       }),
       prisma.campaign.update({ where: { id }, data: { status: 'CANCELLED' } }),
     ]);
@@ -450,5 +549,381 @@ export async function acknowledgeGroupCopyAction(
       action: 'CAMPAIGN_COPY_ALL_ACKNOWLEDGED',
     });
     return ok();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Drafts (in-app composer — messages are always written here, never sent by
+// the app itself; the receptionist still sends from the clinic phone).
+// ---------------------------------------------------------------------------
+
+export async function saveMessageDraftAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  return withAuth<{ id: string }>(MESSAGE_ROLES, async (actor) => {
+    const values = validate(messageDraftSchema, {
+      id: formData.get('id') ?? '',
+      title: formData.get('title') ?? '',
+      body: formData.get('body') ?? '',
+      language: formData.get('language') ?? 'en',
+    });
+    const check = validateMessageBody(values.body);
+    if (!check.ok && check.error) return fail('validationError', { body: check.error });
+
+    const existing = values.id
+      ? await prisma.messageDraft.findFirst({
+          where: { id: values.id, createdBy: actor.id },
+          select: { id: true },
+        })
+      : null;
+
+    if (existing) {
+      await prisma.messageDraft.update({
+        where: { id: existing.id },
+        data: { title: values.title || null, body: values.body, language: values.language },
+      });
+      await writeAudit({
+        user: actor,
+        entity: 'MessageDraft',
+        entityId: existing.id,
+        action: 'MESSAGE_DRAFT_UPDATED',
+      });
+      return ok({ id: existing.id });
+    }
+
+    const draft = await prisma.messageDraft.create({
+      data: {
+        createdBy: actor.id,
+        title: values.title || null,
+        body: values.body,
+        language: values.language,
+      },
+      select: { id: true },
+    });
+    await writeAudit({
+      user: actor,
+      entity: 'MessageDraft',
+      entityId: draft.id,
+      action: 'MESSAGE_DRAFT_CREATED',
+    });
+    return ok({ id: draft.id });
+  });
+}
+
+export async function deleteMessageDraftAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return withAuth(MESSAGE_ROLES, async (actor) => {
+    const id = String(formData.get('id') ?? '');
+    const draft = await prisma.messageDraft.findFirst({
+      where: { id, createdBy: actor.id },
+      select: { id: true },
+    });
+    if (!draft) return fail('notFound');
+    await prisma.messageDraft.delete({ where: { id: draft.id } });
+    await writeAudit({
+      user: actor,
+      entity: 'MessageDraft',
+      entityId: draft.id,
+      action: 'MESSAGE_DRAFT_DELETED',
+    });
+    return ok();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Message Library (archive & reuse). Duplicate prevention is per language via
+// the normalized hash; items are deactivated, never hard-deleted.
+// ---------------------------------------------------------------------------
+
+export async function saveLibraryItemAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  return withAuth<{ id: string }>(MESSAGE_ROLES, async (actor) => {
+    const values = validate(libraryItemSchema, {
+      id: formData.get('id') ?? '',
+      title: formData.get('title') ?? '',
+      body: formData.get('body') ?? '',
+      language: formData.get('language') ?? 'en',
+      category: formData.get('category') ?? 'REMINDER',
+      isFavorite: formData.get('isFavorite') ?? 'false',
+    });
+    const check = validateMessageBody(values.body);
+    if (!check.ok && check.error) return fail('validationError', { body: check.error });
+
+    const hash = messageBodyHash(values.body);
+    const title = (values.title ?? '').trim() || titleFromBody(values.body);
+
+    const duplicate = await prisma.messageLibraryItem.findUnique({
+      where: { normalizedHash_language: { normalizedHash: hash, language: values.language } },
+      select: { id: true, active: true },
+    });
+    if (duplicate && duplicate.active && duplicate.id !== values.id) {
+      return fail('libraryDuplicate');
+    }
+
+    const data = {
+      title,
+      body: values.body,
+      language: values.language,
+      category: values.category,
+      normalizedHash: hash,
+      isFavorite: values.isFavorite === true,
+      active: true,
+    };
+
+    try {
+      if (values.id) {
+        const existing = await prisma.messageLibraryItem.findUnique({
+          where: { id: values.id },
+          select: { id: true },
+        });
+        if (!existing) return fail('notFound');
+        await prisma.messageLibraryItem.update({ where: { id: values.id }, data });
+        await writeAudit({
+          user: actor,
+          entity: 'MessageLibraryItem',
+          entityId: values.id,
+          action: 'MESSAGE_LIBRARY_UPDATED',
+        });
+        return ok({ id: values.id });
+      }
+      const item = await prisma.messageLibraryItem.create({
+        data: { ...data, createdBy: actor.id },
+        select: { id: true },
+      });
+      await writeAudit({
+        user: actor,
+        entity: 'MessageLibraryItem',
+        entityId: item.id,
+        action: 'MESSAGE_LIBRARY_CREATED',
+        new: { title, language: values.language },
+      });
+      return ok({ id: item.id });
+    } catch (err) {
+      if (isUniqueViolation(err)) return fail('libraryDuplicate');
+      throw err;
+    }
+  });
+}
+
+export async function toggleLibraryFavoriteAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return withAuth(MESSAGE_ROLES, async (actor) => {
+    const id = String(formData.get('id') ?? '');
+    const item = await prisma.messageLibraryItem.findUnique({
+      where: { id },
+      select: { id: true, isFavorite: true },
+    });
+    if (!item) return fail('notFound');
+    await prisma.messageLibraryItem.update({
+      where: { id },
+      data: { isFavorite: !item.isFavorite },
+    });
+    void actor;
+    return ok();
+  });
+}
+
+export async function deleteLibraryItemAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return withAuth(MESSAGE_ROLES, async (actor) => {
+    const id = String(formData.get('id') ?? '');
+    const item = await prisma.messageLibraryItem.findUnique({
+      where: { id },
+      select: { id: true, active: true },
+    });
+    if (!item) return fail('notFound');
+    if (!item.active) return ok();
+    await prisma.messageLibraryItem.update({ where: { id }, data: { active: false } });
+    await writeAudit({
+      user: actor,
+      entity: 'MessageLibraryItem',
+      entityId: id,
+      action: 'MESSAGE_LIBRARY_ARCHIVED',
+    });
+    return ok();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Saved audiences (OWNER-managed reusable recipient filters)
+// ---------------------------------------------------------------------------
+
+export async function saveAudienceAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  return withAuth<{ id: string }>(MESSAGE_ROLES, async (actor) => {
+    const audienceId = String(formData.get('audienceId') ?? '').trim();
+    const values = validate(audienceFormSchema, {
+      ...readRecipientFilter(formData),
+      name: formData.get('name') ?? '',
+    });
+    const filter = {
+      tags: values.tags,
+      tagMode: values.tagMode,
+      serviceIds: values.serviceIds,
+      serviceCategory: values.serviceCategory,
+      language: values.language,
+      lastVisitFrom: values.lastVisitFrom,
+      lastVisitTo: values.lastVisitTo,
+      boughtServiceFrom: values.boughtServiceFrom,
+      boughtServiceTo: values.boughtServiceTo,
+      upcoming: values.upcoming,
+      birthdayMonth: values.birthdayMonth,
+      handPickedIds: values.handPickedIds,
+      presetRange: values.presetRange,
+    };
+
+    if (audienceId) {
+      const existing = await prisma.audience.findUnique({
+        where: { id: audienceId },
+        select: { id: true, createdBy: true },
+      });
+      if (!existing) return fail('notFound');
+      await prisma.audience.update({
+        where: { id: audienceId },
+        data: { name: values.name, filterJson: filter },
+      });
+      await writeAudit({
+        user: actor,
+        entity: 'Audience',
+        entityId: audienceId,
+        action: 'AUDIENCE_UPDATED',
+      });
+      return ok({ id: audienceId });
+    }
+
+    const audience = await prisma.audience.create({
+      data: { name: values.name, filterJson: filter, createdBy: actor.id },
+      select: { id: true },
+    });
+    await writeAudit({
+      user: actor,
+      entity: 'Audience',
+      entityId: audience.id,
+      action: 'AUDIENCE_CREATED',
+      new: { name: values.name },
+    });
+    return ok({ id: audience.id });
+  });
+}
+
+export async function deleteAudienceAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return withAuth(MESSAGE_ROLES, async (actor) => {
+    const id = String(formData.get('id') ?? '');
+    const audience = await prisma.audience.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!audience) return fail('notFound');
+    await prisma.audience.delete({ where: { id } });
+    await writeAudit({
+      user: actor,
+      entity: 'Audience',
+      entityId: id,
+      action: 'AUDIENCE_DELETED',
+    });
+    return ok();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Group-chat batches — mark a whole batch sent or skipped.
+// ---------------------------------------------------------------------------
+
+export async function setCampaignBatchStatusAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return withAuth(MESSAGE_ROLES, async (actor) => {
+    const batchId = String(formData.get('batchId') ?? '');
+    const status = String(formData.get('status') ?? '');
+    const reason = String(formData.get('reason') ?? '').trim().slice(0, 300);
+
+    const batch = await prisma.campaignBatch.findUnique({
+      where: { id: batchId },
+      select: { id: true, status: true },
+    });
+    if (!batch) return fail('notFound');
+    if (batch.status !== 'PENDING') return fail('batchAlreadyHandled');
+
+    if (status === 'SENT') {
+      await prisma.$transaction([
+        prisma.campaignBatch.update({
+          where: { id: batchId },
+          data: { status: 'SENT', handledBy: actor.id, handledAt: new Date() },
+        }),
+        prisma.messageTask.updateMany({
+          where: { campaignBatchId: batchId, status: { in: ['PENDING', 'OPENED'] } },
+          data: { status: 'SENT', handledBy: actor.id, handledAt: new Date() },
+        }),
+      ]);
+    } else if (status === 'SKIPPED') {
+      if (!reason) return fail('validationError', { reason: 'required' });
+      await prisma.$transaction([
+        prisma.campaignBatch.update({
+          where: { id: batchId },
+          data: {
+            status: 'SKIPPED',
+            handledBy: actor.id,
+            handledAt: new Date(),
+            skipReason: reason,
+          },
+        }),
+        prisma.messageTask.updateMany({
+          where: { campaignBatchId: batchId, status: { in: ['PENDING', 'OPENED'] } },
+          data: {
+            status: 'SKIPPED',
+            skipReason: reason,
+            handledBy: actor.id,
+            handledAt: new Date(),
+          },
+        }),
+      ]);
+    } else {
+      return fail('validationError', { status: 'invalid' });
+    }
+
+    await writeAudit({
+      user: actor,
+      entity: 'CampaignBatch',
+      entityId: batchId,
+      action: 'CAMPAIGN_BATCH_HANDLED',
+      new: { status, reason: reason || undefined },
+    });
+    return ok();
+  });
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code?: unknown }).code === 'P2002'
+  );
+}
+
+/** Type-ahead search for the hand-picked patient picker. */
+export async function searchPatientsAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult<PickablePatient[]>> {
+  void _prev;
+  return withAuth<PickablePatient[]>(MESSAGE_ROLES, async () => {
+    const query = String(formData.get('query') ?? '');
+    return ok(await searchPickablePatients(query));
   });
 }

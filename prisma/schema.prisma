@@ -125,6 +125,25 @@ enum CampaignStatus {
   CANCELLED
 }
 
+enum CampaignDeliveryMode {
+  INDIVIDUAL
+  GROUP
+}
+
+enum CampaignBatchStatus {
+  PENDING
+  SENT
+  SKIPPED
+}
+
+enum MessageLibraryCategory {
+  REMINDER
+  GREETING
+  ANNOUNCEMENT
+  FOLLOWUP
+  OTHER
+}
+
 model User {
   id                 String    @id @default(cuid())
   name               String
@@ -560,6 +579,9 @@ model MessageTask {
   /// Set when the rendered text was edited before sending.
   editedBy        String?
   editedAt        DateTime?          @db.Timestamptz
+  /// Batch this task belongs to when its campaign used group delivery.
+  campaignBatchId String?
+  campaignBatch   CampaignBatch?     @relation(fields: [campaignBatchId], references: [id], onDelete: SetNull)
   createdAt       DateTime           @default(now()) @db.Timestamptz
 
   @@unique([sourceType, sourceId, templateKey, patientId])
@@ -567,6 +589,7 @@ model MessageTask {
   @@index([patientId, createdAt])
   @@index([campaignId])
   @@index([status, expiresAt])
+  @@index([campaignBatchId])
 }
 /// A one-off batch of messages to a filtered group of patients. Each recipient
 /// gets their own MessageTask (never one group message).
@@ -583,11 +606,104 @@ model Campaign {
   /// Filter builder output (validated by the app, never trusted blindly).
   filterJson    Json
   status        CampaignStatus     @default(DRAFT)
+  /// How the campaign is delivered: per-patient tasks or group-chat batches.
+  deliveryMode  CampaignDeliveryMode @default(INDIVIDUAL)
+  /// Library item archived from this campaign's wording, if any.
+  libraryItemId String?
+  libraryItem   MessageLibraryItem? @relation("CampaignLibrary", fields: [libraryItemId], references: [id], onDelete: SetNull)
   expiresAt     DateTime?          @db.Timestamptz
   /// User id of the creator (no FK — users are never deleted).
   createdBy     String
   createdAt     DateTime           @default(now()) @db.Timestamptz
   updatedAt     DateTime           @updatedAt @db.Timestamptz
 
+  tasks   MessageTask[]
+  batches CampaignBatch[]
+}
+
+/// One group-chat batch of a GROUP campaign. Size is re-planable; the phone's
+/// SMS app may cap recipients, so a batch never hard-binds before sending.
+model CampaignBatch {
+  id          String              @id @default(cuid())
+  campaignId  String
+  campaign    Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  /// 1-based batch number within the campaign ("Group 1 of N").
+  batchNumber Int
+  /// Number of recipients in this batch.
+  size        Int
+  status      CampaignBatchStatus @default(PENDING)
+  /// User id that handled (sent/skipped) the batch.
+  handledBy   String?
+  handledAt   DateTime?           @db.Timestamptz
+  skipReason  String?
+  createdAt   DateTime            @default(now()) @db.Timestamptz
+  updatedAt   DateTime            @updatedAt @db.Timestamptz
+
   tasks MessageTask[]
+
+  @@unique([campaignId, batchNumber])
+  @@index([campaignId])
+  @@index([status])
+}
+
+/// An in-progress composer message. Autosaved so the user can leave and resume.
+model MessageDraft {
+  id        String   @id @default(cuid())
+  createdBy String
+  /// Nullable — many drafts are just "untitled message".
+  title     String?
+  body      String
+  /// `en` or `am` (validated by the app).
+  language  String   @default("en")
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@index([createdBy, updatedAt])
+}
+
+/// Reusable message archive. Duplicates are prevented per language by the
+/// normalized hash; edited/hidden items are deactivated, never hard-deleted.
+model MessageLibraryItem {
+  id              String                 @id @default(cuid())
+  /// Auto from the first 40 characters of the body, editable.
+  title           String
+  body            String
+  /// `en` or `am` (validated by the app).
+  language        String
+  category        MessageLibraryCategory @default(REMINDER)
+  /// Hash of the trimmed, whitespace-collapsed, lowercased body.
+  normalizedHash  String
+  isFavorite      Boolean                @default(false)
+  useCount        Int                    @default(0)
+  lastUsedAt      DateTime?              @db.Timestamptz
+  /// User id of the creator (no FK — users are never deleted).
+  createdBy       String
+  active          Boolean                @default(true)
+  /// Optional link between the en/am versions of the same message.
+  pairId          String?
+  createdAt       DateTime               @default(now()) @db.Timestamptz
+  updatedAt       DateTime               @updatedAt @db.Timestamptz
+
+  campaigns Campaign[] @relation("CampaignLibrary")
+
+  @@unique([normalizedHash, language])
+  @@index([language, category])
+  @@index([isFavorite, active])
+  @@index([useCount])
+  @@index([lastUsedAt])
+  @@index([pairId])
+}
+
+/// A saved, named recipient filter ("Audience"). The member list is never
+/// frozen — the filter re-evaluates at use time. OWNER-managed.
+model Audience {
+  id         String   @id @default(cuid())
+  name       String
+  filterJson Json
+  /// User id of the creator (no FK — users are never deleted).
+  createdBy  String
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+
+  @@index([createdBy])
 }

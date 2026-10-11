@@ -255,6 +255,7 @@ export type CampaignRow = {
   title: string;
   templateKey: MessageTemplateKey | null;
   languageMode: string;
+  deliveryMode: 'INDIVIDUAL' | 'GROUP';
   status: string;
   expiresAt: Date | null;
   createdAt: Date;
@@ -291,6 +292,7 @@ export async function listCampaigns(): Promise<CampaignRow[]> {
       title: true,
       templateKey: true,
       languageMode: true,
+      deliveryMode: true,
       status: true,
       expiresAt: true,
       createdAt: true,
@@ -307,6 +309,7 @@ export async function getCampaign(id: string): Promise<CampaignRow | null> {
       title: true,
       templateKey: true,
       languageMode: true,
+      deliveryMode: true,
       status: true,
       expiresAt: true,
       createdAt: true,
@@ -376,4 +379,150 @@ export async function getTemplate(id: string): Promise<TemplateRow | null> {
 
 export async function countOptedOutPatients(): Promise<number> {
   return prisma.patient.count({ where: { doNotMessage: true } });
+}
+
+// ---------------------------------------------------------------------------
+// Drafts, Message Library, Saved audiences, Group batches
+// ---------------------------------------------------------------------------
+
+export type DraftRow = {
+  id: string;
+  title: string | null;
+  body: string;
+  language: string;
+  updatedAt: Date;
+};
+
+export async function listDrafts(createdBy: string): Promise<DraftRow[]> {
+  return prisma.messageDraft.findMany({
+    where: { createdBy },
+    select: { id: true, title: true, body: true, language: true, updatedAt: true },
+    orderBy: { updatedAt: 'desc' },
+    take: 100,
+  });
+}
+
+export async function getDraft(id: string): Promise<DraftRow | null> {
+  return prisma.messageDraft.findUnique({
+    where: { id },
+    select: { id: true, title: true, body: true, language: true, updatedAt: true },
+  });
+}
+
+export type LibraryRow = {
+  id: string;
+  title: string;
+  body: string;
+  language: string;
+  category: string;
+  isFavorite: boolean;
+  useCount: number;
+  lastUsedAt: Date | null;
+  updatedAt: Date;
+};
+
+export async function listLibraryItems(options?: {
+  language?: string;
+  category?: string;
+  search?: string;
+  favorites?: boolean;
+  includeArchived?: boolean;
+}): Promise<LibraryRow[]> {
+  const where: Record<string, unknown> = {};
+  if (!options?.includeArchived) where.active = true;
+  if (options?.language) where.language = options.language;
+  if (options?.category) where.category = options.category;
+  if (options?.favorites) where.isFavorite = true;
+  if (options?.search) {
+    where.OR = [
+      { title: { contains: options.search, mode: 'insensitive' } },
+      { body: { contains: options.search, mode: 'insensitive' } },
+    ];
+  }
+  return prisma.messageLibraryItem.findMany({
+    where,
+    select: {
+      id: true,
+      title: true,
+      body: true,
+      language: true,
+      category: true,
+      isFavorite: true,
+      useCount: true,
+      lastUsedAt: true,
+      updatedAt: true,
+    },
+    orderBy: [{ isFavorite: 'desc' }, { useCount: 'desc' }, { updatedAt: 'desc' }],
+    take: 200,
+  });
+}
+
+export type AudienceRow = {
+  id: string;
+  name: string;
+  filterJson: unknown;
+  createdAt: Date;
+};
+
+export async function listAudiences(): Promise<AudienceRow[]> {
+  return prisma.audience.findMany({
+    select: { id: true, name: true, filterJson: true, createdAt: true },
+    orderBy: { name: 'asc' },
+    take: 100,
+  });
+}
+
+export type CampaignBatchRow = {
+  id: string;
+  batchNumber: number;
+  size: number;
+  status: 'PENDING' | 'SENT' | 'SKIPPED';
+  phones: string[];
+  message: string;
+  sample: { fullName: string; phoneE164: string }[];
+};
+
+/** Group batches for a campaign, each with its recipient numbers + shared text. */
+export async function listCampaignBatches(campaignId: string): Promise<CampaignBatchRow[]> {
+  const batches = await prisma.campaignBatch.findMany({
+    where: { campaignId },
+    orderBy: { batchNumber: 'asc' },
+    select: {
+      id: true,
+      batchNumber: true,
+      size: true,
+      status: true,
+      tasks: {
+        select: {
+          renderedMessage: true,
+          patient: { select: { fullName: true, phoneE164: true } },
+        },
+        take: 5,
+      },
+    },
+    take: 50,
+  });
+
+  const phoneRows = await prisma.messageTask.findMany({
+    where: { campaignBatchId: { in: batches.map((batch) => batch.id) } },
+    select: { campaignBatchId: true, patient: { select: { phoneE164: true } } },
+  });
+  const phonesByBatch = new Map<string, string[]>();
+  for (const row of phoneRows) {
+    if (!row.campaignBatchId) continue;
+    phonesByBatch.set(row.campaignBatchId, [
+      ...(phonesByBatch.get(row.campaignBatchId) ?? []),
+      row.patient.phoneE164,
+    ]);
+  }
+
+  return batches.map((batch) => ({
+    id: batch.id,
+    batchNumber: batch.batchNumber,
+    size: batch.size,
+    status: batch.status,
+    phones: phonesByBatch.get(batch.id) ?? [],
+    message: batch.tasks[0]?.renderedMessage ?? '',
+    sample: batch.tasks.map((task) => task.patient),
+  }));
 }
