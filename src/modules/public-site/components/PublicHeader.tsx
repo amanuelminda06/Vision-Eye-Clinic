@@ -52,6 +52,10 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5" aria-label={clinicName}>
           <SiteLogo height={36} priority />
+          <span className="hidden flex-col justify-center leading-tight sm:flex lg:hidden xl:flex">
+            <span className="text-sm font-bold tracking-tight text-slate-900">{clinicName}</span>
+            <span className="text-[11px] font-medium text-orange-800">{t('clinicNameAm')}</span>
+          </span>
         </Link>
 
         <nav className="ml-4 hidden items-center gap-0.5 lg:flex" aria-label={t('menuLabel')}>

@@ -57,8 +57,8 @@ export default async function HomePage() {
             backgroundImage: 'url(/hero.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'blur(20px)',
-            transform: 'scale(1.12)',
+            filter: 'blur(3px)',
+            transform: 'scale(1.05)',
           }}
           aria-hidden="true"
         />
@@ -69,11 +69,19 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-orange-900/10" aria-hidden="true" />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
-            <SiteLogo
-              height={60}
-              priority
-              className="rounded-2xl bg-white/95 p-3 shadow-md ring-1 ring-orange-100"
-            />
+            <div className="flex flex-wrap items-center gap-4">
+              <SiteLogo
+                height={60}
+                priority
+                className="rounded-2xl bg-white/95 p-3 shadow-md ring-1 ring-orange-100"
+              />
+              <div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  {profile.name}
+                </p>
+                <p className="text-base font-medium text-orange-800">{t('clinicNameAm')}</p>
+              </div>
+            </div>
             <p className="mt-5 inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-orange-800 ring-1 ring-orange-100">
               {pick(locale, content.hero_promise)}
             </p>
