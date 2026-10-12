@@ -27,11 +27,11 @@ const schema = z.object({
     .min(8, 'LOGIN_SECRET_PATH must be at least 8 characters')
     .regex(/^[A-Za-z0-9_-]+$/, 'LOGIN_SECRET_PATH may only contain letters, numbers, - and _'),
   OWNER_EMAIL: requiredEmail('OWNER_EMAIL'),
-  OWNER_PASSWORD: requiredSecret('OWNER_PASSWORD', 10),
+  OWNER_PASSWORD: requiredSecret('OWNER_PASSWORD', 6),
   RECEPTION_EMAIL: requiredEmail('RECEPTION_EMAIL'),
-  RECEPTION_PASSWORD: requiredSecret('RECEPTION_PASSWORD', 10),
+  RECEPTION_PASSWORD: requiredSecret('RECEPTION_PASSWORD', 6),
   STAFF_EMAIL: requiredEmail('STAFF_EMAIL'),
-  STAFF_PASSWORD: requiredSecret('STAFF_PASSWORD', 10),
+  STAFF_PASSWORD: requiredSecret('STAFF_PASSWORD', 6),
   UPLOAD_DIR: z.string().min(1).default('storage/uploads'),
   /** Optional bearer token for POST /api/jobs/messages (external cron). */
   CRON_SECRET: z.string().min(16, 'CRON_SECRET must be at least 16 characters').optional(),
