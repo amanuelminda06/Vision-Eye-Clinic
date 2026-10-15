@@ -185,16 +185,16 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     am: 'visioneyeclinic',
   },
   social_tiktok: {
-    en: '',
-    am: '',
+    en: 'https://tiktok.com/@visioneyeclinic',
+    am: 'https://tiktok.com/@visioneyeclinic',
   },
   social_instagram: {
-    en: '',
-    am: '',
+    en: 'https://instagram.com/visioneyeclinic',
+    am: 'https://instagram.com/visioneyeclinic',
   },
   social_telegram: {
-    en: '',
-    am: '',
+    en: 'https://t.me/visioneyeclinic',
+    am: 'https://t.me/visioneyeclinic',
   },
   doctors_intro: {
     en: 'Meet the team behind your bright view — our ophthalmologists and optometrists combine modern equipment with attentive, personal care.',
