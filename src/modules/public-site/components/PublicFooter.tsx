@@ -38,7 +38,7 @@ export default async function PublicFooter({
   ];
 
   return (
-    <footer className="mt-16 border-t-2 border-orange-600 bg-slate-50">
+    <footer className="border-t-2 border-orange-600 bg-slate-50">
       {mapUrl ? (
         <div className="border-b border-slate-200">
           <a
