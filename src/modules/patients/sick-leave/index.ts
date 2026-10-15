@@ -2,9 +2,8 @@ export {
   createPatientSickLeaveAction,
   updatePatientSickLeaveAction,
   deletePatientSickLeaveAction,
-  patientSickLeaveSchema,
 } from './actions';
-export type { PatientSickLeaveValues } from './actions';
+export type { PatientSickLeaveValues } from './schemas';
 export { listPatientSickLeaves, getPatientSickLeave, countPatientSickLeaves } from './queries';
 export type { PatientSickLeaveRow, PatientSickLeaveFormValues } from './queries';
 export { default as PatientSickLeaveForm } from './components/PatientSickLeaveForm';
