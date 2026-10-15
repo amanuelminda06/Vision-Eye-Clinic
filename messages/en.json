@@ -554,7 +554,9 @@
   "tabSick": "Sick leave",
   "sickLeaveNew": "New sick leave",
   "sickLeaveEdit": "Edit sick leave",
-  "idPhotoView": "View"
+  "idPhotoView": "View",
+  "idNo": "ID number",
+  "idNoHint": "National ID / passport number"
  },
  "services": {
   "title": "Services",

@@ -61,6 +61,7 @@ export const patientFormSchema = z.object({
     .max(MAX_NOTES_CHARS, 'tooLong')
     .transform((value) => value || null),
   consentSms: checkbox,
+  idNo: z.string().trim().max(32, 'tooLong').optional(),
   idPhoto: z
     .custom<File>((file) => file instanceof File, 'invalid')
     .refine((file) => idPhotoExtension(file) !== null, 'idPhotoInvalidType')

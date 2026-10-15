@@ -11,6 +11,7 @@ export const EXPORT_ROW_CAP = 5000;
 
 export type PatientListFilters = {
   q?: string;
+  idNo?: string;
   tag?: string;
   consent?: 'true' | 'false' | '';
   dnm?: 'true' | 'false' | '';
@@ -40,8 +41,12 @@ export function buildPatientWhere(filters: PatientListFilters): Prisma.PatientWh
     for (const variant of phoneSearchVariants(q) ?? []) {
       or.push({ phoneE164: { contains: variant } });
     }
+    or.push({ idNo: { contains: q, mode: 'insensitive' } });
     and.push({ OR: or });
   }
+
+  const idNo = filters.idNo?.trim();
+  if (idNo) and.push({ idNo: { equals: idNo, mode: 'insensitive' } });
 
   if (filters.tag) and.push({ tags: { some: { tagId: filters.tag } } });
   if (filters.consent === 'true') and.push({ consentSms: true });
@@ -65,6 +70,7 @@ const LIST_SELECT = {
   doNotMessage: true,
   active: true,
   createdAt: true,
+  idNo: true,
   tags: { include: { tag: true }, orderBy: { tag: { name: 'asc' } } },
 } satisfies Prisma.PatientSelect;
 

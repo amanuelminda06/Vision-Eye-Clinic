@@ -23,6 +23,7 @@ type Values = {
   notesNonClinical: string | null;
   consentSms: boolean;
   idPhotoUrl: string | null;
+  idNo: string | null;
 };
 
 type Props = {
@@ -280,6 +281,22 @@ export default function PatientForm({ mode, patient, route }: Props) {
               {fieldError('idPhoto')}
             </p>
           ) : null}
+        </div>
+
+        <div>
+          <label className="label" htmlFor="idNo">
+            {t('idNo')}
+          </label>
+          <input
+            className="input-field"
+            id="idNo"
+            name="idNo"
+            type="text"
+            maxLength={32}
+            defaultValue={patient?.idNo ?? ''}
+            disabled={pending}
+            placeholder={t('idNoHint')}
+          />
         </div>
 
         <div>

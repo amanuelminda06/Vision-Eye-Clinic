@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
   const statusParam = (params.get('status') as 'true' | 'false' | null) ?? '';
   const filters: import('@/modules/patients').PatientListFilters = {
     q: params.get('q')?.slice(0, 100) || undefined,
+    idNo: params.get('idNo')?.slice(0, 32) || undefined,
     tag: params.get('tag')?.slice(0, 64) || undefined,
     consent: consentParam,
     dnm: dnmParam,
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
     format,
     [
       'id',
+      'idNo',
       'fullName',
       'phone',
       'sex',
@@ -55,6 +57,7 @@ export async function GET(request: NextRequest) {
     ],
     rows.map((row) => [
       row.id,
+      row.idNo ?? '',
       row.fullName,
       row.phoneE164,
       row.sex ?? '',

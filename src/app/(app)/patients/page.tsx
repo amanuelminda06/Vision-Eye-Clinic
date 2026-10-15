@@ -16,6 +16,7 @@ import {
 
 type SearchParams = Promise<{
   q?: string;
+  idNo?: string;
   tag?: string;
   consent?: string;
   dnm?: string;
@@ -29,6 +30,7 @@ function buildQuery(filters: PatientListFilters, patch: Partial<PatientListFilte
   const merged = { ...filters, ...patch };
   const params = new URLSearchParams();
   if (merged.q) params.set('q', merged.q);
+  if (merged.idNo) params.set('idNo', merged.idNo);
   if (merged.tag) params.set('tag', merged.tag);
   if (merged.consent) params.set('consent', merged.consent);
   if (merged.dnm) params.set('dnm', merged.dnm);
@@ -47,6 +49,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
   const tc = await getTranslations('common');
 
   const q = sp.q?.slice(0, 100) ?? '';
+  const idNo = sp.idNo?.slice(0, 32) ?? '';
   const tag = sp.tag?.slice(0, 64) ?? '';
   const consent = sp.consent === 'true' || sp.consent === 'false' ? sp.consent : '';
   const dnm = sp.dnm === 'true' || sp.dnm === 'false' ? sp.dnm : '';
@@ -55,7 +58,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
   const dir = dirFrom(sp.dir);
   const page = Number(sp.page) || 1;
 
-  const filters: PatientListFilters = { q, tag, consent, dnm, status, sort, dir, page };
+  const filters: PatientListFilters = { q, idNo, tag, consent, dnm, status, sort, dir, page };
   const [tags, result] = await Promise.all([listTagsForFilter(), listPatients(filters)]);
   const { rows, total, page: currentPage, pageCount } = result;
 
@@ -105,6 +108,19 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
             type="search"
             defaultValue={q}
             placeholder={t('searchPlaceholder')}
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="idNo">
+            {t('idNo')}
+          </label>
+          <input
+            className="input-field"
+            id="idNo"
+            name="idNo"
+            type="search"
+            defaultValue={idNo}
+            placeholder={t('idNoHint')}
           />
         </div>
         <div>
@@ -164,6 +180,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
             <tr>
               <th className="px-4 py-3 font-medium">{sortLink('fullName', t('fullName'))}</th>
+              <th className="px-4 py-3 font-medium">{t('idNo')}</th>
               <th className="px-4 py-3 font-medium">{t('phone')}</th>
               <th className="px-4 py-3 font-medium">{t('sex')}</th>
               <th className="px-4 py-3 font-medium">{sortLink('birthDate', t('birthDate'))}</th>
@@ -176,7 +193,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
                   {q || tag || consent || dnm || status ? tc('noResults') : tc('empty')}
                 </td>
               </tr>
@@ -200,6 +217,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
                       </span>
                     ) : null}
                   </td>
+                  <td className="px-4 py-3 text-slate-600">{row.idNo ?? '—'}</td>
                   <td className="px-4 py-3 text-slate-600">
                     <a href={`tel:${row.phoneE164}`} className="hover:text-slate-900">
                       {row.phoneE164}

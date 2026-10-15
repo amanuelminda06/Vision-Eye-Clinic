@@ -390,6 +390,8 @@ model Patient {
   doNotMessageReason String?
   /// URL of the patient's ID photo (captured or uploaded); served via /api/uploads/.
   idPhotoUrl         String?
+  /** National ID / passport number used to identify patients. */
+  idNo               String?
   active             Boolean      @default(true)
   /// User id of the creator (no FK — users are never deleted).
   createdBy          String
@@ -409,6 +411,7 @@ model Patient {
   @@index([birthDate])
   @@index([active])
   @@index([createdAt])
+  @@index([idNo])
 }
 
 model Tag {

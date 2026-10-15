@@ -35,6 +35,7 @@ function readPatientForm(formData: FormData) {
     preferredLanguage: String(formData.get('preferredLanguage') ?? ''),
     notesNonClinical: String(formData.get('notesNonClinical') ?? ''),
     consentSms: String(formData.get('consentSms') ?? 'false'),
+    idNo: String(formData.get('idNo') ?? ''),
     idPhoto: idPhoto instanceof File && idPhoto.size > 0 ? idPhoto : undefined,
   };
 }
@@ -74,6 +75,7 @@ const snapshot = (patient: {
   doNotMessage: boolean;
   doNotMessageReason: string | null;
   idPhotoUrl: string | null;
+  idNo: string | null;
   active: boolean;
 }) => ({
   fullName: patient.fullName,
@@ -88,6 +90,7 @@ const snapshot = (patient: {
   doNotMessage: patient.doNotMessage,
   doNotMessageReason: patient.doNotMessageReason,
   idPhotoUrl: patient.idPhotoUrl,
+  idNo: patient.idNo,
   active: patient.active,
 });
 
@@ -139,6 +142,7 @@ export async function createPatientAction(
           birthDate: toDate(values.birthDate),
           preferredLanguage: language,
           notesNonClinical: values.notesNonClinical,
+          idNo: values.idNo || null,
           idPhotoUrl,
           active: true,
           createdBy: actor.id,
@@ -214,6 +218,7 @@ export async function updatePatientAction(
         birthDate: toDate(values.birthDate),
         preferredLanguage: language,
         notesNonClinical: values.notesNonClinical,
+        idNo: values.idNo || null,
         idPhotoUrl,
         ...consent,
       },

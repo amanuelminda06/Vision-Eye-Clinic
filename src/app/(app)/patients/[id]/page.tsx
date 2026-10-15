@@ -185,6 +185,10 @@ export default async function PatientDetailPage({
                 </dd>
               </div>
               <div>
+                <dt className="text-xs uppercase text-slate-500">{t('idNo')}</dt>
+                <dd className="text-slate-800">{patient.idNo ?? '—'}</dd>
+              </div>
+              <div>
                 <dt className="text-xs uppercase text-slate-500">{tc('language')}</dt>
                 <dd className="text-slate-800">
                   {patient.preferredLanguage === 'am' ? t('langAm') : t('langEn')}

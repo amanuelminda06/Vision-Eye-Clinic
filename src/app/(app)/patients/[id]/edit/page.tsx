@@ -29,6 +29,7 @@ export default async function EditPatientPage({ params }: { params: Params }) {
           notesNonClinical: patient.notesNonClinical,
           consentSms: patient.consentSms,
           idPhotoUrl: patient.idPhotoUrl,
+          idNo: patient.idNo,
         }}
       />
     </div>
