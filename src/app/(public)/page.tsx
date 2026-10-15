@@ -246,7 +246,7 @@ export default async function HomePage() {
       </section>
 
       {announcements.length ? (
-        <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+        <section id="announcements" className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
           <div className="accent-line mb-4" aria-hidden="true" />
           <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{t('home.announcementsTitle')}</h2>
           <Reveal delay={40}>
