@@ -552,7 +552,8 @@
   "sickRecordedBy": "Recorded by",
   "tabSick": "Sick leave",
   "sickLeaveNew": "New sick leave",
-  "sickLeaveEdit": "Edit sick leave"
+  "sickLeaveEdit": "Edit sick leave",
+  "idPhotoView": "View"
  },
  "services": {
   "title": "Services",

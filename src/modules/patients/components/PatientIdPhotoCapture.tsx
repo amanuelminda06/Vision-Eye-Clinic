@@ -23,6 +23,7 @@ export default function PatientIdPhotoCapture({ patientId, existingUrl }: Props)
     FormData
   >(capturePatientIdPhotoAction, null);
   const failed = !!state && !state.ok;
+  const [open, setOpen] = useState(false);
 
   // Revoke the object URL on every render so the preview stays in sync.
   const [preview, setPreview] = useState<string | null>(existingUrl);
@@ -54,73 +55,105 @@ export default function PatientIdPhotoCapture({ patientId, existingUrl }: Props)
   }
 
   return (
-    <form onSubmit={onSubmit} className="card space-y-3 p-4">
-      <input type="hidden" name="patientId" value={patientId} />
-      <div className="flex items-center gap-3">
-        {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={preview}
-            alt=""
-            className="h-16 w-16 rounded-lg border border-slate-200 object-cover"
-          />
-        ) : (
-          <div className="h-16 w-16 rounded-lg border border-dashed border-slate-300 bg-slate-50" />
-        )}
-        <div className="flex flex-col gap-2">
-          <input
-            id="idPhoto"
-            name="idPhoto"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            capture="environment"
-            disabled={pending}
-            onChange={onFileChange}
-            className="text-xs text-slate-600 file:mr-2 file:rounded-md file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-orange-700 hover:file:bg-orange-100"
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="btn-secondary text-xs"
+    <>
+      <form onSubmit={onSubmit} className="card space-y-3 p-4">
+        <input type="hidden" name="patientId" value={patientId} />
+        <div className="flex items-center gap-3">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preview}
+              alt=""
+              className="h-16 w-16 rounded-lg border border-slate-200 object-cover"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-lg border border-dashed border-slate-300 bg-slate-50" />
+          )}
+          <div className="flex flex-col gap-2">
+            <input
+              id="idPhoto"
+              name="idPhoto"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              capture="environment"
               disabled={pending}
-              onClick={() => {
-                const input = document.getElementById('idPhoto') as HTMLInputElement | null;
-                if (input) {
-                  input.removeAttribute('capture');
-                  input.click();
-                }
-              }}
-            >
-              {t('idPhotoUpload')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary text-xs"
-              disabled={pending}
-              onClick={() => {
-                const input = document.getElementById('idPhoto') as HTMLInputElement | null;
-                if (input) {
-                  input.setAttribute('capture', 'environment');
-                  input.click();
-                }
-              }}
-            >
-              {t('idPhotoCapture')}
-            </button>
+              onChange={onFileChange}
+              className="text-xs text-slate-600 file:mr-2 file:rounded-md file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-orange-700 hover:file:bg-orange-100"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn-secondary text-xs"
+                disabled={pending}
+                onClick={() => {
+                  const input = document.getElementById('idPhoto') as HTMLInputElement | null;
+                  if (input) {
+                    input.removeAttribute('capture');
+                    input.click();
+                  }
+                }}
+              >
+                {t('idPhotoUpload')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary text-xs"
+                disabled={pending}
+                onClick={() => {
+                  const input = document.getElementById('idPhoto') as HTMLInputElement | null;
+                  if (input) {
+                    input.setAttribute('capture', 'environment');
+                    input.click();
+                  }
+                }}
+              >
+                {t('idPhotoCapture')}
+              </button>
+              {preview ? (
+                <button
+                  type="button"
+                  className="btn-secondary text-xs"
+                  disabled={pending}
+                  onClick={() => setOpen(true)}
+                >
+                  {t('idPhotoView')}
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
-      <p className="text-xs text-slate-500">{t('idPhotoHint')}</p>
-      {failed && state.error ? (
-        <p role="alert" className="text-xs font-medium text-red-600">
-          {tc(state.error as never)}
-        </p>
+        <p className="mt-1 text-xs text-slate-500">{t('idPhotoHint')}</p>
+        {failed && state.error ? (
+          <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+            {tc(state.error as never)}
+          </p>
+        ) : null}
+        <div className="flex items-center gap-3">
+          <button type="submit" className="btn-primary text-xs" disabled={pending}>
+            {pending ? tc('saving') : tc('save')}
+          </button>
+        </div>
+      </form>
+
+      {open && preview ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label={tc('close')}
+            className="absolute inset-0 bg-slate-900/70"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('idPhotoView')}
+            className="relative z-10 max-h-[90vh] max-w-5xl overflow-auto rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview} alt="" className="h-auto w-full max-w-full object-contain" />
+          </div>
+        </div>
       ) : null}
-      <div className="flex items-center gap-3">
-        <button type="submit" className="btn-primary text-xs" disabled={pending}>
-          {pending ? tc('saving') : tc('save')}
-        </button>
-      </div>
-    </form>
+    </>
   );
 }
