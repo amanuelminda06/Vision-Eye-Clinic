@@ -14,6 +14,22 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/** Entrance animation shared by every service card. */
+function ServiceAnimationStyles() {
+  return (
+    <style>
+      {`@keyframes svc-rise {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .svc-card {
+        animation: svc-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      .svc-card:hover { transform: translateY(-4px); transition: transform 0.2s ease; }`}
+    </style>
+  );
+}
+
 export default async function ServicesPage() {
   const t = await getTranslations('site');
   const ts = await getTranslations('services');
@@ -34,6 +50,7 @@ export default async function ServicesPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+      <ServiceAnimationStyles />
       <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
         {t('services.title')}
       </h1>
@@ -66,7 +83,7 @@ export default async function ServicesPage() {
                   return (
                     <article
                       key={service.id}
-                      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                      className="svc-card flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                     >
                       {service.imageUrl ? (
                         <Image
@@ -74,7 +91,7 @@ export default async function ServicesPage() {
                           alt={name}
                           width={1200}
                           height={800}
-                          className="h-40 w-full object-cover"
+                          className="h-40 w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
                         />
                       ) : null}
                       <div className="flex flex-1 flex-col p-6">
@@ -86,7 +103,7 @@ export default async function ServicesPage() {
                         )}
                         <Link
                           href="/book"
-                          className="mt-4 font-semibold text-orange-800 hover:text-orange-900"
+                          className="mt-4 inline-flex items-center justify-center rounded-xl bg-orange-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-900"
                         >
                           {t('services.bookService')} →
                         </Link>

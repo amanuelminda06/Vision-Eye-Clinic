@@ -6,10 +6,12 @@ import {
   getClinicProfile,
   getPublicServices,
   getSiteContent,
+  isAnnouncementItem,
   isTestimonial,
   pageMetadata,
   parseItems,
   pick,
+  type AnnouncementItem,
 } from '@/modules/public-site';
 import { telHref } from '@/modules/public-site/format';
 import Reveal from '@/components/Reveal';
@@ -46,7 +48,17 @@ export default async function HomePage() {
     0,
     3,
   );
+  const announcements = parseItems<AnnouncementItem>(
+    pick(locale, content.announcements_items),
+    isAnnouncementItem,
+  );
   const address = pick(locale, content.contact_address);
+  const aboutTitle = pick(locale, content.about_title);
+  const aboutBody = pick(locale, content.about_body);
+  const box1Title = pick(locale, content.box1_title);
+  const box1Body = pick(locale, content.box1_body);
+  const box2Title = pick(locale, content.box2_title);
+  const box2Body = pick(locale, content.box2_body);
 
   return (
     <>
@@ -229,6 +241,41 @@ export default async function HomePage() {
             <Link href="/doctors" className="font-semibold text-orange-800 hover:text-orange-900">
               {t('home.viewAllDoctors')} →
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {announcements.length ? (
+        <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+          <div className="accent-line mb-4" aria-hidden="true" />
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{t('home.announcementsTitle')}</h2>
+          <Reveal delay={40}>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {announcements.map((item, index) => (
+                <article key={index} className="card card-hover p-6">
+                  <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{item.message}</p>
+                </article>
+              ))}
+            </div>
+          </Reveal>
+        </section>
+      ) : null}
+
+      <section className="bg-slate-50">
+        <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+          <div className="accent-line mb-4" aria-hidden="true" />
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{aboutTitle}</h2>
+          <p className="mt-2 max-w-2xl text-slate-600">{aboutBody}</p>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2">
+            <Reveal delay={40} className="card card-hover p-6">
+              <h3 className="text-lg font-semibold text-slate-900">{box1Title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{box1Body}</p>
+            </Reveal>
+            <Reveal delay={100} className="card card-hover p-6">
+              <h3 className="text-lg font-semibold text-slate-900">{box2Title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{box2Body}</p>
+            </Reveal>
           </div>
         </div>
       </section>

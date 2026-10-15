@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { ActionResult } from '@/lib/action';
 import { saveSiteContentAction } from '../actions';
-import { isFaqItem, isTestimonial, type FaqItem, type Testimonial } from '../content';
+import {
+  isAnnouncementItem,
+  isFaqItem,
+  isTestimonial,
+  type AnnouncementItem,
+  type FaqItem,
+  type Testimonial,
+} from '../content';
 
 type Bilingual = { en: string; am: string };
 type Props = { content: Record<string, Bilingual> };
@@ -15,7 +22,13 @@ const TEXT_FIELDS: Array<{ key: string; labelKey: string; rows?: number }> = [
   { key: 'hero_subtitle', labelKey: 'heroSubtitle', rows: 2 },
   { key: 'hero_promise', labelKey: 'heroPromise' },
   { key: 'home_intro', labelKey: 'homeIntro', rows: 3 },
+  { key: 'about_title', labelKey: 'aboutTitle' },
   { key: 'about_body', labelKey: 'aboutBody', rows: 6 },
+  { key: 'box1_title', labelKey: 'box1Title' },
+  { key: 'box1_body', labelKey: 'box1Body', rows: 4 },
+  { key: 'box2_title', labelKey: 'box2Title' },
+  { key: 'box2_body', labelKey: 'box2Body', rows: 4 },
+  { key: 'doctors_intro', labelKey: 'doctorsIntro', rows: 3 },
   { key: 'hours_text', labelKey: 'hoursText' },
   { key: 'footer_note', labelKey: 'footerNote', rows: 2 },
   { key: 'privacy_body', labelKey: 'privacyBody', rows: 6 },
@@ -25,6 +38,9 @@ const TEXT_FIELDS: Array<{ key: string; labelKey: string; rows?: number }> = [
   { key: 'contact_map_url', labelKey: 'contactMapUrl' },
   { key: 'contact_whatsapp', labelKey: 'contactWhatsapp' },
   { key: 'contact_telegram', labelKey: 'contactTelegram' },
+  { key: 'social_tiktok', labelKey: 'socialTiktok' },
+  { key: 'social_instagram', labelKey: 'socialInstagram' },
+  { key: 'social_telegram', labelKey: 'socialTelegram' },
 ];
 
 function parseFaq(json: string | undefined): FaqItem[] {
@@ -47,6 +63,16 @@ function parseTestimonials(json: string | undefined): Testimonial[] {
   }
 }
 
+function parseAnnouncements(json: string | undefined): AnnouncementItem[] {
+  if (!json) return [];
+  try {
+    const parsed: unknown = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed.filter(isAnnouncementItem) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function SiteContentForm({ content }: Props) {
   const t = useTranslations('content');
   const tc = useTranslations('common');
@@ -63,6 +89,13 @@ export default function SiteContentForm({ content }: Props) {
   );
   const [testAm, setTestAm] = useState<Testimonial[]>(() =>
     parseTestimonials(content.testimonials_items?.am),
+  );
+
+  const [annEn, setAnnEn] = useState<AnnouncementItem[]>(() =>
+    parseAnnouncements(content.announcements_items?.en),
+  );
+  const [annAm, setAnnAm] = useState<AnnouncementItem[]>(() =>
+    parseAnnouncements(content.announcements_items?.am),
   );
 
   useEffect(() => {
@@ -138,6 +171,94 @@ export default function SiteContentForm({ content }: Props) {
             />
           </div>
         </div>
+        <details open className="mt-4">
+          <summary className="cursor-pointer font-medium text-slate-700">
+            {t('announcementsItems')}
+          </summary>
+          <div className="mt-3">
+            <ItemEditor
+              items={annEn}
+              setItems={setAnnEn}
+              empty={{ title: '', message: '' }}
+              render={(item, update) => (
+                <>
+                  <input
+                    className="input-field"
+                    value={item.title}
+                    placeholder={t('announcementTitle')}
+                    onChange={(event) => update({ title: event.target.value })}
+                    disabled={pending}
+                  />
+                  <textarea
+                    className="input-field"
+                    rows={2}
+                    value={item.message}
+                    placeholder={t('announcementMessage')}
+                    onChange={(event) => update({ message: event.target.value })}
+                    disabled={pending}
+                  />
+                </>
+              )}
+              addLabel={t('addAnnouncement')}
+              removeLabel={t('removeAnnouncement')}
+              disabled={pending}
+            />
+          </div>
+          <details className="mt-3 text-sm text-slate-600">
+            <summary className="cursor-pointer font-medium text-slate-700">{t('am')}</summary>
+            <div className="mt-3">
+              <ItemEditor
+                items={annAm}
+                setItems={setAnnAm}
+                empty={{ title: '', message: '' }}
+                render={(item, update) => (
+                  <>
+                    <input
+                      className="input-field"
+                      value={item.title}
+                      placeholder={t('announcementTitle')}
+                      onChange={(event) => update({ title: event.target.value })}
+                      disabled={pending}
+                    />
+                    <textarea
+                      className="input-field"
+                      rows={2}
+                      value={item.message}
+                      placeholder={t('announcementMessage')}
+                      onChange={(event) => update({ message: event.target.value })}
+                      disabled={pending}
+                    />
+                  </>
+                )}
+                addLabel={t('addAnnouncement')}
+                removeLabel={t('removeAnnouncement')}
+                disabled={pending}
+              />
+            </div>
+          </details>
+        </details>
+      </section>
+
+      <section className="card space-y-4 p-6">
+        <h2 className="text-sm font-semibold text-slate-800">{t('socialsSection')}</h2>
+        <BilingualField
+          name="social_tiktok"
+          label={t('socialTiktok')}
+          values={content.social_tiktok}
+          disabled={pending}
+        />
+        <BilingualField
+          name="social_instagram"
+          label={t('socialInstagram')}
+          values={content.social_instagram}
+          disabled={pending}
+        />
+        <BilingualField
+          name="social_telegram"
+          label={t('socialTelegram')}
+          values={content.social_telegram}
+          disabled={pending}
+        />
       </section>
 
       <section className="card space-y-4 p-6">
@@ -203,6 +324,8 @@ export default function SiteContentForm({ content }: Props) {
         </details>
         <input type="hidden" name="faq_items_en" value={JSON.stringify(faqEn)} />
         <input type="hidden" name="faq_items_am" value={JSON.stringify(faqAm)} />
+        <input type="hidden" name="announcements_items_en" value={JSON.stringify(annEn)} />
+        <input type="hidden" name="announcements_items_am" value={JSON.stringify(annAm)} />
       </section>
 
       <section className="card space-y-4 p-6">

@@ -91,7 +91,12 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
           >
             {open ? (
               <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="none">
-                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M6 6l12 12M18 6 6 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             ) : (
               <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="none">
@@ -109,7 +114,9 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
 
       <div
         className={`overflow-hidden border-t transition-all duration-200 ease-out ${
-          open ? 'max-h-96 border-orange-100 opacity-100' : 'invisible max-h-0 border-transparent opacity-0'
+          open
+            ? 'max-h-96 border-orange-100 opacity-100'
+            : 'invisible max-h-0 border-transparent opacity-0'
         } lg:hidden`}
       >
         <nav id="public-mobile-nav" className="bg-white px-4 pb-4 pt-2" aria-label={t('menuLabel')}>

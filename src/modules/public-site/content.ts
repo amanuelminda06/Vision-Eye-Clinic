@@ -13,7 +13,12 @@ export const CONTENT_KEYS = [
   'hero_subtitle',
   'hero_promise',
   'home_intro',
+  'about_title',
   'about_body',
+  'box1_title',
+  'box1_body',
+  'box2_title',
+  'box2_body',
   'hours_text',
   'footer_note',
   'privacy_body',
@@ -21,6 +26,7 @@ export const CONTENT_KEYS = [
   'announcement_active',
   'announcement_start',
   'announcement_end',
+  'announcements_items',
   'faq_items',
   'testimonials_items',
   'contact_address',
@@ -28,6 +34,10 @@ export const CONTENT_KEYS = [
   'contact_map_url',
   'contact_whatsapp',
   'contact_telegram',
+  'social_tiktok',
+  'social_instagram',
+  'social_telegram',
+  'doctors_intro',
 ] as const;
 
 export type SiteContentKey = (typeof CONTENT_KEYS)[number];
@@ -53,7 +63,27 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
   },
   about_body: {
     en: 'Vision Eye Clinic is dedicated to protecting and restoring sight. From comprehensive eye exams and prescription glasses to the diagnosis and management of eye disease, our team combines modern equipment with attentive, personal care. This page is placeholder text — the clinic should replace it with its own story.',
-    am: 'የቪዥን የዓይን ክሊኒክ እይታን ለመጠበቅና ለመመለስ ቁርጠኛ ነው። ከሙሉ የዓይን ምርመራ እና የብርጭቆ ማዘዣ እስከ የዓይን በሽታ ምርመራና ህክምና ድረስ ቡድናችን ዘመናዊ መሳሪያዎችን ከቅርብ እንክብካቤ ጋር ያጣምራል። ይህ ገጽ ጊዜያዊ ጽሑፍ ነው።',
+    am: 'PLACEHOLDER — Amharic about text pending native-speaker review.',
+  },
+  about_title: {
+    en: 'About Vision Eye Clinic',
+    am: 'PLACEHOLDER — Amharic about title pending native-speaker review.',
+  },
+  box1_title: {
+    en: 'Comprehensive eye care',
+    am: 'PLACEHOLDER — Amharic box title pending native-speaker review.',
+  },
+  box1_body: {
+    en: 'Routine exams, prescription glasses, contact lenses and specialist diagnosis under one roof.',
+    am: 'PLACEHOLDER — Amharic box body pending native-speaker review.',
+  },
+  box2_title: {
+    en: 'Patient-first care',
+    am: 'PLACEHOLDER — Amharic box title pending native-speaker review.',
+  },
+  box2_body: {
+    en: 'We take the time to explain every step, so you always know what is happening.',
+    am: 'PLACEHOLDER — Amharic box body pending native-speaker review.',
   },
   hours_text: {
     en: 'Monday–Friday 8:00–17:00 · Saturday 8:00–12:00 · Sunday closed',
@@ -154,6 +184,36 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     en: '',
     am: '',
   },
+  social_tiktok: {
+    en: '',
+    am: '',
+  },
+  social_instagram: {
+    en: '',
+    am: '',
+  },
+  social_telegram: {
+    en: '',
+    am: '',
+  },
+  doctors_intro: {
+    en: 'Meet the team behind your bright view — our ophthalmologists and optometrists combine modern equipment with attentive, personal care.',
+    am: 'PLACEHOLDER — Amharic doctors intro pending native-speaker review.',
+  },
+  announcements_items: {
+    en: JSON.stringify([
+      {
+        title: 'Free vision screening this Saturday',
+        message: 'Bring your family for a quick eye check. No appointment needed.',
+      },
+    ]),
+    am: JSON.stringify([
+      {
+        title: ' PLACEHOLDER Amharic announcement title',
+        message: 'PLACEHOLDER Amharic announcement message.',
+      },
+    ]),
+  },
 };
 
 export type SiteContentMap = Record<SiteContentKey, Bilingual>;
@@ -209,6 +269,17 @@ export function isTestimonial(value: unknown): value is Testimonial {
     typeof value === 'object' &&
     typeof (value as Testimonial).name === 'string' &&
     typeof (value as Testimonial).text === 'string'
+  );
+}
+
+export type AnnouncementItem = { title: string; message: string };
+
+export function isAnnouncementItem(value: unknown): value is AnnouncementItem {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    typeof (value as AnnouncementItem).title === 'string' &&
+    typeof (value as AnnouncementItem).message === 'string'
   );
 }
 

@@ -27,13 +27,14 @@ export default async function DoctorsPage() {
   ]);
   const phone = pick(locale, content.contact_phone);
   const phoneHref = telHref(phone);
+  const doctorsIntro = pick(locale, content.doctors_intro);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
         {t('doctors.title')}
       </h1>
-      <p className="mt-3 max-w-2xl text-lg text-slate-600">{t('doctors.intro')}</p>
+      <p className="mt-3 max-w-2xl text-lg text-slate-600">{doctorsIntro || t('doctors.intro')}</p>
 
       {doctors.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-slate-600">

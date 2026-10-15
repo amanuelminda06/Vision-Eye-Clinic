@@ -1163,7 +1163,9 @@
   "privacy": {
    "title": "የግላዊነት ፖሊሲ",
    "updated": "ይህ ፖሊሲ ጊዜያዊ ነው፤ በክሊኒኩ መታየት አለበት።"
-  }
+  },
+  "home.announcementsTitle": "Latest announcements",
+  "footerMap": "Open map"
  },
  "content": {
   "title": "የድህረ ገጽ ይዘት",
@@ -1185,7 +1187,7 @@
   "heroSubtitle": "ንዑስ አርዕስት",
   "heroPromise": "የተስፋ ቃል",
   "homeIntro": "የመነሻ መግቢያ",
-  "aboutBody": "ስለ እኛ ጽሑፍ",
+  "aboutBody": "About body",
   "hoursText": "የስራ ሰዓት (ነጻ ጽሑፍ)",
   "hoursHint": "በመነሻና በመገኛ ገጾች ይታያል።",
   "contactAddress": "አድራሻ",
@@ -1207,7 +1209,24 @@
   "addTestimonial": "ምስክርነት ጨምር",
   "removeTestimonial": "አስወግድ",
   "privacyBody": "የግላዊነት ፖሊሲ ጽሑፍ",
-  "servicesNotice": "በድህረ ገጹ የሚታዩ አገልግሎቶች በአገልግሎቶች ስር ይተዳደራሉ — አገልግሎት ህዝባዊ ብለው ያመልክቱ።"
+  "servicesNotice": "በድህረ ገጹ የሚታዩ አገልግሎቶች በአገልግሎቶች ስር ይተዳደራሉ — አገልግሎት ህዝባዊ ብለው ያመልክቱ።",
+  "aboutTitle": "About title",
+  "box1Title": "Box 1 title",
+  "box1Body": "Box 1 body",
+  "box2Title": "Box 2 title",
+  "box2Body": "Box 2 body",
+  "socialTiktok": "TikTok URL",
+  "socialInstagram": "Instagram URL",
+  "socialTelegram": "Telegram URL",
+  "socialsSection": "Social links",
+  "announcementsSection": "Announcements",
+  "announcementsItems": "Announcements",
+  "addAnnouncement": "Add announcement",
+  "removeAnnouncement": "Remove announcement",
+  "announcementTitle": "Title",
+  "announcementMessage": "Message",
+  "doctorsIntro": "Doctors intro",
+  "doctorsSection": "Doctors"
  },
  "export": {
   "formatCsv": "CSV",

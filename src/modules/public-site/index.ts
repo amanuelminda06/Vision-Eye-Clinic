@@ -6,12 +6,14 @@ export {
   parseItems,
   isFaqItem,
   isTestimonial,
+  isAnnouncementItem,
   isAnnouncementVisible,
   type SiteContentKey,
   type SiteContentMap,
   type Bilingual,
   type FaqItem,
   type Testimonial,
+  type AnnouncementItem,
 } from './content';
 export {
   getSiteContent,

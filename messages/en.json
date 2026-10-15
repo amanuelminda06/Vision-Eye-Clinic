@@ -1163,7 +1163,9 @@
   "privacy": {
    "title": "Privacy policy",
    "updated": "This policy is a placeholder and must be reviewed by the clinic."
-  }
+  },
+  "home.announcementsTitle": "Latest announcements",
+  "footerMap": "Open map"
  },
  "content": {
   "title": "Website content",
@@ -1185,7 +1187,7 @@
   "heroSubtitle": "Hero subtitle",
   "heroPromise": "Hero promise",
   "homeIntro": "Home introduction",
-  "aboutBody": "About text",
+  "aboutBody": "About body",
   "hoursText": "Opening hours (free text)",
   "hoursHint": "Shown on the home and contact pages.",
   "contactAddress": "Address",
@@ -1207,7 +1209,24 @@
   "addTestimonial": "Add testimonial",
   "removeTestimonial": "Remove",
   "privacyBody": "Privacy policy text",
-  "servicesNotice": "Services shown on the website are managed under Services — mark a service as public and add a public description."
+  "servicesNotice": "Services shown on the website are managed under Services — mark a service as public and add a public description.",
+  "aboutTitle": "About title",
+  "box1Title": "Box 1 title",
+  "box1Body": "Box 1 body",
+  "box2Title": "Box 2 title",
+  "box2Body": "Box 2 body",
+  "socialTiktok": "TikTok URL",
+  "socialInstagram": "Instagram URL",
+  "socialTelegram": "Telegram URL",
+  "socialsSection": "Social links",
+  "announcementsSection": "Announcements",
+  "announcementsItems": "Announcements",
+  "addAnnouncement": "Add announcement",
+  "removeAnnouncement": "Remove announcement",
+  "announcementTitle": "Title",
+  "announcementMessage": "Message",
+  "doctorsIntro": "Doctors intro",
+  "doctorsSection": "Doctors"
  },
  "export": {
   "formatCsv": "CSV",
