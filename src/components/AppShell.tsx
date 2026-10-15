@@ -9,36 +9,8 @@ import type { Role } from '@prisma/client';
 import SiteLogo from '@/components/SiteLogo';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
 import GlobalSearch from '@/components/GlobalSearch';
-
-type NavItem = {
-  href: string;
-  labelKey: string;
-  roles: Role[];
-  /** Optional count shown as a pill, e.g. new appointment requests. */
-  badge?: number;
-};
-
-/** Role-based menu. Items for modules not built yet are simply not listed. */
-const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard', labelKey: 'dashboard', roles: ['OWNER', 'RECEPTION', 'STAFF'] },
-  { href: '/patients', labelKey: 'patients', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/sales', labelKey: 'sales', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/schedule', labelKey: 'schedule', roles: ['OWNER', 'RECEPTION', 'STAFF'] },
-  { href: '/leave', labelKey: 'leave', roles: ['OWNER', 'RECEPTION', 'STAFF'] },
-  { href: '/leave/inbox', labelKey: 'leaveInbox', roles: ['OWNER'] },
-  { href: '/leave/calendar', labelKey: 'leaveCalendar', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/appointments', labelKey: 'appointments', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/requests', labelKey: 'requests', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/follow-ups', labelKey: 'followUps', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/messages', labelKey: 'messages', roles: ['OWNER', 'RECEPTION'] },
-  { href: '/revenue', labelKey: 'revenue', roles: ['OWNER'] },
-  { href: '/dashboard/services', labelKey: 'services', roles: ['OWNER'] },
-  { href: '/dashboard/content', labelKey: 'websiteContent', roles: ['OWNER'] },
-  { href: '/users', labelKey: 'users', roles: ['OWNER'] },
-  { href: '/staff', labelKey: 'staff', roles: ['OWNER'] },
-  { href: '/settings', labelKey: 'settings', roles: ['OWNER'] },
-  { href: '/audit', labelKey: 'audit', roles: ['OWNER'] },
-];
+import NavModule from '@/components/NavModule';
+import { NAV_MODULES, type NavModule as NavModuleDef } from '@/modules/nav';
 
 type Props = {
   user: { name: string; email: string; role: Role; mustChangePassword: boolean };
@@ -80,20 +52,25 @@ export default function AppShell({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const items = NAV_ITEMS.filter((item) => item.roles.includes(user.role)).map((item) =>
-    item.href === '/requests'
-      ? { ...item, badge: requestCount }
-      : item.href === '/messages'
-        ? { ...item, badge: messageCount }
-        : item,
-  );
+  const modules = NAV_MODULES.map((module) => ({
+    ...module,
+    items: module.items
+      .filter((item) => item.roles.includes(user.role))
+      .map((item) =>
+        item.href === '/requests'
+          ? { ...item, badge: requestCount }
+          : item.href === '/messages'
+            ? { ...item, badge: messageCount }
+            : item,
+      ),
+  })).filter((module) => module.items.length > 0);
 
   return (
     <SessionProvider>
       <Shell
         user={user}
         loginUrl={loginUrl}
-        items={items}
+        modules={modules}
         forced={forced}
         drawerOpen={drawerOpen}
         setDrawerOpen={setDrawerOpen}
@@ -108,7 +85,7 @@ export default function AppShell({
 }
 
 type ShellProps = Props & {
-  items: NavItem[];
+  modules: NavModuleDef[];
   forced: boolean;
   drawerOpen: boolean;
   setDrawerOpen: (fn: (open: boolean) => boolean) => void;
@@ -120,7 +97,7 @@ type ShellProps = Props & {
 function Shell({
   user,
   loginUrl,
-  items,
+  modules,
   forced,
   drawerOpen,
   setDrawerOpen,
@@ -133,31 +110,8 @@ function Shell({
   const tn = useTranslations('nav');
   const tc = useTranslations('common');
 
-  const navLinks = (className: string) =>
-    items.map((item) => (
-      <Link
-        key={item.href}
-        href={item.href}
-        onClick={() => {
-          setDrawerOpen(() => false);
-          setMenuOpen(() => false);
-        }}
-        aria-current={pathname === item.href ? 'page' : undefined}
-        className={
-          className +
-          (pathname === item.href
-            ? ' bg-orange-100 text-orange-900'
-            : ' text-slate-600 hover:bg-orange-50 hover:text-orange-900')
-        }
-      >
-        {tn(item.labelKey as 'dashboard')}
-        {item.badge != null && item.badge > 0 ? (
-          <span className="ml-1.5 inline-flex items-center rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700">
-            {item.badge}
-          </span>
-        ) : null}
-      </Link>
-    ));
+  const linkClass =
+    'block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600';
 
   return (
     <div className="min-h-screen">
@@ -173,7 +127,10 @@ function Shell({
             ☰
           </button>
 
-          <Link href="/dashboard" className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-sm font-semibold text-slate-900"
+          >
             <SiteLogo height={28} className="rounded-md" />
             <span className="hidden sm:inline">{t('shortName')}</span>
           </Link>
@@ -239,7 +196,18 @@ function Shell({
 
       <div className="mx-auto flex w-full max-w-7xl">
         <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col gap-1 overflow-y-auto border-r border-slate-200 p-3 md:flex">
-          {navLinks('block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600')}
+          {modules.map((module) => (
+            <NavModule
+              key={module.key}
+              module={module}
+              pathname={pathname}
+              className={linkClass}
+              onNavigate={() => {
+                setDrawerOpen(() => false);
+                setMenuOpen(() => false);
+              }}
+            />
+          ))}
         </aside>
 
         <main className="min-w-0 flex-1 px-4 py-6 md:px-6">{forced ? null : children}</main>
@@ -265,7 +233,18 @@ function Shell({
               </button>
             </div>
             <div className="flex flex-col gap-1">
-              {navLinks('block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600')}
+              {modules.map((module) => (
+                <NavModule
+                  key={module.key}
+                  module={module}
+                  pathname={pathname}
+                  className={linkClass}
+                  onNavigate={() => {
+                    setDrawerOpen(() => false);
+                    setMenuOpen(() => false);
+                  }}
+                />
+              ))}
             </div>
             <button
               type="button"

@@ -21,6 +21,7 @@ type Values = {
   preferredLanguage: string;
   notesNonClinical: string | null;
   consentSms: boolean;
+  idPhotoUrl: string | null;
 };
 
 type Props = {
@@ -192,6 +193,64 @@ export default function PatientForm({ mode, patient, route }: Props) {
         {fieldError('notesNonClinical') ? (
           <p role="alert" className="mt-1 text-xs font-medium text-red-600">
             {fieldError('notesNonClinical')}
+          </p>
+        ) : null}
+      </div>
+
+      <div>
+        <label className="label" htmlFor="idPhoto">
+          {t('idPhoto')}
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          {patient?.idPhotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={patient.idPhotoUrl}
+              alt=""
+              className="h-16 w-16 rounded-lg border border-slate-200 object-cover"
+            />
+          ) : null}
+          <input
+            id="idPhoto"
+            name="idPhoto"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            disabled={pending}
+            aria-invalid={!!fieldError('idPhoto')}
+          />
+          <button
+            type="button"
+            className="btn-secondary text-xs"
+            disabled={pending}
+            onClick={() => {
+              const input = document.getElementById('idPhoto') as HTMLInputElement | null;
+              if (input) {
+                input.removeAttribute('capture');
+                input.click();
+              }
+            }}
+          >
+            {t('idPhotoUpload')}
+          </button>
+          <button
+            type="button"
+            className="btn-secondary text-xs"
+            disabled={pending}
+            onClick={() => {
+              const input = document.getElementById('idPhoto') as HTMLInputElement | null;
+              if (input) {
+                input.setAttribute('capture', 'environment');
+                input.click();
+              }
+            }}
+          >
+            {t('idPhotoCapture')}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-slate-500">{t('idPhotoHint')}</p>
+        {fieldError('idPhoto') ? (
+          <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+            {fieldError('idPhoto')}
           </p>
         ) : null}
       </div>

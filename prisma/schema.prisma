@@ -161,6 +161,8 @@ model User {
   createdAt          DateTime  @default(now()) @db.Timestamptz
   updatedAt          DateTime  @updatedAt @db.Timestamptz
 
+  patientSickLeaves  PatientSickLeave[]
+
   @@index([createdAt])
 }
 
@@ -386,6 +388,8 @@ model Patient {
   consentRecordedBy  String?
   doNotMessage       Boolean      @default(false)
   doNotMessageReason String?
+  /// URL of the patient's ID photo (captured or uploaded); served via /api/uploads/.
+  idPhotoUrl         String?
   active             Boolean      @default(true)
   /// User id of the creator (no FK — users are never deleted).
   createdBy          String
@@ -399,6 +403,7 @@ model Patient {
   appointmentRequests AppointmentRequest[]
   followUps           FollowUp[]
   messages            MessageTask[]
+  sickLeaves          PatientSickLeave[]
 
   @@index([fullName])
   @@index([birthDate])
@@ -422,6 +427,28 @@ model PatientTag {
   tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([patientId, tagId])
+}
+
+/**
+ * Sick leave recorded for a patient (the clinic provides sick leave to patients).
+ * Separate from staff leave — this is a patient record, not a schedule block.
+ */
+model PatientSickLeave {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  startDate    DateTime @db.Date
+  endDate      DateTime @db.Date
+  /** Reason for the sick leave (NON-CLINICAL only — no diagnoses or care details). */
+  reason       String?
+  /** Free text. NON-CLINICAL ONLY — never store diagnoses or care details here. */
+  note         String?
+  recordedById String
+  recordedBy   User     @relation(fields: [recordedById], references: [id])
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+
+  @@index([patientId, startDate])
 }
 
 model Service {

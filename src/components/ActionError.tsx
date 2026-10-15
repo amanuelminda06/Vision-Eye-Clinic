@@ -10,6 +10,12 @@ const KNOWN_KEYS = new Set([
   'passwordChangeRequired',
   'cannotDeactivateSelf',
   'saved',
+  'noFile',
+  'fileTooLarge',
+  'emptyFile',
+  'confirmationRequired',
+  'missingColumns',
+  'tooManyRows',
 ]);
 
 /**

@@ -116,3 +116,23 @@ export function formatInTz(
 ): string {
   return new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(toDate(input));
 }
+
+/** Format a date range (both @db.Date) in the clinic timezone. */
+export function formatDateRange(
+  startDate: Date | string,
+  endDate: Date | string,
+  timeZone: string = DEFAULT_TIMEZONE,
+  locale = 'en-GB',
+): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const sameDay = start.getTime() === end.getTime();
+  const sameDate =
+    start.getUTCFullYear() === end.getUTCFullYear() &&
+    start.getUTCMonth() === end.getUTCMonth() &&
+    start.getUTCDate() === end.getUTCDate();
+  const same = sameDay || sameDate;
+  const fmt = (d: Date) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone }).format(d);
+  return same ? fmt(start) : `${fmt(start)} → ${fmt(end)}`;
+}

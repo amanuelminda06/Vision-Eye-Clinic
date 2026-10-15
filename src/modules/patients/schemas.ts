@@ -3,6 +3,19 @@ import { normalizePhone } from '@/lib/phone';
 
 /** Patient create/edit form payload (tags and status live on the detail page). */
 
+export const MAX_ID_PHOTO_BYTES = 2 * 1024 * 1024;
+
+const ID_PHOTO_EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+};
+
+/** File extension for an accepted ID photo type, or null when not allowed. */
+export function idPhotoExtension(file: File): string | null {
+  return ID_PHOTO_EXTENSIONS[file.type] ?? null;
+}
+
 export const SEX_VALUES = ['MALE', 'FEMALE', 'OTHER'] as const;
 export const LANGUAGE_VALUES = ['en', 'am'] as const;
 export const MAX_NOTES_CHARS = 2000;
@@ -48,6 +61,11 @@ export const patientFormSchema = z.object({
     .max(MAX_NOTES_CHARS, 'tooLong')
     .transform((value) => value || null),
   consentSms: checkbox,
+  idPhoto: z
+    .custom<File>((file) => file instanceof File, 'invalid')
+    .refine((file) => idPhotoExtension(file) !== null, 'idPhotoInvalidType')
+    .refine((file) => file.size <= MAX_ID_PHOTO_BYTES, 'idPhotoTooLarge')
+    .optional(),
 });
 
 export type PatientFormValues = z.infer<typeof patientFormSchema>;

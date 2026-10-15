@@ -21,6 +21,9 @@ import {
   TagsEditor,
   StopMessagesCard,
   PatientStatusButton,
+  PatientIdPhotoCapture,
+  listPatientSickLeaves,
+  PatientSickLeaveTab,
 } from '@/modules/patients';
 
 type Params = Promise<{ id: string }>;
@@ -31,6 +34,7 @@ const TAB_KEYS = {
   sales: 'tabSales',
   appointments: 'tabAppointments',
   messages: 'tabMessages',
+  sick: 'tabSick',
 } as const;
 
 /**
@@ -92,7 +96,11 @@ export default async function PatientDetailPage({
   const tab = tabFrom(sp.tab);
   const payload = await loadPatientTab(tab, patient.id);
 
-  const [settings, allTags] = await Promise.all([getSettingsMap(), listAllTags()]);
+  const [settings, allTags, sickRows] = await Promise.all([
+    getSettingsMap(),
+    listAllTags(),
+    listPatientSickLeaves(patient.id),
+  ]);
   const tz = timezoneFrom(settings);
   const clinic = settingsFromMap(settings);
 
@@ -194,6 +202,8 @@ export default async function PatientDetailPage({
             </div>
           </div>
 
+          <PatientIdPhotoCapture patientId={patient.id} existingUrl={patient.idPhotoUrl} />
+
           <div className="border-b border-slate-200">
             <nav className="-mb-px flex flex-wrap">{PATIENT_TABS.map(tabLink)}</nav>
           </div>
@@ -214,6 +224,13 @@ export default async function PatientDetailPage({
             </div>
           ) : tab === 'appointments' ? (
             <PatientAppointmentsList patientId={patient.id} timeZone={tz} />
+          ) : tab === 'sick' ? (
+            <PatientSickLeaveTab
+              rows={sickRows}
+              timeZone={tz}
+              route={`/patients/${patient.id}`}
+              patientId={patient.id}
+            />
           ) : (
             <div className="card p-5">
               <PatientMessagesList patientId={patient.id} timeZone={tz} />

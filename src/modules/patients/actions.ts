@@ -1,13 +1,15 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { writeAudit } from '@/lib/audit';
 import { ok, fail, withAuth, type ActionResult } from '@/lib/action';
-import { validate } from '@/lib/errors';
+import { validate, ValidationError } from '@/lib/errors';
+import { storage } from '@/lib/storage';
 import { getSettingsMap } from '@/modules/settings/queries';
 import { PATIENT_ROLES } from './roles';
-import { patientFormSchema } from './schemas';
+import { patientFormSchema, idPhotoExtension } from './schemas';
 import { findPatientByPhone, findSimilarPatients } from './queries';
 import { initialConsent, nextConsent, consentAuditEntry, type ConsentFields } from './consent';
 import {
@@ -20,6 +22,40 @@ import {
 } from './import';
 import { tagColorFor } from './tags';
 import { cancelPendingForPatient, onConsentGranted } from '@/modules/messaging';
+
+const PATIENT_ID_PHOTO_URL_PREFIX = '/api/uploads/';
+
+function readPatientForm(formData: FormData) {
+  const idPhoto = formData.get('idPhoto');
+  return {
+    fullName: String(formData.get('fullName') ?? ''),
+    phone: String(formData.get('phone') ?? ''),
+    sex: String(formData.get('sex') ?? ''),
+    birthDate: String(formData.get('birthDate') ?? ''),
+    preferredLanguage: String(formData.get('preferredLanguage') ?? ''),
+    notesNonClinical: String(formData.get('notesNonClinical') ?? ''),
+    consentSms: String(formData.get('consentSms') ?? 'false'),
+    idPhoto: idPhoto instanceof File && idPhoto.size > 0 ? idPhoto : undefined,
+  };
+}
+
+async function storeIdPhoto(file: File): Promise<string> {
+  const ext = idPhotoExtension(file);
+  if (!ext) throw new ValidationError({ idPhoto: 'idPhotoInvalidType' });
+  const key = `patient-id-${randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await storage.put(key, buffer);
+  return `${PATIENT_ID_PHOTO_URL_PREFIX}${key}`;
+}
+
+function idPhotoKeyFromUrl(url: string | null): string | null {
+  if (!url || !url.startsWith(PATIENT_ID_PHOTO_URL_PREFIX)) return null;
+  try {
+    return decodeURIComponent(url.slice(PATIENT_ID_PHOTO_URL_PREFIX.length));
+  } catch {
+    return null;
+  }
+}
 
 function isPrismaError(err: unknown, code: string): boolean {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === code;
@@ -37,6 +73,7 @@ const snapshot = (patient: {
   consentRecordedBy: string | null;
   doNotMessage: boolean;
   doNotMessageReason: string | null;
+  idPhotoUrl: string | null;
   active: boolean;
 }) => ({
   fullName: patient.fullName,
@@ -50,23 +87,12 @@ const snapshot = (patient: {
   consentRecordedBy: patient.consentRecordedBy,
   doNotMessage: patient.doNotMessage,
   doNotMessageReason: patient.doNotMessageReason,
+  idPhotoUrl: patient.idPhotoUrl,
   active: patient.active,
 });
 
 function toDate(value: string | null): Date | null {
   return value ? new Date(`${value}T00:00:00Z`) : null;
-}
-
-function readPatientForm(formData: FormData) {
-  return {
-    fullName: String(formData.get('fullName') ?? ''),
-    phone: String(formData.get('phone') ?? ''),
-    sex: String(formData.get('sex') ?? ''),
-    birthDate: String(formData.get('birthDate') ?? ''),
-    preferredLanguage: String(formData.get('preferredLanguage') ?? ''),
-    notesNonClinical: String(formData.get('notesNonClinical') ?? ''),
-    consentSms: String(formData.get('consentSms') ?? 'false'),
-  };
 }
 
 async function defaultLanguage(): Promise<'en' | 'am'> {
@@ -101,6 +127,7 @@ export async function createPatientAction(
     const now = new Date();
     const consent = initialConsent(values.consentSms, now, actor.id);
     const language = values.preferredLanguage ?? (await defaultLanguage());
+    const idPhotoUrl = values.idPhoto ? await storeIdPhoto(values.idPhoto) : null;
 
     let created;
     try {
@@ -112,6 +139,7 @@ export async function createPatientAction(
           birthDate: toDate(values.birthDate),
           preferredLanguage: language,
           notesNonClinical: values.notesNonClinical,
+          idPhotoUrl,
           active: true,
           createdBy: actor.id,
           ...consent,
@@ -175,6 +203,7 @@ export async function updatePatientAction(
       actor.id,
     );
     const language = values.preferredLanguage ?? before.preferredLanguage;
+    const idPhotoUrl = values.idPhoto ? await storeIdPhoto(values.idPhoto) : before.idPhotoUrl;
 
     const updated = await prisma.patient.update({
       where: { id },
@@ -185,9 +214,17 @@ export async function updatePatientAction(
         birthDate: toDate(values.birthDate),
         preferredLanguage: language,
         notesNonClinical: values.notesNonClinical,
+        idPhotoUrl,
         ...consent,
       },
     });
+
+    if (values.idPhoto && before.idPhotoUrl && before.idPhotoUrl !== idPhotoUrl) {
+      const oldKey = idPhotoKeyFromUrl(before.idPhotoUrl);
+      if (oldKey) {
+        await storage.remove(oldKey).catch(() => undefined);
+      }
+    }
 
     await writeAudit({
       user: actor,
@@ -466,5 +503,39 @@ export async function importPatientsAction(
       imported,
       skipped: result.rows.length - imported,
     });
+  });
+}
+
+/** Capture or upload an ID photo for an existing patient from the detail page. */
+export async function capturePatientIdPhotoAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  return withAuth<{ id: string }>(PATIENT_ROLES, async (actor) => {
+    const id = String(formData.get('patientId') ?? '');
+    const file = formData.get('idPhoto');
+    if (!(file instanceof File) || file.size === 0) return fail('noFile');
+
+    const patient = await prisma.patient.findUnique({ where: { id } });
+    if (!patient) return fail('unknownError');
+
+    const idPhotoUrl = await storeIdPhoto(file);
+    await prisma.patient.update({ where: { id }, data: { idPhotoUrl } });
+
+    if (patient.idPhotoUrl && patient.idPhotoUrl !== idPhotoUrl) {
+      const oldKey = idPhotoKeyFromUrl(patient.idPhotoUrl);
+      if (oldKey) await storage.remove(oldKey).catch(() => undefined);
+    }
+
+    await writeAudit({
+      user: actor,
+      entity: 'Patient',
+      entityId: id,
+      action: 'PATIENT_ID_PHOTO_CHANGED',
+      old: { idPhotoUrl: patient.idPhotoUrl },
+      new: { idPhotoUrl },
+    });
+
+    return ok({ id });
   });
 }

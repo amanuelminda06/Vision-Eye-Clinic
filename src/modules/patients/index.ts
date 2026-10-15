@@ -5,6 +5,7 @@ export {
   setPatientActiveAction,
   setDoNotMessageAction,
   importPatientsAction,
+  capturePatientIdPhotoAction,
 } from './actions';
 export type { PatientFormSubmit, ImportPreview, ImportDone } from './actions';
 export {
@@ -50,7 +51,10 @@ export { initialConsent, nextConsent, consentChanged, consentAuditEntry } from '
 export type { ConsentFields } from './consent';
 export { isSimilarName, levenshtein, normalizeNameForKey } from './duplicates';
 export { default as PatientForm } from './components/PatientForm';
+export { default as PatientIdPhotoCapture } from './components/PatientIdPhotoCapture';
 export { default as TagsEditor } from './components/TagsEditor';
 export { default as StopMessagesCard } from './components/StopMessagesCard';
 export { default as PatientStatusButton } from './components/PatientStatusButton';
 export { default as ImportForm } from './components/ImportForm';
+
+export * from './sick-leave';
