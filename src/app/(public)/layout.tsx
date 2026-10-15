@@ -78,13 +78,13 @@ export default async function PublicLayout({ children }: { children: React.React
           address: {
             '@type': 'PostalAddress',
             streetAddress: address,
-            addressLocality: 'Addis Ababa',
-            addressCountry: 'ET',
+            addressLocality: pick(locale, content.city),
+            addressCountry: pick(locale, content.country),
           },
         }
       : {}),
     ...(hoursText ? { openingHours: hoursText } : {}),
-    medicalSpecialty: 'Ophthalmology',
+    medicalSpecialty: pick(locale, content.specialty),
     ...(services.length
       ? {
           availableService: services.map((service) => ({

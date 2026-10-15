@@ -38,6 +38,12 @@ export const CONTENT_KEYS = [
   'social_instagram',
   'social_telegram',
   'doctors_intro',
+  'city',
+  'country',
+  'specialty',
+  'og_title',
+  'og_subtitle',
+  'og_city',
 ] as const;
 
 export type SiteContentKey = (typeof CONTENT_KEYS)[number];
@@ -213,6 +219,30 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
         message: 'PLACEHOLDER Amharic announcement message.',
       },
     ]),
+  },
+city: {
+    en: 'Addis Ababa',
+    am: 'PLACEHOLDER — city',
+  },
+  country: {
+    en: 'Ethiopia',
+    am: 'PLACEHOLDER — country',
+  },
+  specialty: {
+    en: 'Ophthalmology',
+    am: 'PLACEHOLDER — medical specialty',
+  },
+  og_title: {
+    en: 'Clear vision for every stage of life',
+    am: 'PLACEHOLDER — open-graph title',
+  },
+  og_subtitle: {
+    en: 'Eye examinations · Glasses · Diagnostics · Specialist care',
+    am: 'PLACEHOLDER — open-graph subtitle',
+  },
+  og_city: {
+    en: 'Addis Ababa, Ethiopia',
+    am: 'PLACEHOLDER — open-graph city',
   },
 };
 

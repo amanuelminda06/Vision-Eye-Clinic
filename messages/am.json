@@ -1226,7 +1226,13 @@
   "announcementTitle": "Title",
   "announcementMessage": "Message",
   "doctorsIntro": "Doctors intro",
-  "doctorsSection": "Doctors"
+  "doctorsSection": "Doctors",
+  "city": " PLACEHOLDER — city",
+  "country": " PLACEHOLDER — country",
+  "specialty": " PLACEHOLDER — medical specialty",
+  "ogTitle": " PLACEHOLDER — open-graph title",
+  "ogSubtitle": " PLACEHOLDER — open-graph subtitle",
+  "ogCity": " PLACEHOLDER — open-graph city"
  },
  "export": {
   "formatCsv": "CSV",
