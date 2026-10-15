@@ -11,7 +11,6 @@ type Props = {
   phoneHref: string | null;
   hoursText: string | null;
   footerNote: string | null;
-  mapUrl: string | null;
   socials: SocialLink[];
 };
 
@@ -22,7 +21,6 @@ export default async function PublicFooter({
   phoneHref,
   hoursText,
   footerNote,
-  mapUrl,
   socials,
 }: Props) {
   const t = await getTranslations('site');
@@ -39,19 +37,6 @@ export default async function PublicFooter({
 
   return (
     <footer className="border-t-2 border-orange-600 bg-slate-50">
-      {mapUrl ? (
-        <div className="border-b border-slate-200">
-          <a
-            href={mapUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block h-40 w-full bg-slate-200 bg-cover bg-center sm:h-56"
-            style={{ backgroundImage: `url(${mapUrl})` }}
-            aria-label={t('footerMap')}
-          />
-        </div>
-      ) : null}
-
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <div className="inline-flex rounded-2xl bg-stone-900 p-3 ring-1 ring-orange-600/60">

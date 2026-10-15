@@ -46,7 +46,6 @@ export default async function PublicLayout({ children }: { children: React.React
   const phoneHref = telHref(phone);
   const hoursText = pick(locale, content.hours_text) || null;
   const footerNote = pick(locale, content.footer_note) || null;
-  const mapUrl = pick(locale, content.contact_map_url) || null;
   const announcementText = pick(locale, content.announcement_text);
 
   const socials = [
@@ -104,7 +103,6 @@ export default async function PublicLayout({ children }: { children: React.React
       >
         {t('skipToContent')}
       </a>
-      {showAnnouncement ? <AnnouncementBanner text={announcementText} /> : null}
       <PublicHeader clinicName={clinicName} phoneHref={phoneHref} />
       <main id="main" className="flex-1">
         {showAnnouncement ? <AnnouncementBanner text={announcementText} /> : null}
@@ -117,7 +115,6 @@ export default async function PublicLayout({ children }: { children: React.React
         phoneHref={phoneHref}
         hoursText={hoursText}
         footerNote={footerNote}
-        mapUrl={mapUrl}
         socials={socials}
       />
       <JsonLd data={jsonLd} />
