@@ -451,6 +451,20 @@ model PatientSickLeave {
   @@index([patientId, startDate])
 }
 
+/**
+ * Blob storage for uploaded images (staff photos, patient ID photos).
+ * Lives in Postgres so uploads survive Vercel's ephemeral disk.
+ */
+model StoredFile {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  mimeType  String
+  data      Bytes
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([createdAt])
+}
+
 model Service {
   id           String   @id @default(cuid())
   /// English display name (historical, kept for completed sales and old reads).

@@ -3,7 +3,7 @@ import { normalizePhone } from '@/lib/phone';
 
 /** Patient create/edit form payload (tags and status live on the detail page). */
 
-export const MAX_ID_PHOTO_BYTES = 2 * 1024 * 1024;
+export const MAX_ID_PHOTO_BYTES = 1024 * 1024;
 
 const ID_PHOTO_EXTENSIONS: Record<string, string> = {
   'image/png': 'png',

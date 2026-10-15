@@ -33,6 +33,8 @@ const schema = z.object({
   STAFF_EMAIL: requiredEmail('STAFF_EMAIL'),
   STAFF_PASSWORD: requiredSecret('STAFF_PASSWORD', 6),
   UPLOAD_DIR: z.string().min(1).default('storage/uploads'),
+  /** Storage backend: `db` (Postgres blob) or `local` (ephemeral disk). */
+  STORAGE_DRIVER: z.enum(['db', 'local']).default('db'),
   /** Optional bearer token for POST /api/jobs/messages (external cron). */
   CRON_SECRET: z.string().min(16, 'CRON_SECRET must be at least 16 characters').optional(),
   /** Canonical origin for the public website (metadata, JSON-LD, sitemap). */

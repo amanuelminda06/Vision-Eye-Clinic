@@ -11,6 +11,7 @@ import {
   type PatientFormSubmit,
 } from '@/modules/patients/actions';
 import { formatPhoneDisplay } from '@/lib/phone';
+import { resizeImageFile } from '@/lib/image';
 import type { ActionResult } from '@/lib/action';
 
 type Values = {
@@ -41,6 +42,20 @@ export default function PatientForm({ mode, patient, route }: Props) {
     FormData
   >(action, null);
 
+  // Resize the ID photo in the browser before it hits the server, so the
+  // stored blob stays small on the ephemeral Vercel disk.
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const fd = new FormData(form);
+    const file = (form.querySelector('#idPhoto') as HTMLInputElement | null)?.files?.[0];
+    if (file) {
+      fd.delete('idPhoto');
+      fd.append('idPhoto', await resizeImageFile(file));
+    }
+    formAction(fd);
+  }
+
   const failed = !!state && !state.ok;
   const fields = failed ? state.fields : undefined;
   const fieldError = (key: string): string | undefined =>
@@ -58,7 +73,7 @@ export default function PatientForm({ mode, patient, route }: Props) {
   }, [state, router]);
 
   return (
-    <form action={formAction} className="card max-w-2xl space-y-4 p-6">
+    <form onSubmit={onSubmit} className="card max-w-2xl space-y-4 p-6">
       {mode === 'edit' ? <input type="hidden" name="id" value={patient?.id} /> : null}
       {confirmed ? <input type="hidden" name="confirm" value="true" /> : null}
 

@@ -1,11 +1,12 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { env } from '@/env';
+import { DatabaseStorage } from './database-storage';
 
 /**
- * Storage abstraction (staff photos today, anything file-backed tomorrow).
- * Local-disk implementation lives behind this interface so a cloud provider
- * can be swapped in without touching module code.
+ * Storage abstraction. Uploaded images live in Postgres by default so they
+ * survive Vercel's ephemeral disk; local disk is available for development
+ * via STORAGE_DRIVER=local.
  */
 export interface StorageProvider {
   /** Stores bytes under a safe key and returns that key. */
@@ -58,8 +59,7 @@ export class LocalDiskStorage implements StorageProvider {
   }
 }
 
-export const storage: StorageProvider = new LocalDiskStorage(
-  // UPLOAD_DIR is a relative folder resolved at runtime — don't let the
-  // bundler trace the whole project because of it.
-  resolve(/* turbopackIgnore: true */ process.cwd(), env.UPLOAD_DIR),
-);
+export const storage: StorageProvider =
+  env.STORAGE_DRIVER === 'local'
+    ? new LocalDiskStorage(resolve(/* turbopackIgnore: true */ process.cwd(), env.UPLOAD_DIR))
+    : new DatabaseStorage();

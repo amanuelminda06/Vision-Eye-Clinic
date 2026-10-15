@@ -3,7 +3,7 @@ import { normalizePhone } from '@/lib/phone';
 
 /** Staff create/update payload (photo is validated separately in the schema). */
 
-export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+export const MAX_PHOTO_BYTES = 1024 * 1024;
 
 const PHOTO_EXTENSIONS: Record<string, string> = {
   'image/png': 'png',

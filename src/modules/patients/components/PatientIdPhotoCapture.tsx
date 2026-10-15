@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { capturePatientIdPhotoAction } from '@/modules/patients/actions';
+import { resizeImageFile } from '@/lib/image';
 import type { ActionResult } from '@/lib/action';
 
 type Props = {
@@ -34,12 +35,26 @@ export default function PatientIdPhotoCapture({ patientId, existingUrl }: Props)
     setPreview(URL.createObjectURL(file));
   };
 
+  // Resize in the browser before the bytes reach the server, so the stored
+  // blob stays small on the ephemeral Vercel disk.
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const fd = new FormData(form);
+    const file = (form.querySelector('#idPhoto') as HTMLInputElement | null)?.files?.[0];
+    if (file) {
+      fd.delete('idPhoto');
+      fd.append('idPhoto', await resizeImageFile(file));
+    }
+    formAction(fd);
+  }
+
   if (state?.ok && state.data && 'id' in state.data) {
     router.refresh();
   }
 
   return (
-    <form action={formAction} className="card space-y-3 p-4" encType="multipart/form-data">
+    <form onSubmit={onSubmit} className="card space-y-3 p-4">
       <input type="hidden" name="patientId" value={patientId} />
       <div className="flex items-center gap-3">
         {preview ? (
