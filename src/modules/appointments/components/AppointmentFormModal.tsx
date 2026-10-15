@@ -12,6 +12,25 @@ import AppointmentError from './AppointmentError';
 type ServiceOption = { id: string; name: string; nameAm: string | null };
 type DoctorOption = { id: string; fullName: string };
 
+/** Renders a single field error from the server's `fields` map, or nothing. */
+function FieldError({
+  fields,
+  name,
+  tv,
+}: {
+  fields?: Record<string, string>;
+  name: string;
+  tv: (key: string) => string;
+}) {
+  const key = fields?.[name];
+  if (!key) return null;
+  return (
+    <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+      {tv(key as never)}
+    </p>
+  );
+}
+
 export type AppointmentFormInitial = {
   id?: string;
   patient?: { id: string; fullName: string } | null;
@@ -81,8 +100,9 @@ export default function AppointmentFormModal({
   if (!open) return null;
 
   const failed = !!state && !state.ok;
+  const fields = failed ? (state.fields as Record<string, string> | undefined) : undefined;
   const fieldError = (key: string): string | undefined =>
-    failed && state.fields?.[key] ? tv(state.fields[key] as never) : undefined;
+    fields?.[key] ? tv(fields[key] as never) : undefined;
 
   const savedWarnings = state?.ok ? (state.data?.warnings ?? []) : [];
   const doubleBooked = savedWarnings.includes('doubleBooking');
@@ -255,6 +275,7 @@ export default function AppointmentFormModal({
                 className="input-field"
                 name="doctorId"
                 defaultValue={initial?.doctorId ?? ''}
+                aria-invalid={!!fieldError('doctorId')}
               >
                 <option value="">{t('selectDoctor')}</option>
                 {doctors.map((doctor) => (
@@ -263,6 +284,7 @@ export default function AppointmentFormModal({
                   </option>
                 ))}
               </select>
+              <FieldError fields={fields} name="doctorId" tv={tv} />
             </div>
             <div>
               <label className="text-xs uppercase text-slate-500">{t('service')}</label>
@@ -270,6 +292,7 @@ export default function AppointmentFormModal({
                 className="input-field"
                 name="serviceId"
                 defaultValue={initial?.serviceId ?? ''}
+                aria-invalid={!!fieldError('serviceId')}
               >
                 <option value="">{t('noService')}</option>
                 {services.map((service) => (
@@ -278,6 +301,7 @@ export default function AppointmentFormModal({
                   </option>
                 ))}
               </select>
+              <FieldError fields={fields} name="serviceId" tv={tv} />
             </div>
             <div>
               <label className="text-xs uppercase text-slate-500">{t('date')}</label>
@@ -286,7 +310,9 @@ export default function AppointmentFormModal({
                 type="date"
                 name="dateKey"
                 defaultValue={initial?.dateKey ?? todayKey}
+                aria-invalid={!!fieldError('dateKey')}
               />
+              <FieldError fields={fields} name="dateKey" tv={tv} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
@@ -296,7 +322,9 @@ export default function AppointmentFormModal({
                   type="time"
                   name="startTime"
                   defaultValue={initial?.startTime ?? '09:00'}
+                  aria-invalid={!!fieldError('startTime')}
                 />
+                <FieldError fields={fields} name="startTime" tv={tv} />
               </div>
               <div>
                 <label className="text-xs uppercase text-slate-500">{t('duration')}</label>
@@ -304,6 +332,7 @@ export default function AppointmentFormModal({
                   className="input-field"
                   name="durationMin"
                   defaultValue={initial?.durationMin ?? 30}
+                  aria-invalid={!!fieldError('durationMin')}
                 >
                   {DURATIONS.map((minutes) => (
                     <option key={minutes} value={minutes}>
@@ -311,6 +340,7 @@ export default function AppointmentFormModal({
                     </option>
                   ))}
                 </select>
+                <FieldError fields={fields} name="durationMin" tv={tv} />
               </div>
             </div>
           </div>
@@ -323,8 +353,23 @@ export default function AppointmentFormModal({
               rows={2}
               defaultValue={initial?.notes ?? ''}
               placeholder={t('notesHint')}
+              aria-invalid={!!fieldError('notes')}
             />
+            <FieldError fields={fields} name="notes" tv={tv} />
           </div>
+
+          {failed && fields ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm">
+              <p className="font-medium text-red-800">{tc('fixFields')}</p>
+              <ul className="mt-1 list-inside list-disc">
+                {Object.entries(fields).map(([key, value]) => (
+                  <li key={key} className="text-red-700">
+                    {tv(value as never)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <AppointmentError error={state?.ok ? null : state?.error} />
 

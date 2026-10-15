@@ -63,7 +63,8 @@
   "noFile": "Choose a file first.",
   "idPhotoInvalidType": "ID photo must be PNG, JPG or WebP.",
   "idPhotoTooLarge": "ID photo must be 2 MB or smaller.",
-  "patientRequired": "Choose or create a patient."
+  "patientRequired": "Choose or create a patient.",
+  "fixFields": "Fix the highlighted fields."
  },
  "nav": {
   "dashboard": "Dashboard",
