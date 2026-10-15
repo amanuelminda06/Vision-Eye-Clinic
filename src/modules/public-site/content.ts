@@ -181,8 +181,8 @@ announcement_active: {
     am: '251900000000',
   },
   contact_telegram: {
-    en: '',
-    am: '',
+    en: 'visioneyeclinic',
+    am: 'visioneyeclinic',
   },
   social_tiktok: {
     en: '',
