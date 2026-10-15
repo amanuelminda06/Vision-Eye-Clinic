@@ -101,7 +101,7 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     en: '',
     am: '',
   },
-  announcement_active: {
+announcement_active: {
     en: 'false',
     am: 'false',
   },

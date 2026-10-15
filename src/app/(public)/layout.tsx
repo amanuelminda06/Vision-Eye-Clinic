@@ -50,9 +50,15 @@ export default async function PublicLayout({ children }: { children: React.React
   const announcementText = pick(locale, content.announcement_text);
 
   const socials = [
-    pick(locale, content.social_tiktok) ? { href: pick(locale, content.social_tiktok), label: 'TikTok', icon: '🎵' } : null,
-    pick(locale, content.social_instagram) ? { href: pick(locale, content.social_instagram), label: 'Instagram', icon: '📷' } : null,
-    pick(locale, content.social_telegram) ? { href: pick(locale, content.social_telegram), label: 'Telegram', icon: '✈️' } : null,
+    pick(locale, content.social_tiktok)
+      ? { href: pick(locale, content.social_tiktok), label: 'TikTok', icon: '🎵' }
+      : null,
+    pick(locale, content.social_instagram)
+      ? { href: pick(locale, content.social_instagram), label: 'Instagram', icon: '📷' }
+      : null,
+    pick(locale, content.social_telegram)
+      ? { href: pick(locale, content.social_telegram), label: 'Telegram', icon: '✈️' }
+      : null,
   ].filter((link): link is NonNullable<typeof link> => !!link);
 
   const showAnnouncement = isAnnouncementVisible(
@@ -99,7 +105,7 @@ export default async function PublicLayout({ children }: { children: React.React
         {t('skipToContent')}
       </a>
       {showAnnouncement ? <AnnouncementBanner text={announcementText} /> : null}
-      <PublicHeader clinicName={clinicName} phoneHref={phoneHref} hasAnnouncement={showAnnouncement} />
+      <PublicHeader clinicName={clinicName} phoneHref={phoneHref} />
       <main id="main" className="flex-1">
         {children}
       </main>

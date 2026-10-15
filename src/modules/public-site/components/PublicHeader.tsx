@@ -21,10 +21,9 @@ const LINKS: NavLink[] = [
 type Props = {
   clinicName: string;
   phoneHref: string | null;
-  hasAnnouncement: boolean;
 };
 
-export default function PublicHeader({ clinicName, phoneHref, hasAnnouncement }: Props) {
+export default function PublicHeader({ clinicName, phoneHref }: Props) {
   const t = useTranslations('site');
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -48,17 +47,15 @@ export default function PublicHeader({ clinicName, phoneHref, hasAnnouncement }:
       </Link>
     ));
 
-  const navLinks = hasAnnouncement
-    ? (onClick?: () => void) => (
-        <Link
-          href="#announcements"
-          onClick={onClick}
-          className="text-slate-600 hover:bg-orange-50 hover:text-orange-800"
-        >
-          {t('announcementLabel')}
-        </Link>
-      )
-    : null;
+  const navLinks = (onClick?: () => void) => (
+    <Link
+      href="#announcements"
+      onClick={onClick}
+      className="text-slate-600 hover:bg-orange-50 hover:text-orange-800"
+    >
+      {t('announcementLabel')}
+    </Link>
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -73,7 +70,7 @@ export default function PublicHeader({ clinicName, phoneHref, hasAnnouncement }:
 
         <nav className="ml-4 hidden items-center gap-0.5 lg:flex" aria-label={t('menuLabel')}>
           {links()}
-          {navLinks?.()}
+          {navLinks()}
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
@@ -136,7 +133,7 @@ export default function PublicHeader({ clinicName, phoneHref, hasAnnouncement }:
         <nav id="public-mobile-nav" className="bg-white px-4 pb-4 pt-2" aria-label={t('menuLabel')}>
           <div className="flex flex-col gap-1">
             {links(() => setOpen(false))}
-            {navLinks?.(() => setOpen(false))}
+            {navLinks(() => setOpen(false))}
           </div>
           <div className="mt-3 flex items-center gap-3">
             <PublicLocaleSwitcher />
