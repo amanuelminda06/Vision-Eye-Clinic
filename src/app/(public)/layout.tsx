@@ -107,6 +107,7 @@ export default async function PublicLayout({ children }: { children: React.React
       {showAnnouncement ? <AnnouncementBanner text={announcementText} /> : null}
       <PublicHeader clinicName={clinicName} phoneHref={phoneHref} />
       <main id="main" className="flex-1">
+        {showAnnouncement ? <AnnouncementBanner text={announcementText} /> : null}
         {children}
       </main>
       <PublicFooter

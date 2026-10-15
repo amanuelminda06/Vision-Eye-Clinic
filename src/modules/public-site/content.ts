@@ -101,9 +101,9 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     en: '',
     am: '',
   },
-announcement_active: {
-    en: 'false',
-    am: 'false',
+  announcement_active: {
+    en: 'true',
+    am: 'true',
   },
   announcement_start: {
     en: '',
@@ -173,8 +173,8 @@ announcement_active: {
     am: '+251900000000',
   },
   contact_map_url: {
-    en: 'https://maps.google.com/?q=Addis+Ababa',
-    am: 'https://maps.google.com/?q=Addis+Ababa',
+    en: 'https://tile.openstreetmap.org/13/11/14.png',
+    am: 'https://tile.openstreetmap.org/13/11/14.png',
   },
   contact_whatsapp: {
     en: '251900000000',
