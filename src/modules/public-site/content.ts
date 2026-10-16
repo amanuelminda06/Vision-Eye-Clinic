@@ -138,8 +138,8 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     ]),
   },
   contact_address: {
-    en: 'PLACEHOLDER — Bole Road, Addis Ababa, Ethiopia',
-    am: 'ጊዜያዊ — ቦሌ መንገድ፣ አዲስ አበባ፣ ኢትዮጵያ',
+    en: 'Kaliti Farid Building, 2nd floor, Addis Ababa, Ethiopia',
+    am: 'ካሊቲ ፋሪድ ቤት፣ 2ኛ ደቂቃ፣ አዲስ አበባ፣ ኢትዮጵያ',
   },
   contact_phone_primary: {
     en: '+251900000000',
