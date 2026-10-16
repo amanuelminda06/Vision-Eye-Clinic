@@ -74,7 +74,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-white">
+      <section className="relative overflow-hidden bg-white -mt-16">
         <div
           className="absolute inset-0"
           style={{
