@@ -126,33 +126,30 @@ export default async function ContactPage() {
         </div>
       </div>
 
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">{t('contact.map')}</h2>
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold text-slate-900 mb-2">{t('contact.map')}</h2>
         {mapLat && mapLng ? (
-          <Map
-            lat={parseFloat(mapLat)}
-            lng={parseFloat(mapLng)}
-            zoom={mapZoom ? parseFloat(mapZoom) : 15}
-            height={400}
-            openInMapsLabel={t('contact.openInMaps')}
-            title={t('contact.map')}
-          />
-        ) : mapUrl ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block font-semibold text-orange-800 hover:text-orange-900"
-            >
-              {address || t('contact.directions')} →
-            </a>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-            <p className="text-sm text-slate-500">{t('contact.pending')}</p>
-          </div>
-        )}
+          <>
+            <Map
+              lat={parseFloat(mapLat)}
+              lng={parseFloat(mapLng)}
+              zoom={mapZoom ? parseFloat(mapZoom) : 15}
+              height={320}
+              openInMapsLabel={t('openInMaps')}
+              title={t('contact.map')}
+            />
+            <p className="mt-2">
+              <a
+                href={`https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+              >
+                View on Google Maps
+              </a>
+            </p>
+          </>
+        ) : null}
       </div>
     </div>
   );

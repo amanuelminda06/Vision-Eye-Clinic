@@ -48,12 +48,12 @@ export default async function PublicFooter({
 
   return (
     <footer className="border-t-2 border-orange-600 bg-slate-50">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
-          <p className="mt-3 max-w-xs text-sm text-slate-600">{t('footerAbout')}</p>
-          {footerNote ? <p className="mt-3 max-w-xs text-xs text-slate-500">{footerNote}</p> : null}
+          <p className="mt-2 text-sm text-slate-600">{t('footerAbout')}</p>
+          {footerNote ? <p className="mt-1 text-xs text-slate-500">{footerNote}</p> : null}
           {socials.length ? (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {socials.map((link) => (
                 <a
                   key={link.href}
@@ -61,7 +61,7 @@ export default async function PublicFooter({
                   target="_blank"
                   rel="noopener noreferrer"
                   title={link.label}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 hover:bg-orange-50 hover:text-orange-800"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 text-slate-600 hover:bg-orange-50 hover:text-orange-800"
                 >
                   <SocialIcon platform={link.platform} />
                   <span className="sr-only">{link.label}</span>
@@ -72,11 +72,13 @@ export default async function PublicFooter({
         </div>
 
         <nav aria-label={t('footerQuickLinks')}>
-          <h2 className="text-sm font-semibold text-slate-900">{t('footerQuickLinks')}</h2>
-          <ul className="mt-3 space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            {t('footerQuickLinks')}
+          </h2>
+          <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {quickLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-sm text-slate-600 hover:text-orange-800">
+                <Link href={link.href} className="hover:text-orange-800">
                   {link.label}
                 </Link>
               </li>
@@ -85,8 +87,10 @@ export default async function PublicFooter({
         </nav>
 
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">{t('footerContact')}</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            {t('footerContact')}
+          </h2>
+          <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {address ? <li>{address}</li> : null}
             {phone && phoneHref ? (
               <li>
@@ -97,34 +101,29 @@ export default async function PublicFooter({
             ) : null}
           </ul>
           {hoursText ? (
-            <>
-              <h2 className="mt-5 text-sm font-semibold text-slate-900">{t('footerHours')}</h2>
-              <p className="mt-2 text-sm text-slate-600">{hoursText}</p>
-            </>
+            <p className="mt-2 text-xs text-slate-500">{hoursText}</p>
           ) : null}
           {mapLat && mapLng ? (
-            <div className="mt-5">
-              <h2 className="text-sm font-semibold text-slate-900">{t('footerMap')}</h2>
-              <div className="mt-3">
-                <Map
-                  lat={parseFloat(mapLat)}
-                  lng={parseFloat(mapLng)}
-                  zoom={mapZoom ? parseFloat(mapZoom) : 15}
-                  height={180}
-                  openInMapsLabel={t('openInMaps')}
-                  title={clinicName}
-                />
-                <a
-                  href={`https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-                >
-                  View on Google Maps
-                </a>
-              </div>
+            <div className="mt-3">
+              <Map
+                lat={parseFloat(mapLat)}
+                lng={parseFloat(mapLng)}
+                zoom={mapZoom ? parseFloat(mapZoom) : 15}
+                height={120}
+                openInMapsLabel={t('openInMaps')}
+                title={clinicName}
+              />
+              <a
+                href={`https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 hover:bg-slate-50"
+              >
+                View on Google Maps
+              </a>
             </div>
-          ) : null}        </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="border-t border-slate-200">
