@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { SiteLogoDark } from '@/components/SiteLogo';
 import Map from './Map';
 import { SocialIcon } from './SocialIcon';
 
@@ -51,7 +50,6 @@ export default async function PublicFooter({
     <footer className="border-t-2 border-orange-600 bg-slate-50">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
-          <SiteLogoDark height={40} />
           <p className="mt-3 max-w-xs text-sm text-slate-600">{t('footerAbout')}</p>
           {footerNote ? <p className="mt-3 max-w-xs text-xs text-slate-500">{footerNote}</p> : null}
           {socials.length ? (
