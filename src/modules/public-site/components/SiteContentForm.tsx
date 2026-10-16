@@ -44,6 +44,9 @@ const TEXT_FIELDS: Array<{ key: string; labelKey: string; rows?: number }> = [
   { key: 'contact_map_url', labelKey: 'contactMapUrl' },
   { key: 'contact_whatsapp', labelKey: 'contactWhatsapp' },
   { key: 'contact_telegram', labelKey: 'contactTelegram' },
+  { key: 'map_lat', labelKey: 'mapLat' },
+  { key: 'map_lng', labelKey: 'mapLng' },
+  { key: 'map_zoom', labelKey: 'mapZoom' },
   { key: 'social_tiktok', labelKey: 'socialTiktok' },
   { key: 'social_instagram', labelKey: 'socialInstagram' },
   { key: 'social_telegram', labelKey: 'socialTelegram' },
@@ -113,7 +116,7 @@ export default function SiteContentForm({ content }: Props) {
       {/* Home hero + home + about + hours + privacy + footer */}
       <section className="card space-y-4 p-6">
         <h2 className="text-sm font-semibold text-slate-800">{t('heroSection')}</h2>
-        {TEXT_FIELDS.map((field) => (
+        {TEXT_FIELDS.filter((f) => !f.key.startsWith('map_')).map((field) => (
           <BilingualField
             key={field.key}
             name={field.key}
@@ -122,6 +125,20 @@ export default function SiteContentForm({ content }: Props) {
             values={content[field.key]}
             disabled={pending}
             hint={field.key === 'hours_text' ? t('hoursHint') : undefined}
+          />
+        ))}
+      </section>
+
+      <section className="card space-y-4 p-6">
+        <h2 className="text-sm font-semibold text-slate-800">{t('mapSection')}</h2>
+        {TEXT_FIELDS.filter((f) => f.key.startsWith('map_') || f.key === 'contact_map_url').map((field) => (
+          <BilingualField
+            key={field.key}
+            name={field.key}
+            label={t(field.labelKey as never)}
+            rows={field.rows}
+            values={content[field.key]}
+            disabled={pending}
           />
         ))}
       </section>

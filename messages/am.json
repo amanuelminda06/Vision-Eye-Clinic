@@ -1164,8 +1164,11 @@
    "title": "የግላዊነት ፖሊሲ",
    "updated": "ይህ ፖሊሲ ጊዜያዊ ነው፤ በክሊኒኩ መታየት አለበት።"
   },
-  "home.announcementsTitle": "Latest announcements",
-  "footerMap": "Open map"
+  "home.announcementsTitle": "ማስታወቂያዎች",
+  "footerMap": "Open map",
+  "openInMaps": "በካርታ ክፈት",
+  "viewMap": "ካርታ ይመልከቱ",
+  "zoomMap": "ካርታ አጉላ"
  },
  "content": {
   "title": "የድህረ ገጽ ይዘት",
@@ -1232,10 +1235,19 @@
   "specialty": " PLACEHOLDER — medical specialty",
   "ogTitle": " PLACEHOLDER — open-graph title",
   "ogSubtitle": " PLACEHOLDER — open-graph subtitle",
-  "ogCity": " PLACEHOLDER — open-graph city"
+  "ogCity": " PLACEHOLDER — open-graph city",
+  "mapLat": "የካርታ ኬክሮስ",
+  "mapLng": "የካርታ ኬንትሮስ",
+  "mapZoom": "የካርታ ዙም",
+  "mapSection": "የካርታ አድራሻ"
  },
  "export": {
   "formatCsv": "CSV",
   "formatXlsx": "Excel"
- }
+ },
+ "contact": {
+  "openInMaps": "በካርታ ክፈት",
+  "mapEmbedAlt": "የክሊኒክ አድራሻ ካርታ"
+ },
+ "home.announcementsTitle": "ማስታወቂያዎች"
 }

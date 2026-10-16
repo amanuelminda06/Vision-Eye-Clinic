@@ -9,6 +9,7 @@ import {
   type WorkingHours,
 } from '@/modules/public-site';
 import { telHref, telegramHref, whatsappHref } from '@/modules/public-site/format';
+import Map from '@/modules/public-site/components/Map';
 
 const DAY_KEYS: Record<keyof WorkingHours, string> = {
   mon: 'dayMon',
@@ -39,6 +40,9 @@ export default async function ContactPage() {
   const phone = pick(locale, content.contact_phone);
   const phoneHref = telHref(phone);
   const mapUrl = pick(locale, content.contact_map_url);
+  const mapLat = pick(locale, content.map_lat);
+  const mapLng = pick(locale, content.map_lng);
+  const mapZoom = pick(locale, content.map_zoom);
   const whatsapp = whatsappHref(pick(locale, content.contact_whatsapp));
   const telegram = telegramHref(pick(locale, content.contact_telegram));
   const hours = workingHoursLines(
@@ -116,19 +120,32 @@ export default async function ContactPage() {
         </div>
       </div>
 
-      <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-        <p className="text-sm text-slate-500">{t('contact.map')}</p>
-        {mapUrl ? (
-          <a
-            href={mapUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-block font-semibold text-orange-800 hover:text-orange-900"
-          >
-            {address || t('contact.directions')} →
-          </a>
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold text-slate-900 mb-4">{t('contact.map')}</h2>
+        {mapLat && mapLng ? (
+          <Map
+            lat={parseFloat(mapLat)}
+            lng={parseFloat(mapLng)}
+            zoom={mapZoom ? parseFloat(mapZoom) : 15}
+            height={400}
+            openInMapsLabel={t('contact.openInMaps')}
+            title={t('contact.map')}
+          />
+        ) : mapUrl ? (
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-semibold text-orange-800 hover:text-orange-900"
+            >
+              {address || t('contact.directions')} →
+            </a>
+          </div>
         ) : (
-          <p className="mt-3 text-slate-500">{t('contact.pending')}</p>
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+            <p className="text-sm text-slate-500">{t('contact.pending')}</p>
+          </div>
         )}
       </div>
     </div>

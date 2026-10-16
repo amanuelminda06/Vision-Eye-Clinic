@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { SiteLogoDark } from '@/components/SiteLogo';
+import Map from './Map';
 
 type SocialLink = { href: string; label: string; icon: string };
 
@@ -12,6 +13,9 @@ type Props = {
   hoursText: string | null;
   footerNote: string | null;
   socials: SocialLink[];
+  mapLat?: string | null;
+  mapLng?: string | null;
+  mapZoom?: string | null;
 };
 
 export default async function PublicFooter({
@@ -22,6 +26,9 @@ export default async function PublicFooter({
   hoursText,
   footerNote,
   socials,
+  mapLat,
+  mapLng,
+  mapZoom,
 }: Props) {
   const t = await getTranslations('site');
   const year = new Date().getFullYear();
@@ -96,7 +103,21 @@ export default async function PublicFooter({
               <p className="mt-2 text-sm text-slate-600">{hoursText}</p>
             </>
           ) : null}
-        </div>
+          {mapLat && mapLng ? (
+            <div className="mt-5">
+              <h2 className="text-sm font-semibold text-slate-900">{t('footerMap')}</h2>
+              <div className="mt-3">
+                <Map
+                  lat={parseFloat(mapLat)}
+                  lng={parseFloat(mapLng)}
+                  zoom={mapZoom ? parseFloat(mapZoom) : 15}
+                  height={180}
+                  openInMapsLabel={t('openInMaps')}
+                  title={clinicName}
+                />
+              </div>
+            </div>
+          ) : null}        </div>
       </div>
 
       <div className="border-t border-slate-200">

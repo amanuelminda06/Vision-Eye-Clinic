@@ -44,6 +44,9 @@ export const CONTENT_KEYS = [
   'og_title',
   'og_subtitle',
   'og_city',
+  'map_lat',
+  'map_lng',
+  'map_zoom',
 ] as const;
 
 export type SiteContentKey = (typeof CONTENT_KEYS)[number];
@@ -243,6 +246,18 @@ city: {
   og_city: {
     en: 'Addis Ababa, Ethiopia',
     am: 'PLACEHOLDER — open-graph city',
+  },
+  map_lat: {
+    en: '8.9806',
+    am: '8.9806',
+  },
+  map_lng: {
+    en: '38.7578',
+    am: '38.7578',
+  },
+  map_zoom: {
+    en: '15',
+    am: '15',
   },
 };
 

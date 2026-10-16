@@ -1164,8 +1164,11 @@
    "title": "Privacy policy",
    "updated": "This policy is a placeholder and must be reviewed by the clinic."
   },
-  "home.announcementsTitle": "Latest announcements",
-  "footerMap": "Open map"
+  "home.announcementsTitle": "Announcements",
+  "footerMap": "Open map",
+  "openInMaps": "Open in Maps",
+  "viewMap": "View map",
+  "zoomMap": "Zoom map"
  },
  "content": {
   "title": "Website content",
@@ -1232,10 +1235,19 @@
   "specialty": "Medical specialty",
   "ogTitle": "Open-graph title",
   "ogSubtitle": "Open-graph subtitle",
-  "ogCity": "Open-graph city"
+  "ogCity": "Open-graph city",
+  "mapLat": "Map latitude",
+  "mapLng": "Map longitude",
+  "mapZoom": "Map zoom",
+  "mapSection": "Map location"
  },
  "export": {
   "formatCsv": "CSV",
   "formatXlsx": "Excel"
- }
+ },
+ "contact": {
+  "openInMaps": "Open in Maps",
+  "mapEmbedAlt": "Clinic location map"
+ },
+ "home.announcementsTitle": "Announcements"
 }

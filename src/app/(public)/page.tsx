@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { getPublicDoctorStatus } from '@/modules/hr';
 import {
@@ -164,21 +165,34 @@ export default async function HomePage() {
               {featured.map((service) => (
                 <article
                   key={service.id}
-                  className="card card-hover p-6"
+                  className="card card-hover overflow-hidden group"
                 >
-                  <span className="text-xs font-semibold uppercase tracking-wide text-orange-700">
-                    {service.category}
-                  </span>
-                  <h3 className="mt-2 text-lg font-semibold text-slate-900">
-                    {locale === 'am' ? service.nameAm || service.name : service.name}
-                  </h3>
-                  {service.descriptionEn || service.descriptionAm ? (
-                    <p className="mt-2 text-sm text-slate-600">
-                      {locale === 'am'
-                        ? service.descriptionAm || service.descriptionEn
-                        : service.descriptionEn}
-                    </p>
+                  {service.imageUrl ? (
+                    <div className="relative aspect-[4/3] w-full bg-slate-100">
+                      <Image
+                        src={service.imageUrl}
+                        alt={locale === 'am' ? service.nameAm || service.name : service.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    </div>
                   ) : null}
+                  <div className="p-6">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-orange-700">
+                      {service.category}
+                    </span>
+                    <h3 className="mt-2 text-lg font-semibold text-slate-900">
+                      {locale === 'am' ? service.nameAm || service.name : service.name}
+                    </h3>
+                    {service.descriptionEn || service.descriptionAm ? (
+                      <p className="mt-2 text-sm text-slate-600 line-clamp-3">
+                        {locale === 'am'
+                          ? service.descriptionAm || service.descriptionEn
+                          : service.descriptionEn}
+                      </p>
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>

@@ -50,13 +50,13 @@ export default async function PublicLayout({ children }: { children: React.React
 
   const socials = [
     pick(locale, content.social_tiktok)
-      ? { href: pick(locale, content.social_tiktok), label: 'TikTok', icon: '🎵' }
+      ? { href: pick(locale, content.social_tiktok), label: 'TikTok', icon: '♪' }
       : null,
     pick(locale, content.social_instagram)
-      ? { href: pick(locale, content.social_instagram), label: 'Instagram', icon: '📷' }
+      ? { href: pick(locale, content.social_instagram), label: 'Instagram', icon: '📸' }
       : null,
     pick(locale, content.social_telegram)
-      ? { href: pick(locale, content.social_telegram), label: 'Telegram', icon: '✈️' }
+      ? { href: pick(locale, content.social_telegram), label: 'Telegram', icon: '✉' }
       : null,
   ].filter((link): link is NonNullable<typeof link> => !!link);
 
@@ -116,6 +116,9 @@ export default async function PublicLayout({ children }: { children: React.React
         hoursText={hoursText}
         footerNote={footerNote}
         socials={socials}
+        mapLat={pick(locale, content.map_lat)}
+        mapLng={pick(locale, content.map_lng)}
+        mapZoom={pick(locale, content.map_zoom)}
       />
       <JsonLd data={jsonLd} />
       <Analytics />
