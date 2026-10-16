@@ -49,9 +49,12 @@ export default function Map({
       zoom,
       zoomControl: false,
       attributionControl: false,
+      scrollWheelZoom: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dragging: !L.Browser.touch ? true : ('2fingers' as any),
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map);
