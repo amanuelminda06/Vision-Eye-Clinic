@@ -23,6 +23,32 @@ type Props = {
   phoneHref: string | null;
 };
 
+/** Stylized eye mark — an interesting graphic accent for an eye clinic's nav bar. */
+function ClinicMark() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      className="h-7 w-7 text-orange-600 drop-shadow-md transition-transform duration-300 hover:scale-110"
+      aria-hidden="true"
+    >
+      {/* eyebrow */}
+      <path
+        d="M8 10.5 Q16 6.5 24 10.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+      />
+      {/* eye shape */}
+      <ellipse cx="16" cy="17" rx="8" ry="5.5" fill="none" stroke="currentColor" strokeWidth="2" />
+      {/* pupil */}
+      <circle cx="16" cy="17" r="2.5" fill="currentColor" />
+      {/* gleam */}
+      <circle cx="15" cy="16" r="1" fill="#ffffff" />
+    </svg>
+  );
+}
+
 export default function PublicHeader({ clinicName, phoneHref }: Props) {
   const t = useTranslations('site');
   const pathname = usePathname();
@@ -52,9 +78,10 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5" aria-label={clinicName}>
-          <SiteLogo height={36} priority />
-          <span className="hidden flex-col justify-center leading-tight sm:flex lg:hidden xl:flex">
+        <Link href="/" className="flex items-center gap-3" aria-label={clinicName}>
+          <ClinicMark />
+          <SiteLogo height={34} priority />
+          <span className="hidden flex-col justify-center leading-tight sm:flex lg:flex">
             <span className="text-sm font-bold tracking-tight text-slate-900">{clinicName}</span>
             <span className="text-[11px] font-medium text-orange-800">{t('clinicNameAm')}</span>
           </span>
