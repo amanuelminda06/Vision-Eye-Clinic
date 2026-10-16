@@ -51,9 +51,7 @@ export default async function PublicFooter({
     <footer className="border-t-2 border-orange-600 bg-slate-50">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
-          <div className="inline-flex rounded-2xl bg-stone-900 p-3 ring-1 ring-orange-600/60">
-            <SiteLogoDark height={40} />
-          </div>
+          <SiteLogoDark height={40} />
           <p className="mt-3 max-w-xs text-sm text-slate-600">{t('footerAbout')}</p>
           {footerNote ? <p className="mt-3 max-w-xs text-xs text-slate-500">{footerNote}</p> : null}
           {socials.length ? (

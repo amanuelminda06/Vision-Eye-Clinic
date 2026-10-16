@@ -97,7 +97,6 @@ export default async function HomePage() {
               <SiteLogo
                 height={60}
                 priority
-                className="rounded-2xl bg-white/95 p-3 shadow-md ring-1 ring-orange-100"
               />
               <div>
                 <p className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
