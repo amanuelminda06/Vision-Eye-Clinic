@@ -208,12 +208,12 @@ city: {
     am: 'PLACEHOLDER — open-graph city',
   },
   map_lat: {
-    en: '8.9806',
-    am: '8.9806',
+    en: '8.8961718',
+    am: '8.8961718',
   },
   map_lng: {
-    en: '38.7578',
-    am: '38.7578',
+    en: '38.770988',
+    am: '38.770988',
   },
   map_zoom: {
     en: '15',
