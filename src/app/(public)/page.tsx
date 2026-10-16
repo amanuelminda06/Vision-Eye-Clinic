@@ -87,10 +87,10 @@ export default async function HomePage() {
           aria-hidden="true"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/40 to-white/15"
+          className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/25"
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-orange-900/5" aria-hidden="true" />
+        <div className="absolute inset-0 bg-orange-900/10" aria-hidden="true" />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
             <div className="flex flex-wrap items-center gap-4">
