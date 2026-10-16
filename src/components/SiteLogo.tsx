@@ -7,7 +7,7 @@ type SiteLogoProps = {
   className?: string;
 };
 
-/** Official Vision Eye Clinic logo (light-background lockup). */
+/** Official Vision Eye Clinic logo (light-background lockup). Background removed so it works on any surface. */
 export default function SiteLogo({
   height = 36,
   priority = false,
@@ -15,7 +15,7 @@ export default function SiteLogo({
 }: SiteLogoProps) {
   return (
     <Image
-      src="/vision-logo.jpg"
+      src="/vision-logo.png"
       alt="Vision Eye Clinic"
       width={Math.round(height * 1.924)}
       height={height}
