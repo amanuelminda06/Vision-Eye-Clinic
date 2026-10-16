@@ -1,16 +1,21 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { writeAudit } from '@/lib/audit';
 import { ok, fail, withAuth, type ActionResult } from '@/lib/action';
-import { validate } from '@/lib/errors';
+import { validate, ValidationError } from '@/lib/errors';
+import { storage } from '@/lib/storage';
 import { toDecimalString } from '@/lib/money';
 import { AuthorizationError, requireRole } from '@/lib/require-role';
 import { SERVICES_ROLES } from './roles';
-import { serviceFormSchema } from './schemas';
+import { serviceFormSchema, serviceImageExtension } from './schemas';
 import { listPriceHistory, type PriceHistoryRow } from './queries';
 
+const IMAGE_URL_PREFIX = '/api/uploads/';
+
 function readServiceForm(formData: FormData) {
+  const image = formData.get('image');
   return {
     name: String(formData.get('name') ?? ''),
     nameEn: String(formData.get('nameEn') ?? ''),
@@ -24,7 +29,26 @@ function readServiceForm(formData: FormData) {
     receiptLabelAm: String(formData.get('receiptLabelAm') ?? ''),
     displayOrder: String(formData.get('displayOrder') ?? ''),
     imageUrl: String(formData.get('imageUrl') ?? ''),
+    image: image instanceof File && image.size > 0 ? image : undefined,
   };
+}
+
+async function storeServiceImage(file: File): Promise<string> {
+  const ext = serviceImageExtension(file);
+  if (!ext) throw new ValidationError({ image: 'imageInvalidType' });
+  const key = `service-${randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await storage.put(key, buffer);
+  return `${IMAGE_URL_PREFIX}${key}`;
+}
+
+function storageKeyFromImageUrl(url: string | null): string | null {
+  if (!url || !url.startsWith(IMAGE_URL_PREFIX)) return null;
+  try {
+    return decodeURIComponent(url.slice(IMAGE_URL_PREFIX.length));
+  } catch {
+    return null;
+  }
 }
 
 export async function createServiceAction(
@@ -33,6 +57,8 @@ export async function createServiceAction(
 ): Promise<ActionResult<{ id: string }>> {
   return withAuth<{ id: string }>(SERVICES_ROLES, async (actor) => {
     const values = validate(serviceFormSchema, readServiceForm(formData));
+    const { image, ...fields } = values;
+    const imageUrl = image ? await storeServiceImage(image) : fields.imageUrl ?? null;
 
     const created = await prisma.service.create({
       data: {
@@ -48,7 +74,7 @@ export async function createServiceAction(
         receiptLabelEn: values.receiptLabelEn,
         receiptLabelAm: values.receiptLabelAm,
         displayOrder: values.displayOrder,
-        imageUrl: values.imageUrl,
+        imageUrl,
       },
     });
 
@@ -78,11 +104,17 @@ export async function updateServiceAction(
   return withAuth<{ id: string }>(SERVICES_ROLES, async (actor) => {
     const id = String(formData.get('id') ?? '');
     const values = validate(serviceFormSchema, readServiceForm(formData));
+    const { image, ...fields } = values;
 
     const before = await prisma.service.findUnique({ where: { id } });
     if (!before) return fail('unknownError');
 
     const beforePrice = toDecimalString(before.currentPrice);
+
+    const imageUrl = image
+      ? await storeServiceImage(image)
+      : fields.imageUrl ?? before.imageUrl ?? null;
+
     const updated = await prisma.service.update({
       where: { id },
       data: {
@@ -97,9 +129,16 @@ export async function updateServiceAction(
         receiptLabelEn: values.receiptLabelEn,
         receiptLabelAm: values.receiptLabelAm,
         displayOrder: values.displayOrder,
-        imageUrl: values.imageUrl,
+        imageUrl,
       },
     });
+
+    if (image && before.imageUrl && before.imageUrl !== imageUrl) {
+      const oldKey = storageKeyFromImageUrl(before.imageUrl);
+      if (oldKey) {
+        await storage.remove(oldKey).catch(() => undefined);
+      }
+    }
 
     await writeAudit({
       user: actor,

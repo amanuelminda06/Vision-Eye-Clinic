@@ -252,21 +252,52 @@ export default function ServiceForm({ mode, service, route }: Props) {
           <label className="label" htmlFor="imageUrl">
             {t('imageUrl')}
           </label>
-          <input
-            className="input-field"
-            id="imageUrl"
-            name="imageUrl"
-            type="text"
-            autoComplete="off"
-            placeholder="/services/general-eye-care.png"
-            defaultValue={service?.imageUrl ?? ''}
-            disabled={pending}
-            aria-invalid={!!fieldError('imageUrl')}
-          />
+          <div className="flex items-center gap-3">
+            {service?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={service.imageUrl}
+                alt=""
+                className="h-14 w-14 rounded border border-slate-200 object-cover"
+              />
+            ) : null}
+            <input
+              id="imageUrl"
+              name="imageUrl"
+              type="text"
+              autoComplete="off"
+              placeholder="/services/general-eye-care.png"
+              defaultValue={service?.imageUrl ?? ''}
+              disabled={pending}
+              aria-invalid={!!fieldError('imageUrl')}
+            />
+          </div>
           <p className="mt-1 text-xs text-slate-500">{t('imageUrlHint')}</p>
           {fieldError('imageUrl') ? (
             <p role="alert" className="mt-1 text-xs font-medium text-red-600">
               {fieldError('imageUrl')}
+            </p>
+          ) : null}
+        </div>
+
+        <div>
+          <label className="label" htmlFor="image">
+            {t('image')}
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              id="image"
+              name="image"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              disabled={pending}
+              aria-invalid={!!fieldError('image')}
+            />
+          </div>
+          <p className="mt-1 text-xs text-slate-500">{t('imageHint')}</p>
+          {fieldError('image') ? (
+            <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+              {fieldError('image')}
             </p>
           ) : null}
         </div>

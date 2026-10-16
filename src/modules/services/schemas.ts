@@ -5,6 +5,18 @@ import { SERVICE_CATEGORIES } from './categories';
 export const MAX_SERVICE_NAME = 120;
 export const MAX_PUBLIC_DESCRIPTION = 2000;
 export const MAX_IMAGE_URL = 500;
+export const MAX_SERVICE_IMAGE_BYTES = 1024 * 1024;
+
+const SERVICE_IMAGE_EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+};
+
+/** File extension for an accepted service image type, or null when not allowed. */
+export function serviceImageExtension(file: File): string | null {
+  return SERVICE_IMAGE_EXTENSIONS[file.type] ?? null;
+}
 
 /** Prices are NUMERIC(12,2): up to 10 integer digits and at most 2 decimals. */
 const PRICE_RE = /^\d{1,10}(\.\d{1,2})?$/;
@@ -65,6 +77,12 @@ export const serviceFormSchema = z.object({
     .max(MAX_IMAGE_URL, 'tooLong')
     .optional()
     .transform((value) => value || null),
+  /** Optional image file uploaded for the service. */
+  image: z
+    .custom<File>((file) => file instanceof File, 'invalid')
+    .refine((file) => serviceImageExtension(file) !== null, 'imageInvalidType')
+    .refine((file) => file.size <= MAX_SERVICE_IMAGE_BYTES, 'imageTooLarge')
+    .optional(),
 });
 
 export type ServiceFormValues = z.infer<typeof serviceFormSchema>;

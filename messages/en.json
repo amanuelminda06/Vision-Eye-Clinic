@@ -295,6 +295,8 @@
   "invalidCategory": "Choose a valid category.",
   "invalidPrice": "Enter a valid price.",
   "invalidQuantity": "Enter a valid quantity.",
+   "imageInvalidType": "Image must be PNG, JPEG or WebP",
+   "imageTooLarge": "Image must be 2 MB or smaller",
   "serviceInactive": "This service is inactive and cannot be added to a new sale.",
   "serviceMissing": "This service no longer exists.",
   "quantityTooHigh": "The quantity is too high.",
@@ -610,6 +612,8 @@
   "displayOrderHint": "Lower numbers appear first on the website.",
   "imageUrl": "Image path",
   "imageUrlHint": "Optional image shown on the website (e.g. /services/general-eye-care.png).",
+   "image": "Image file",
+   "imageHint": "PNG, JPEG or WebP, up to 2 MB. Replaces the image path above.",
   "toBeProvided": "To be provided"
  },
  "sales": {

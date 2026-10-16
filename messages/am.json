@@ -295,6 +295,8 @@
   "invalidCategory": "ትክክለኛ ምድብ ይምረጡ።",
   "invalidPrice": "ትክክለኛ ዋጋ ያስገቡ።",
   "invalidQuantity": "ትክክለኛ ብዛት ያስገቡ።",
+   "imageInvalidType": "ምስል PNG ወይም JPEG ወይም WebP መሆን አለበት",
+   "imageTooLarge": "ምስል 2 MB ወይም ከዚያ በታች መሆን አለበት",
   "serviceInactive": "ይህ አገልግሎት ተሰናክሏል፤ ለአዲስ ሽያጭ ሊጨመር አይችልም።",
   "serviceMissing": "ይህ አገልግሎት ከእንግዲህ የለም።",
   "quantityTooHigh": "ብዛቱ በጣም ከፍተኛ ነው።",
@@ -610,6 +612,8 @@
   "displayOrderHint": "ትንሽ ቁጥር ያላቸው በድህረ ገጹ ላይ መጀመሪያ ይታያሉ።",
   "imageUrl": "የምስል አድራሻ",
   "imageUrlHint": "አማራጭ ምስል በድህረ ገጹ ላይ ይታያል (ምሳሌ፦ /services/general-eye-care.png)።",
+   "image": "የምስል ፋይል",
+   "imageHint": "PNG, JPEG ወይም WebP, 2 MB ወይም ከዚያ በታች ፋይል ምስል ምክንያቱን ይለዋል።",
   "toBeProvided": "በቅርቡ ይቀርባል"
  },
  "sales": {

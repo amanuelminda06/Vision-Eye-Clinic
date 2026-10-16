@@ -14,7 +14,7 @@ export {
 } from './queries';
 export type { ServiceRow, ServiceListFilters, PriceHistoryRow } from './queries';
 export { SERVICES_ROLES } from './roles';
-export { serviceFormSchema, MAX_SERVICE_NAME } from './schemas';
+export { serviceFormSchema, MAX_SERVICE_NAME, MAX_SERVICE_IMAGE_BYTES, serviceImageExtension } from './schemas';
 export type { ServiceFormValues } from './schemas';
 export { SERVICE_CATEGORIES, CATEGORY_LABEL_KEYS, isServiceCategory } from './categories';
 export type { ServiceCategory } from './categories';
