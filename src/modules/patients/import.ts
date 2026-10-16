@@ -12,7 +12,6 @@ export const IMPORT_COLUMNS = [
   'sex',
   'birthDate',
   'tags',
-  'consent',
   'preferredLanguage',
 ] as const;
 
@@ -33,7 +32,6 @@ export type ImportValues = {
   /** Calendar date as `YYYY-MM-DD`, or null when the cell was empty. */
   birthDate: string | null;
   tags: string[];
-  consentSms: boolean;
   preferredLanguage: 'en' | 'am';
 };
 
@@ -63,9 +61,6 @@ const SEX_ALIASES: Record<string, ImportSex> = {
   other: 'OTHER',
 };
 
-const TRUE_WORDS = new Set(['true', 'yes', 'y', '1']);
-const FALSE_WORDS = new Set(['false', 'no', 'n', '0', '']);
-
 /** English messages for the downloadable error report (file artifact, not UI). */
 export const IMPORT_ERROR_MESSAGES: Record<string, string> = {
   required: 'Required',
@@ -75,7 +70,6 @@ export const IMPORT_ERROR_MESSAGES: Record<string, string> = {
   phoneTaken: 'Phone number already exists',
   invalidSex: 'Invalid sex — use Male/Female/Other (or M/F/O)',
   invalidDate: 'Invalid date — use YYYY-MM-DD and a date in the past',
-  invalidConsent: 'Invalid consent — use true or false',
   invalidLanguage: 'Invalid language — use en or am',
   fileTooLarge: 'File is larger than 2 MB',
   tooManyRows: `More than ${MAX_IMPORT_ROWS} rows`,
@@ -100,13 +94,6 @@ function parseBirthDateCell(raw: string): { ok: true; value: string | null } | {
   if (Number.isNaN(Date.parse(`${value}T00:00:00Z`))) return { ok: false };
   if (value > todayIso()) return { ok: false };
   return { ok: true, value };
-}
-
-function parseConsentCell(raw: string): { ok: true; value: boolean } | { ok: false } {
-  const key = raw.trim().toLowerCase();
-  if (TRUE_WORDS.has(key)) return { ok: true, value: true };
-  if (FALSE_WORDS.has(key)) return { ok: true, value: false };
-  return { ok: false };
 }
 
 function parseTagsCell(raw: string): { ok: true; value: string[] } | { ok: false } {
@@ -169,9 +156,6 @@ export function validateImportRow(raw: Record<string, string>, ctx: ImportContex
   const tags = parseTagsCell(raw.tags ?? '');
   if (!tags.ok) errors.push({ field: 'tags', key: 'invalid' });
 
-  const consent = parseConsentCell(raw.consent ?? '');
-  if (!consent.ok) errors.push({ field: 'consent', key: 'invalidConsent' });
-
   const language = parseLanguageCell(raw.preferredLanguage ?? '', ctx.defaultLanguage);
   if (!language.ok) errors.push({ field: 'preferredLanguage', key: 'invalidLanguage' });
 
@@ -183,7 +167,6 @@ export function validateImportRow(raw: Record<string, string>, ctx: ImportContex
           sex: sex.ok ? sex.value : null,
           birthDate: birthDate.ok ? birthDate.value : null,
           tags: tags.ok ? tags.value : [],
-          consentSms: consent.ok ? consent.value : false,
           preferredLanguage: language.ok ? language.value : ctx.defaultLanguage,
         }
       : null;

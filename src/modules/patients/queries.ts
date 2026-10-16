@@ -13,7 +13,6 @@ export type PatientListFilters = {
   q?: string;
   idNo?: string;
   tag?: string;
-  consent?: 'true' | 'false' | '';
   dnm?: 'true' | 'false' | '';
   status?: 'true' | 'false' | '';
   sort?: string;
@@ -49,8 +48,6 @@ export function buildPatientWhere(filters: PatientListFilters): Prisma.PatientWh
   if (idNo) and.push({ idNo: { equals: idNo, mode: 'insensitive' } });
 
   if (filters.tag) and.push({ tags: { some: { tagId: filters.tag } } });
-  if (filters.consent === 'true') and.push({ consentSms: true });
-  if (filters.consent === 'false') and.push({ consentSms: false });
   if (filters.dnm === 'true') and.push({ doNotMessage: true });
   if (filters.dnm === 'false') and.push({ doNotMessage: false });
   if (filters.status === 'true') and.push({ active: true });
@@ -66,7 +63,6 @@ const LIST_SELECT = {
   sex: true,
   birthDate: true,
   preferredLanguage: true,
-  consentSms: true,
   doNotMessage: true,
   active: true,
   createdAt: true,
@@ -136,7 +132,6 @@ export type PatientDetail = Prisma.PatientGetPayload<{
   include: { tags: { include: { tag: true }; orderBy: { tag: { name: 'asc' } } } };
 }> & {
   createdByName: string | null;
-  consentRecordedByName: string | null;
 };
 
 export async function getPatient(id: string): Promise<PatientDetail | null> {
@@ -146,9 +141,7 @@ export async function getPatient(id: string): Promise<PatientDetail | null> {
   });
   if (!patient) return null;
 
-  const userIds = [
-    ...new Set([patient.createdBy, patient.consentRecordedBy].filter(Boolean)),
-  ] as string[];
+  const userIds = [...new Set([patient.createdBy].filter(Boolean))] as string[];
   const users = userIds.length
     ? await prisma.user.findMany({
         where: { id: { in: userIds } },
@@ -160,9 +153,6 @@ export async function getPatient(id: string): Promise<PatientDetail | null> {
   return {
     ...patient,
     createdByName: nameById.get(patient.createdBy) ?? null,
-    consentRecordedByName: patient.consentRecordedBy
-      ? (nameById.get(patient.consentRecordedBy) ?? null)
-      : null,
   };
 }
 

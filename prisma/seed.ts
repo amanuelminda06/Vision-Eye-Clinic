@@ -156,9 +156,7 @@ async function main(): Promise<void> {
       tagIds.set(name, tag.id);
     }
 
-    const consentAt = new Date('2026-09-01T08:30:00.000Z');
     const rows = seedPatientRows();
-    let consented = 0;
     for (const row of rows) {
       const data = {
         fullName: row.fullName,
@@ -167,9 +165,6 @@ async function main(): Promise<void> {
         birthDate: row.birthDateDate,
         preferredLanguage: row.preferredLanguage,
         notesNonClinical: row.notesNonClinical ?? null,
-        consentSms: row.consentSms,
-        consentDate: row.consentSms ? consentAt : null,
-        consentRecordedBy: row.consentSms ? (owner?.id ?? null) : null,
         doNotMessage: row.doNotMessage ?? false,
         doNotMessageReason: row.doNotMessageReason ?? null,
         active: row.active ?? true,
@@ -180,7 +175,6 @@ async function main(): Promise<void> {
         update: data,
         create: data,
       });
-      if (row.consentSms) consented += 1;
 
       for (const tagName of row.tags) {
         const tagId = tagIds.get(tagName);
@@ -199,7 +193,7 @@ async function main(): Promise<void> {
         '((EXTRACT(MONTH FROM "birthDate") * 100 + EXTRACT(DAY FROM "birthDate")))',
     );
     console.log(
-      `✓ ${rows.length} patients (${consented} with SMS consent), ${tagIds.size} tags, birthday index`,
+      `✓ ${rows.length} patients, ${tagIds.size} tags, birthday index`,
     );
 
     // --- Services + demo sales (idempotent) ---

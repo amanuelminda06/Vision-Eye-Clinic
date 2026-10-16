@@ -11,7 +11,6 @@ import { getSettingsMap } from '@/modules/settings/queries';
 import { PATIENT_ROLES } from './roles';
 import { patientFormSchema, idPhotoExtension } from './schemas';
 import { findPatientByPhone, findSimilarPatients } from './queries';
-import { initialConsent, nextConsent, consentAuditEntry, type ConsentFields } from './consent';
 import {
   MAX_IMPORT_BYTES,
   MAX_TAG_LENGTH,
@@ -21,7 +20,7 @@ import {
   type ImportValues,
 } from './import';
 import { tagColorFor } from './tags';
-import { cancelPendingForPatient, onConsentGranted } from '@/modules/messaging';
+import { cancelPendingForPatient } from '@/modules/messaging';
 
 const PATIENT_ID_PHOTO_URL_PREFIX = '/api/uploads/';
 
@@ -34,7 +33,6 @@ function readPatientForm(formData: FormData) {
     birthDate: String(formData.get('birthDate') ?? ''),
     preferredLanguage: String(formData.get('preferredLanguage') ?? ''),
     notesNonClinical: String(formData.get('notesNonClinical') ?? ''),
-    consentSms: String(formData.get('consentSms') ?? 'false'),
     idNo: String(formData.get('idNo') ?? ''),
     idPhoto: idPhoto instanceof File && idPhoto.size > 0 ? idPhoto : undefined,
   };
@@ -69,9 +67,6 @@ const snapshot = (patient: {
   birthDate: Date | null;
   preferredLanguage: string;
   notesNonClinical: string | null;
-  consentSms: boolean;
-  consentDate: Date | null;
-  consentRecordedBy: string | null;
   doNotMessage: boolean;
   doNotMessageReason: string | null;
   idPhotoUrl: string | null;
@@ -84,9 +79,6 @@ const snapshot = (patient: {
   birthDate: patient.birthDate,
   preferredLanguage: patient.preferredLanguage,
   notesNonClinical: patient.notesNonClinical,
-  consentSms: patient.consentSms,
-  consentDate: patient.consentDate,
-  consentRecordedBy: patient.consentRecordedBy,
   doNotMessage: patient.doNotMessage,
   doNotMessageReason: patient.doNotMessageReason,
   idPhotoUrl: patient.idPhotoUrl,
@@ -127,8 +119,6 @@ export async function createPatientAction(
       if (similar.length > 0) return ok({ needsConfirm: true, similar });
     }
 
-    const now = new Date();
-    const consent = initialConsent(values.consentSms, now, actor.id);
     const language = values.preferredLanguage ?? (await defaultLanguage());
     const idPhotoUrl = values.idPhoto ? await storeIdPhoto(values.idPhoto) : null;
 
@@ -146,7 +136,6 @@ export async function createPatientAction(
           idPhotoUrl,
           active: true,
           createdBy: actor.id,
-          ...consent,
         },
       });
     } catch (err) {
@@ -164,8 +153,6 @@ export async function createPatientAction(
       action: 'PATIENT_CREATED',
       new: snapshot(created),
     });
-
-    if (created.consentSms) await onConsentGranted(created.id);
 
     return ok({ id: created.id });
   });
@@ -195,17 +182,6 @@ export async function updatePatientAction(
       if (similar.length > 0) return ok({ needsConfirm: true, similar });
     }
 
-    const now = new Date();
-    const consent: ConsentFields = nextConsent(
-      {
-        consentSms: before.consentSms,
-        consentDate: before.consentDate,
-        consentRecordedBy: before.consentRecordedBy,
-      },
-      values.consentSms,
-      now,
-      actor.id,
-    );
     const language = values.preferredLanguage ?? before.preferredLanguage;
     const idPhotoUrl = values.idPhoto ? await storeIdPhoto(values.idPhoto) : before.idPhotoUrl;
 
@@ -220,7 +196,6 @@ export async function updatePatientAction(
         notesNonClinical: values.notesNonClinical,
         idNo: values.idNo || null,
         idPhotoUrl,
-        ...consent,
       },
     });
 
@@ -239,27 +214,6 @@ export async function updatePatientAction(
       old: snapshot(before),
       new: snapshot(updated),
     });
-
-    const consentChange = consentAuditEntry(
-      {
-        consentSms: before.consentSms,
-        consentDate: before.consentDate,
-        consentRecordedBy: before.consentRecordedBy,
-      },
-      consent,
-    );
-    if (consentChange) {
-      await writeAudit({
-        user: actor,
-        entity: 'Patient',
-        entityId: id,
-        action: 'PATIENT_CONSENT_CHANGED',
-        old: consentChange.old,
-        new: consentChange.new,
-      });
-    }
-
-    if (!before.consentSms && updated.consentSms) await onConsentGranted(id);
 
     return ok({ id });
   });
@@ -454,12 +408,10 @@ export async function importPatientsAction(
     }
 
     // Import only fully valid rows — invalid ones stay in the error report.
-    const now = new Date();
     let imported = 0;
     for (const row of result.rows) {
       const values: ImportValues | null = row.values;
       if (!values) continue;
-      const consent = initialConsent(values.consentSms, now, actor.id);
       try {
         const created = await prisma.patient.create({
           data: {
@@ -471,7 +423,6 @@ export async function importPatientsAction(
             notesNonClinical: null,
             active: true,
             createdBy: actor.id,
-            ...consent,
           },
         });
         const tagIds: string[] = [];

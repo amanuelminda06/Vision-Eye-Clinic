@@ -21,7 +21,6 @@ type Values = {
   birthDate: string | null;
   preferredLanguage: string;
   notesNonClinical: string | null;
-  consentSms: boolean;
   idPhotoUrl: string | null;
   idNo: string | null;
 };
@@ -297,28 +296,6 @@ export default function PatientForm({ mode, patient, route }: Props) {
             disabled={pending}
             placeholder={t('idNoHint')}
           />
-        </div>
-
-        <div>
-          <label className="flex items-start gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              name="consentSms"
-              value="true"
-              defaultChecked={patient?.consentSms ?? false}
-              disabled={pending}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300"
-            />
-            <span>
-              {t('consentLabel')}
-              <span className="mt-0.5 block text-xs text-slate-500">{t('consentHint')}</span>
-            </span>
-          </label>
-          {fieldError('consentSms') ? (
-            <p role="alert" className="mt-1 text-xs font-medium text-red-600">
-              {fieldError('consentSms')}
-            </p>
-          ) : null}
         </div>
 
         {confirmed && state?.ok && state.data && 'similar' in state.data ? (

@@ -67,7 +67,6 @@ async function resolvePatient(
     data: {
       fullName: name,
       phoneE164: phone,
-      consentSms: false,
       createdBy: actorId,
     },
     select: { id: true },
@@ -476,7 +475,6 @@ export async function convertRequestAction(
                 data: {
                   fullName: request.name,
                   phoneE164: request.phoneE164,
-                  consentSms: false,
                   createdBy: actor.id,
                   preferredLanguage: request.language === 'am' ? 'am' : 'en',
                 },

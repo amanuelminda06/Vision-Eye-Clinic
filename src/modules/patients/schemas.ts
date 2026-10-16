@@ -20,10 +20,6 @@ export const SEX_VALUES = ['MALE', 'FEMALE', 'OTHER'] as const;
 export const LANGUAGE_VALUES = ['en', 'am'] as const;
 export const MAX_NOTES_CHARS = 2000;
 
-const checkbox = z
-  .union([z.boolean(), z.enum(['true', 'false'], 'invalidConsent')], 'invalidConsent')
-  .transform((value) => value === true || value === 'true');
-
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -60,7 +56,6 @@ export const patientFormSchema = z.object({
     .trim()
     .max(MAX_NOTES_CHARS, 'tooLong')
     .transform((value) => value || null),
-  consentSms: checkbox,
   idNo: z.string().trim().max(32, 'tooLong').optional(),
   idPhoto: z
     .custom<File>((file) => file instanceof File, 'invalid')

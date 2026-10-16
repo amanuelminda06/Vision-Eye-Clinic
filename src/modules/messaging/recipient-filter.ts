@@ -239,7 +239,7 @@ function matchesCriteria(candidate: CampaignCandidate, filter: RecipientFilter):
 
 /**
  * Full match: criteria matches unioned with hand-picked ids. Hard gates
- * (consent/inactive/phone) are applied separately via `exclusionsFor`.
+ * (inactive/phone) are applied separately via `exclusionsFor`.
  */
 export function matchesRecipientFilter(
   candidate: CampaignCandidate,
@@ -269,7 +269,6 @@ export function summarizeRecipients(
   const filtered = candidates.filter((candidate) => matchesRecipientFilter(candidate, filter));
   const excluded: Record<BlockedReason, number> = {
     inactive: 0,
-    noConsent: 0,
     doNotMessage: 0,
     invalidPhone: 0,
     sourceCancelled: 0,

@@ -9,7 +9,7 @@ function csv(...rows: string[]): string {
   return rows.join('\n');
 }
 
-const HEADER = 'fullName,phone,sex,birthDate,tags,consent,preferredLanguage';
+const HEADER = 'fullName,phone,sex,birthDate,tags,preferredLanguage';
 
 describe('parseImport — structure', () => {
   it('reports missing required columns', () => {
@@ -36,7 +36,7 @@ describe('parseImport — structure', () => {
   });
 
   it('handles BOM, quoted cells and CRLF line endings', () => {
-    const text = `﻿${HEADER}\r\n"Almaz, Tesfaye",0911223344,FEMALE,1985-03-12,"glasses; follow-up",true,en\r\n`;
+    const text = `﻿${HEADER}\r\n"Almaz, Tesfaye",0911223344,FEMALE,1985-03-12,"glasses; follow-up",en\r\n`;
     const result = parseImport(text, ctx());
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0].values?.fullName).toBe('Almaz, Tesfaye');
@@ -93,11 +93,10 @@ describe('parseImport — field validation', () => {
     expect(result.rows[0].errors).toContainEqual({ field: 'fullName', key: 'required' });
   });
 
-  it('rejects bad sex, dates, consent and language', () => {
-    const result = parseImport(csv(HEADER, 'Almaz,0911223344,X,1985-03-12,,maybe,fr'), ctx());
+  it('rejects bad sex, dates and language', () => {
+    const result = parseImport(csv(HEADER, 'Almaz,0911223344,X,1985-03-12,,fr'), ctx());
     const keys = result.rows[0].errors.map((error) => error.key);
     expect(keys).toContain('invalidSex');
-    expect(keys).toContain('invalidConsent');
     expect(keys).toContain('invalidLanguage');
     expect(result.rows[0].errors).toContainEqual({
       field: 'preferredLanguage',
@@ -121,30 +120,6 @@ describe('parseImport — field validation', () => {
     expect(result.rows[2].errors).toContainEqual({ field: 'birthDate', key: 'invalidDate' });
   });
 
-  it('accepts every documented boolean/consent spelling', () => {
-    const result = parseImport(
-      csv(
-        HEADER,
-        'A,0911223341,,,,true,',
-        'B,0911223342,,,,yes,',
-        'C,0911223343,,,,1,',
-        'D,0911223344,,,,false,',
-        'E,0911223345,,,,no,',
-        'F,0911223346,,,,,',
-      ),
-      ctx(),
-    );
-    expect(result.rows.map((row) => row.values?.consentSms)).toEqual([
-      true,
-      true,
-      true,
-      false,
-      false,
-      false,
-    ]);
-    expect(result.validCount).toBe(6);
-  });
-
   it('applies the default language when the column is empty', () => {
     const result = parseImport(csv(HEADER, 'Almaz,0911223344'), ctx({ defaultLanguage: 'am' }));
     expect(result.rows[0].values?.preferredLanguage).toBe('am');
@@ -154,10 +129,10 @@ describe('parseImport — field validation', () => {
     const result = parseImport(
       csv(
         HEADER,
-        'Almaz,0911223344,FEMALE,1985-03-12,glasses,true,en',
+        'Almaz,0911223344,FEMALE,1985-03-12,glasses,en',
         ',0911223345',
         'Bekele,not-a-phone',
-        'Tigist,0911223346,FEMALE,1992-07-25,,false,am',
+        'Tigist,0911223346,FEMALE,1992-07-25,,am',
       ),
       ctx(),
     );

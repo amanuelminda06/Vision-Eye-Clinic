@@ -38,7 +38,7 @@ async function taskPatient(task: {
 }): Promise<{ patient: PatientEligibility; sourceStatus: string | null } | null> {
   const patient = await prisma.patient.findUnique({
     where: { id: task.patientId },
-    select: { active: true, consentSms: true, doNotMessage: true, phoneE164: true },
+    select: { active: true, doNotMessage: true, phoneE164: true },
   });
   if (!patient) return null;
   let sourceStatus: string | null = null;
@@ -60,7 +60,6 @@ async function taskPatient(task: {
 
 type PatientEligibility = {
   active: boolean;
-  consentSms: boolean;
   doNotMessage: boolean;
   phoneE164: string;
 };

@@ -9,7 +9,6 @@ export * from './eligibility';
 export {
   onAppointmentChanged,
   onFollowUpChanged,
-  onConsentGranted,
   generateScheduleChangeTask,
   runMessageJobs,
   expireTasks,

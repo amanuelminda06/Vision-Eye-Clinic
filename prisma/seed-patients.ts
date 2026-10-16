@@ -23,7 +23,6 @@ export type SeedPatient = {
   /** Calendar date `YYYY-MM-DD`. */
   birthDate: string;
   preferredLanguage: 'en' | 'am';
-  consentSms: boolean;
   doNotMessage?: boolean;
   doNotMessageReason?: string;
   active?: boolean;
@@ -38,8 +37,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1985-03-12',
     preferredLanguage: 'en',
-    consentSms: true,
-    notesNonClinical: 'Prefers morning appointments.',
     tags: ['glasses'],
   },
   {
@@ -48,7 +45,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1978-11-02',
     preferredLanguage: 'en',
-    consentSms: true,
     tags: ['glasses', 'follow-up'],
   },
   {
@@ -57,7 +53,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1992-07-25',
     preferredLanguage: 'am',
-    consentSms: false,
     tags: ['contacts'],
   },
   {
@@ -66,7 +61,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1969-01-30',
     preferredLanguage: 'en',
-    consentSms: false,
     tags: [],
   },
   {
@@ -75,7 +69,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '2001-05-18',
     preferredLanguage: 'am',
-    consentSms: true,
     tags: ['braces'],
   },
   {
@@ -84,7 +77,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1988-09-09',
     preferredLanguage: 'en',
-    consentSms: true,
     tags: [],
   },
   {
@@ -93,7 +85,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1995-12-24',
     preferredLanguage: 'am',
-    consentSms: false,
     tags: ['glasses'],
   },
   {
@@ -102,7 +93,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1956-06-06',
     preferredLanguage: 'en',
-    consentSms: true,
     tags: ['referral'],
   },
   {
@@ -111,7 +101,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1974-02-14',
     preferredLanguage: 'en',
-    consentSms: false,
     active: false,
     notesNonClinical: 'Deactivated after moving abroad.',
     tags: [],
@@ -122,7 +111,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1999-08-19',
     preferredLanguage: 'am',
-    consentSms: true,
     tags: ['contacts', 'follow-up'],
   },
   {
@@ -131,7 +119,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1983-04-01',
     preferredLanguage: 'en',
-    consentSms: true,
     tags: ['glasses'],
   },
   {
@@ -140,7 +127,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1990-10-10',
     preferredLanguage: 'am',
-    consentSms: false,
     doNotMessage: true,
     doNotMessageReason: 'Asked to stop messages at the front desk.',
     tags: [],
@@ -151,7 +137,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1987-05-05',
     preferredLanguage: 'en',
-    consentSms: true,
     tags: ['glasses'],
   },
   {
@@ -161,7 +146,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1987-05-05',
     preferredLanguage: 'en',
-    consentSms: false,
     tags: [],
   },
   {
@@ -170,7 +154,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '2010-03-27',
     preferredLanguage: 'am',
-    consentSms: true,
     tags: ['braces'],
   },
   {
@@ -179,7 +162,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1972-12-31',
     preferredLanguage: 'en',
-    consentSms: false,
     tags: ['lens-order'],
   },
   {
@@ -188,7 +170,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '1965-08-08',
     preferredLanguage: 'en',
-    consentSms: true,
     tags: ['follow-up'],
   },
   {
@@ -197,7 +178,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1996-02-02',
     preferredLanguage: 'am',
-    consentSms: false,
     tags: [],
   },
   {
@@ -206,7 +186,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'MALE',
     birthDate: '2015-09-15',
     preferredLanguage: 'am',
-    consentSms: false,
     tags: ['braces'],
   },
   {
@@ -215,7 +194,6 @@ export const PATIENTS: SeedPatient[] = [
     sex: 'FEMALE',
     birthDate: '1981-06-20',
     preferredLanguage: 'en',
-    consentSms: true,
     notesNonClinical: 'Comes with a family member.',
     tags: ['glasses', 'contacts'],
   },

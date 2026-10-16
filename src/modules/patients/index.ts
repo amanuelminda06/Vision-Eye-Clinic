@@ -47,8 +47,6 @@ export type { ImportRow, ImportValues, ImportResult } from './import';
 export { tabFrom, loadPatientTab, PATIENT_TABS } from './tabs';
 export type { PatientTabId, PatientTabPayload } from './tabs';
 export { tagColorFor } from './tags';
-export { initialConsent, nextConsent, consentChanged, consentAuditEntry } from './consent';
-export type { ConsentFields } from './consent';
 export { isSimilarName, levenshtein, normalizeNameForKey } from './duplicates';
 export { default as PatientForm } from './components/PatientForm';
 export { default as PatientIdPhotoCapture } from './components/PatientIdPhotoCapture';

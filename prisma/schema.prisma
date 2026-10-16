@@ -382,15 +382,11 @@ model Patient {
   preferredLanguage  String       @default("en")
   /// Free text. NON-CLINICAL ONLY — never store diagnoses or care details.
   notesNonClinical   String?
-  consentSms         Boolean      @default(false)
-  consentDate        DateTime?    @db.Timestamptz
-  /// User id of the staff member who recorded the SMS consent.
-  consentRecordedBy  String?
   doNotMessage       Boolean      @default(false)
   doNotMessageReason String?
   /// URL of the patient's ID photo (captured or uploaded); served via /api/uploads/.
   idPhotoUrl         String?
-  /** National ID / passport number used to identify patients. */
+  /// Clinic's internal patient ID used to identify patients.
   idNo               String?
   active             Boolean      @default(true)
   /// User id of the creator (no FK — users are never deleted).

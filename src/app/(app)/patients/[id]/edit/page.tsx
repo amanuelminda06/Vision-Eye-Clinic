@@ -27,7 +27,6 @@ export default async function EditPatientPage({ params }: { params: Params }) {
           birthDate: patient.birthDate ? patient.birthDate.toISOString().slice(0, 10) : null,
           preferredLanguage: patient.preferredLanguage,
           notesNonClinical: patient.notesNonClinical,
-          consentSms: patient.consentSms,
           idPhotoUrl: patient.idPhotoUrl,
           idNo: patient.idNo,
         }}

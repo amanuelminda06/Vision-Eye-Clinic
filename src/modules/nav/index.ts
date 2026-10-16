@@ -30,6 +30,14 @@ export type NavModule = {
 
 export const NAV_MODULES: NavModule[] = [
   {
+    key: 'dashboard',
+    labelKey: 'dashboard',
+    items: [
+      { href: '/dashboard', labelKey: 'dashboard', roles: ['OWNER', 'RECEPTION', 'STAFF'] },
+      { href: '/dashboard/daily', labelKey: 'dailySummary', roles: ['OWNER'] },
+    ],
+  },
+  {
     key: 'pms',
     acronym: 'PMS',
     fullName: 'Patients Management System',
@@ -73,14 +81,6 @@ export const NAV_MODULES: NavModule[] = [
       { href: '/dashboard/services', labelKey: 'services', roles: ['OWNER'] },
       { href: '/dashboard/content', labelKey: 'websiteContent', roles: ['OWNER'] },
       { href: '/settings', labelKey: 'settings', roles: ['OWNER'] },
-    ],
-  },
-  {
-    key: 'dashboard',
-    labelKey: 'dashboard',
-    items: [
-      { href: '/dashboard', labelKey: 'dashboard', roles: ['OWNER', 'RECEPTION', 'STAFF'] },
-      { href: '/dashboard/daily', labelKey: 'dailySummary', roles: ['OWNER'] },
     ],
   },
   {

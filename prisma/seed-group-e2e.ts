@@ -22,7 +22,7 @@ loadEnv();
 
 /**
  * Deterministic E2E fixture for the group-chat batch flow: exactly 40 active,
- * SMS-consented, English-speaking patients tagged with a unique marker, plus
+ * English-speaking patients tagged with a unique marker, plus
  * toggling the OWNER-only "allow group for filtered audiences" override.
  *
  * USAGE:
@@ -60,7 +60,6 @@ async function main(): Promise<void> {
         create: { name: TAG, color: '#0ea5e9' },
       });
 
-      const consentAt = new Date('2026-09-15T08:00:00.000Z');
       for (let index = 0; index < PATIENT_COUNT; index += 1) {
         const phoneE164 = phoneFor(index);
         const data = {
@@ -68,9 +67,6 @@ async function main(): Promise<void> {
           phoneE164,
           sex: index % 2 === 0 ? ('FEMALE' as const) : ('MALE' as const),
           preferredLanguage: 'en',
-          consentSms: true,
-          consentDate: consentAt,
-          consentRecordedBy: null,
           doNotMessage: false,
           active: true,
           createdBy: 'e2e-seed',

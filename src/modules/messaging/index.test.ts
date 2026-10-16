@@ -40,7 +40,6 @@ function candidate(overrides: Partial<CampaignCandidate> = {}): CampaignCandidat
     fullName: 'Hemnet Tesfaye',
     phoneE164: '+251911000000',
     preferredLanguage: 'en',
-    consentSms: true,
     doNotMessage: false,
     active: true,
     birthDate: null,
@@ -136,7 +135,6 @@ describe('sms: link builder', () => {
 describe('eligibility', () => {
   it('blocks for each reason', () => {
     expect(blockedReason({ patient: { ...candidate(), active: false } })).toBe('inactive');
-    expect(blockedReason({ patient: { ...candidate(), consentSms: false } })).toBe('noConsent');
     expect(blockedReason({ patient: { ...candidate(), doNotMessage: true } })).toBe('doNotMessage');
     expect(blockedReason({ patient: { ...candidate(), phoneE164: '12345' } })).toBe('invalidPhone');
     expect(blockedReason({ patient: candidate(), sourceStatus: 'CANCELLED' })).toBe(
@@ -236,7 +234,6 @@ describe('campaign filters', () => {
   });
 
   it('always excludes ineligible recipients and reports why', () => {
-    expect(exclusionsFor(candidate({ consentSms: false }))).toContain('noConsent');
     expect(exclusionsFor(candidate({ doNotMessage: true }))).toContain('doNotMessage');
     expect(exclusionsFor(candidate({ phoneE164: 'bad' }))).toContain('invalidPhone');
     expect(exclusionsFor(candidate({ active: false }))).toContain('inactive');
@@ -246,12 +243,12 @@ describe('campaign filters', () => {
   it('summarizes eligible vs excluded and flags the cap', () => {
     const list = [
       candidate({ id: 'a' }),
-      candidate({ id: 'b', consentSms: false }),
+      candidate({ id: 'b', doNotMessage: true }),
       candidate({ id: 'c' }),
     ];
     const { eligible, preview } = summarizeCandidates(list, emptyFilter, 1);
     expect(eligible.map((c) => c.id)).toEqual(['a', 'c']);
-    expect(preview.excluded.noConsent).toBe(1);
+    expect(preview.excluded.doNotMessage).toBe(1);
     expect(preview.overCap).toBe(true);
   });
 });

@@ -137,6 +137,14 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {stats.length ? (
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.href} stat={stat} t={t as never} />
+          ))}
+        </section>
+      ) : null}
+
       {user.role !== 'STAFF' && data.messagesDueToday + data.messagesOverdue > 0 ? (
         <Link
           href="/messages"
@@ -144,14 +152,6 @@ export default async function DashboardPage() {
         >
           {t('messagesBanner', { due: data.messagesDueToday, overdue: data.messagesOverdue })}
         </Link>
-      ) : null}
-
-      {stats.length ? (
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <StatCard key={stat.href} stat={stat} t={t as never} />
-          ))}
-        </section>
       ) : null}
 
       {doctors.length ? (

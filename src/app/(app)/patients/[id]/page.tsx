@@ -243,22 +243,6 @@ export default async function PatientDetailPage({
         </div>
 
         <div className="space-y-5">
-          <div className="card space-y-2 p-4">
-            <h2 className="text-sm font-semibold text-slate-800">{t('consentTitle')}</h2>
-            {patient.consentSms ? (
-              <>
-                <p className="text-sm text-emerald-700">{t('consentGranted')}</p>
-                <p className="text-xs text-slate-500">
-                  {t('consentMeta', {
-                    date: patient.consentDate ? formatInTz(patient.consentDate, tz) : '—',
-                    name: patient.consentRecordedByName ?? '—',
-                  })}
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-slate-500">{t('consentNone')}</p>
-            )}
-          </div>
 
           <TagsEditor
             patientId={patient.id}

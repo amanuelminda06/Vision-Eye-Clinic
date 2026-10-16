@@ -80,7 +80,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         <ExportLinks base="/api/audit/export" query={buildQuery(filters)} />
       </div>
 
-      <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
+      <form method="get" className="card grid grid-cols-1 sm:grid-cols-3 gap-2 p-3">
         <div>
           <label className="label text-xs" htmlFor="userId">
             {t('user')}

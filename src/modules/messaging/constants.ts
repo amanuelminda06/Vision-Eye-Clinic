@@ -129,7 +129,6 @@ export const GROUP_BLOCK_LABEL_KEYS: Record<string, string> = {
 /** Eligibility reasons — map to `messages.blocked.*` i18n keys. */
 export const BLOCKED_REASONS = [
   'inactive',
-  'noConsent',
   'doNotMessage',
   'invalidPhone',
   'sourceCancelled',
@@ -139,7 +138,6 @@ export type BlockedReason = (typeof BLOCKED_REASONS)[number];
 /** `t()` key inside the `messages` namespace describing each blocked reason. */
 export const BLOCKED_REASON_LABEL_KEYS: Record<BlockedReason, string> = {
   inactive: 'blockedInactive',
-  noConsent: 'blockedNoConsent',
   doNotMessage: 'blockedDoNotMessage',
   invalidPhone: 'blockedInvalidPhone',
   sourceCancelled: 'blockedSourceCancelled',

@@ -60,7 +60,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Search
         </Link>
       </div>
 
-      <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
+      <form method="get" className="card grid grid-cols-1 sm:grid-cols-3 gap-2 p-3">
         <div className="col-span-1 sm:col-span-2">
           <label className="label text-xs" htmlFor="q">
             {tc('search')}

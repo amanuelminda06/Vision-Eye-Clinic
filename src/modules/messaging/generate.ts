@@ -41,7 +41,6 @@ type PatientForMessaging = {
   fullName: string;
   phoneE164: string;
   preferredLanguage: string;
-  consentSms: boolean;
   doNotMessage: boolean;
   active: boolean;
 };
@@ -194,7 +193,6 @@ export async function onAppointmentChanged(payload: AppointmentChangedPayload): 
           fullName: true,
           phoneE164: true,
           preferredLanguage: true,
-          consentSms: true,
           doNotMessage: true,
           active: true,
         },
@@ -319,7 +317,6 @@ export async function generateScheduleChangeTask(
           fullName: true,
           phoneE164: true,
           preferredLanguage: true,
-          consentSms: true,
           doNotMessage: true,
           active: true,
         },
@@ -368,7 +365,6 @@ export async function onFollowUpChanged(payload: FollowUpChangedPayload): Promis
           fullName: true,
           phoneE164: true,
           preferredLanguage: true,
-          consentSms: true,
           doNotMessage: true,
           active: true,
         },
@@ -404,42 +400,6 @@ export async function onFollowUpChanged(payload: FollowUpChangedPayload): Promis
   });
 }
 
-/** Welcome message — fired when a patient's SMS consent first becomes true. */
-export async function onConsentGranted(patientId: string): Promise<void> {
-  const patient = await prisma.patient.findUnique({
-    where: { id: patientId },
-    select: {
-      id: true,
-      fullName: true,
-      phoneE164: true,
-      preferredLanguage: true,
-      consentSms: true,
-      doNotMessage: true,
-      active: true,
-    },
-  });
-  if (!patient) return;
-  const config = await loadConfig();
-  const bodies = await loadTemplateBodies();
-  const language = resolveLanguage(patient.preferredLanguage);
-  const context: RenderContext = {
-    patientName: patient.fullName,
-    language,
-    clinicName: config.clinicName,
-    reviewLink: config.reviewLink,
-    timeZone: config.settings.timeZone,
-  };
-  await createTask({
-    patient,
-    templateKey: 'WELCOME',
-    sourceType: 'MANUAL',
-    sourceId: patient.id,
-    language,
-    renderedMessage: renderMessage(bodyFor(bodies, 'WELCOME', language), context),
-    ...immediateSchedule(new Date()),
-  });
-}
-
 // ---------------------------------------------------------------------------
 // Scheduled job
 // ---------------------------------------------------------------------------
@@ -462,7 +422,6 @@ async function patientSelect(where: Prisma.PatientWhereInput) {
       fullName: true,
       phoneE164: true,
       preferredLanguage: true,
-      consentSms: true,
       doNotMessage: true,
       active: true,
       birthDate: true,
@@ -476,7 +435,6 @@ function asMessagingPatient(patient: {
   fullName: string;
   phoneE164: string;
   preferredLanguage: string;
-  consentSms: boolean;
   doNotMessage: boolean;
   active: boolean;
 }): PatientForMessaging {
@@ -485,7 +443,6 @@ function asMessagingPatient(patient: {
     fullName: patient.fullName,
     phoneE164: patient.phoneE164,
     preferredLanguage: patient.preferredLanguage,
-    consentSms: patient.consentSms,
     doNotMessage: patient.doNotMessage,
     active: patient.active,
   };
@@ -511,7 +468,6 @@ async function generateSameDay(now: Date, config: MessagingConfig): Promise<numb
           fullName: true,
           phoneE164: true,
           preferredLanguage: true,
-          consentSms: true,
           doNotMessage: true,
           active: true,
         },
@@ -604,7 +560,6 @@ async function generateThankYous(now: Date, config: MessagingConfig): Promise<nu
           fullName: true,
           phoneE164: true,
           preferredLanguage: true,
-          consentSms: true,
           doNotMessage: true,
           active: true,
         },
@@ -658,7 +613,6 @@ async function generateFollowUps(now: Date, config: MessagingConfig): Promise<nu
           fullName: true,
           phoneE164: true,
           preferredLanguage: true,
-          consentSms: true,
           doNotMessage: true,
           active: true,
         },
@@ -697,7 +651,7 @@ async function generateRecalls(now: Date, config: MessagingConfig): Promise<numb
   const period = recallPeriodKey(now, config.settings.timeZone);
   const threshold = new Date(now);
   threshold.setUTCMonth(threshold.getUTCMonth() - config.settings.recallMonths);
-  const patients = await patientSelect({ consentSms: true, doNotMessage: false, active: true });
+  const patients = await patientSelect({ doNotMessage: false, active: true });
   const bodies = await loadTemplateBodies();
   let created = 0;
   for (const patient of patients) {

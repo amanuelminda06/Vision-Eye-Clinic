@@ -131,10 +131,30 @@ export async function listSales(
   sumTotal: string;
 }> {
   const where = buildSaleWhere(filters, tz);
-  const [total, sum] = await Promise.all([
-    prisma.sale.count({ where }),
-    prisma.sale.aggregate({ where, _sum: { total: true } }),
-  ]);
+  const total = await prisma.sale.count({ where });
+
+  // When filtering by a single service, sum only that service's line totals
+  // across matching sales (a sale can contain several services; its whole
+  // `total` must not be credited to one service).
+  let sumTotal: string;
+  if (filters.serviceId) {
+    const whereWithoutService = buildSaleWhere(
+      { ...filters, serviceId: undefined },
+      tz,
+    ) as Prisma.SaleWhereInput;
+    const sum = await prisma.saleLine.aggregate({
+      where: {
+        serviceId: filters.serviceId,
+        sale: whereWithoutService,
+      },
+      _sum: { lineTotal: true },
+    });
+    sumTotal = toDecimalString(sum._sum.lineTotal ?? '0');
+  } else {
+    const sum = await prisma.sale.aggregate({ where, _sum: { total: true } });
+    sumTotal = toDecimalString(sum._sum.total ?? '0');
+  }
+
   const pageCount = Math.max(1, Math.ceil(total / SALES_PAGE_SIZE));
   const page = Math.min(Math.max(1, filters.page ?? 1), pageCount);
 
@@ -152,7 +172,7 @@ export async function listSales(
     total,
     page,
     pageCount,
-    sumTotal: toDecimalString(sum._sum.total ?? '0'),
+    sumTotal,
   };
 }
 

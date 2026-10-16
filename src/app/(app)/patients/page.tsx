@@ -18,7 +18,6 @@ type SearchParams = Promise<{
   q?: string;
   idNo?: string;
   tag?: string;
-  consent?: string;
   dnm?: string;
   status?: string;
   sort?: string;
@@ -32,7 +31,6 @@ function buildQuery(filters: PatientListFilters, patch: Partial<PatientListFilte
   if (merged.q) params.set('q', merged.q);
   if (merged.idNo) params.set('idNo', merged.idNo);
   if (merged.tag) params.set('tag', merged.tag);
-  if (merged.consent) params.set('consent', merged.consent);
   if (merged.dnm) params.set('dnm', merged.dnm);
   if (merged.status) params.set('status', merged.status);
   if (merged.sort && merged.sort !== 'fullName') params.set('sort', merged.sort);
@@ -51,14 +49,13 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
   const q = sp.q?.slice(0, 100) ?? '';
   const idNo = sp.idNo?.slice(0, 32) ?? '';
   const tag = sp.tag?.slice(0, 64) ?? '';
-  const consent = sp.consent === 'true' || sp.consent === 'false' ? sp.consent : '';
   const dnm = sp.dnm === 'true' || sp.dnm === 'false' ? sp.dnm : '';
   const status = sp.status === 'true' || sp.status === 'false' ? sp.status : '';
   const sort = sortFrom(sp.sort);
   const dir = dirFrom(sp.dir);
   const page = Number(sp.page) || 1;
 
-  const filters: PatientListFilters = { q, idNo, tag, consent, dnm, status, sort, dir, page };
+  const filters: PatientListFilters = { q, idNo, tag, dnm, status, sort, dir, page };
   const [tags, result] = await Promise.all([listTagsForFilter(), listPatients(filters)]);
   const { rows, total, page: currentPage, pageCount } = result;
 
@@ -97,7 +94,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
       </div>
 
       <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
-        <div className="col-span-1 sm:col-span-2">
+        <div>
           <label className="label text-xs" htmlFor="q">
             {tc('search')}
           </label>
@@ -134,16 +131,6 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
                 {item.name} ({item.patientCount})
               </option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className="label text-xs" htmlFor="consent">
-            {t('consentFilter')}
-          </label>
-          <select className="input-field text-sm" id="consent" name="consent" defaultValue={consent}>
-            <option value="">{tc('all')}</option>
-            <option value="true">{t('consentYes')}</option>
-            <option value="false">{t('consentNo')}</option>
           </select>
         </div>
         <div>
@@ -187,7 +174,6 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
               <th className="px-4 py-3 font-medium">{t('sex')}</th>
               <th className="px-4 py-3 font-medium">{sortLink('birthDate', t('birthDate'))}</th>
               <th className="px-4 py-3 font-medium">{t('tagsTitle')}</th>
-              <th className="px-4 py-3 font-medium">{t('consentFilter')}</th>
               <th className="px-4 py-3 font-medium">{tc('status')}</th>
               <th className="px-4 py-3 font-medium">{sortLink('createdAt', t('createdCol'))}</th>
             </tr>
@@ -195,8 +181,8 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
-                  {q || tag || consent || dnm || status ? tc('noResults') : tc('empty')}
+                <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                  {q || tag || dnm || status ? tc('noResults') : tc('empty')}
                 </td>
               </tr>
             ) : (
@@ -240,18 +226,6 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
                           {link.tag.name}
                         </span>
                       ))}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' +
-                        (row.consentSms
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'bg-slate-100 text-slate-500')
-                      }
-                    >
-                      {row.consentSms ? t('consentYes') : t('consentNo')}
                     </span>
                   </td>
                   <td className="px-4 py-3">

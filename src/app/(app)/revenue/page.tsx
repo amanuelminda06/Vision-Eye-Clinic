@@ -132,7 +132,7 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
           ))}
         </div>
         {preset === 'custom' ? (
-          <form method="get" className="flex flex-wrap items-end gap-2">
+          <form method="get" className="card grid grid-cols-1 sm:grid-cols-2 gap-2 p-3">
             <input type="hidden" name="period" value="custom" />
             <div>
               <label className="label text-xs" htmlFor="from">

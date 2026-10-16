@@ -9,7 +9,6 @@ import type { BlockedReason } from './constants';
 
 export type EligibilityPatient = {
   active: boolean;
-  consentSms: boolean;
   doNotMessage: boolean;
   phoneE164: string;
 };
@@ -22,7 +21,6 @@ export type EligibilityInput = {
 
 export function blockedReason({ patient, sourceStatus }: EligibilityInput): BlockedReason | null {
   if (!patient.active) return 'inactive';
-  if (!patient.consentSms) return 'noConsent';
   if (patient.doNotMessage) return 'doNotMessage';
   if (!isValidPhone(patient.phoneE164)) return 'invalidPhone';
   if (sourceStatus === 'CANCELLED') return 'sourceCancelled';

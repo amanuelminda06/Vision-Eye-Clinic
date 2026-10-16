@@ -540,7 +540,6 @@ export default function MessageWizard({
             ) : null}
           </div>
 
-          <p className="text-xs text-slate-500">{t('consentAlways')}</p>
         </fieldset>
 
         {/* Saved audiences */}

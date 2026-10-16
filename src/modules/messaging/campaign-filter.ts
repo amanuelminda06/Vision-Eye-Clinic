@@ -12,7 +12,6 @@ export type CampaignCandidate = {
   fullName: string;
   phoneE164: string;
   preferredLanguage: string;
-  consentSms: boolean;
   doNotMessage: boolean;
   active: boolean;
   birthDate: Date | null;
@@ -61,11 +60,10 @@ export function matchesFilter(candidate: CampaignCandidate, filter: CampaignFilt
   return true;
 }
 
-/** Hard, non-removable gates. Consent is always enforced. */
+/** Hard, non-removable gates. */
 export function exclusionsFor(candidate: CampaignCandidate): BlockedReason[] {
   const reasons: BlockedReason[] = [];
   if (!candidate.active) reasons.push('inactive');
-  if (!candidate.consentSms) reasons.push('noConsent');
   if (candidate.doNotMessage) reasons.push('doNotMessage');
   if (!isValidPhone(candidate.phoneE164)) reasons.push('invalidPhone');
   return reasons;
@@ -87,7 +85,6 @@ export function summarizeCandidates(
   const filtered = candidates.filter((candidate) => matchesFilter(candidate, filter));
   const excluded: Record<BlockedReason, number> = {
     inactive: 0,
-    noConsent: 0,
     doNotMessage: 0,
     invalidPhone: 0,
     sourceCancelled: 0,

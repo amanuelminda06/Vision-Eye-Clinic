@@ -20,7 +20,6 @@ function candidate(overrides: Partial<CampaignCandidate> = {}): CampaignCandidat
     fullName: 'Hemnet Tesfaye',
     phoneE164: '+251911111111',
     preferredLanguage: 'en',
-    consentSms: true,
     doNotMessage: false,
     active: true,
     birthDate: null,
@@ -231,8 +230,8 @@ describe('normalizeLegacyFilter', () => {
 describe('summarizeRecipients', () => {
   it('applies hard gates and reports exclusions', () => {
     const candidates = [
-      candidate({ id: 'p1', consentSms: true }),
-      candidate({ id: 'p2', consentSms: false }),
+      candidate({ id: 'p1' }),
+      candidate({ id: 'p2' }),
       candidate({ id: 'p3', phoneE164: 'not-a-phone' }),
     ];
     const f = filter({ serviceIds: [] });
@@ -244,16 +243,16 @@ describe('summarizeRecipients', () => {
   it('counts criteria matches and exclusions', () => {
     const f = filter({ tags: ['VIP'] });
     const candidates = [
-      candidate({ id: 'p1', tags: ['VIP'], consentSms: true }),
-      candidate({ id: 'p2', tags: ['VIP'], consentSms: false }),
+      candidate({ id: 'p1', tags: ['VIP'] }),
+      candidate({ id: 'p2', tags: ['VIP'], doNotMessage: true }),
       candidate({ id: 'p3', tags: ['Other'] }),
-      candidate({ id: 'p4', tags: ['VIP'], consentSms: true }),
+      candidate({ id: 'p4', tags: ['VIP'] }),
     ];
     const { eligible, preview } = summarizeRecipients(candidates, f, 300, false);
     expect(eligible.map((c) => c.id)).toEqual(['p1', 'p4']);
     expect(preview.matched).toBe(3);
     expect(preview.eligible).toBe(2);
-    expect(preview.excluded.noConsent).toBe(1);
+    expect(preview.excluded.doNotMessage).toBe(1);
     expect(preview.overCap).toBe(false);
   });
 

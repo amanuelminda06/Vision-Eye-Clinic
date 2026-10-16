@@ -38,14 +38,13 @@ async function main() {
       sex: true,
       birthDate: true,
       preferredLanguage: true,
-      consentSms: true,
       doNotMessage: true,
       active: true,
       createdAt: true,
     },
   });
   const patientsCsv = toCsv(
-    ['id', 'fullName', 'phone', 'sex', 'birthDate', 'language', 'consentSms', 'doNotMessage', 'active', 'createdAt'],
+    ['id', 'fullName', 'phone', 'sex', 'birthDate', 'language', 'doNotMessage', 'active', 'createdAt'],
     patients.map((p) => [
       p.id,
       p.fullName,
@@ -53,7 +52,6 @@ async function main() {
       p.sex ?? '',
       p.birthDate ? p.birthDate.toISOString().slice(0, 10) : '',
       p.preferredLanguage,
-      p.consentSms,
       p.doNotMessage,
       p.active,
       p.createdAt.toISOString(),

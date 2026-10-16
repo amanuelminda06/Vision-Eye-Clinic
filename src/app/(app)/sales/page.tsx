@@ -106,7 +106,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
       </div>
 
       {allSales ? (
-        <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
+        <form method="get" className="card grid grid-cols-1 sm:grid-cols-5 gap-2 p-3">
           <div>
             <label className="label text-xs" htmlFor="from">
               {t('from')}
@@ -131,7 +131,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
               defaultValue={filters.to}
             />
           </div>
-          <div className="col-span-1 sm:col-span-2">
+          <div>
             <label className="label text-xs" htmlFor="patient">
               {t('patient')}
             </label>
