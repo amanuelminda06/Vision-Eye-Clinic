@@ -47,7 +47,6 @@ export default function Map({
     const map = L.map(mapRef.current, {
       center: [lat, lng],
       zoom,
-      zoomControl: false,
       attributionControl: false,
       scrollWheelZoom: false,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
