@@ -29,7 +29,7 @@ export default async function EditServicePage({ params }: { params: Params }) {
         <h1 className="text-xl font-semibold text-slate-900">{t('editService')}</h1>
         <div className="flex items-center gap-2">
           <PriceHistoryModal serviceId={service.id} serviceName={service.name} tz={tz} />
-          <Link href="/services" className="btn-secondary">
+          <Link href="/dashboard/services" className="btn-secondary">
             {t('backToList')}
           </Link>
         </div>

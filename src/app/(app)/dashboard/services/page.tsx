@@ -37,7 +37,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-slate-900">{t('title')}</h1>
-        <Link href="/services/new" className="btn-primary">
+        <Link href="/dashboard/services/new" className="btn-primary">
           {t('newService')}
         </Link>
       </div>
@@ -82,7 +82,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
         <button type="submit" className="btn-secondary">
           {tc('filter')}
         </button>
-        <Link href="/services" className="pb-2 text-sm text-slate-500 hover:text-slate-800">
+        <Link href="/dashboard/services" className="pb-2 text-sm text-slate-500 hover:text-slate-800">
           {tc('clear')}
         </Link>
       </form>
@@ -133,7 +133,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/services/${row.id}/edit`} className="btn-secondary">
+                      <Link href={`/dashboard/services/${row.id}/edit`} className="btn-secondary">
                         {tc('edit')}
                       </Link>
                       <PriceHistoryModal serviceId={row.id} serviceName={row.name} tz={tz} />
