@@ -91,7 +91,7 @@ export default async function HomePage() {
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-orange-900/10" aria-hidden="true" />
-        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
+        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-32">
           <div>
             <div className="flex flex-wrap items-center gap-4">
               <SiteLogo
