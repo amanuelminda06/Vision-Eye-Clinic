@@ -51,7 +51,7 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/30 bg-transparent">
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      <div className="w-full px-4 sm:px-6">
         <div className="flex h-16 w-full items-center gap-3 rounded-full bg-slate-200 px-5 sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label={clinicName}>
             <SiteLogo height={34} priority />

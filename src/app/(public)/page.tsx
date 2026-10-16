@@ -87,7 +87,7 @@ export default async function HomePage() {
           aria-hidden="true"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/25"
+          className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-white/20"
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-orange-900/10" aria-hidden="true" />
