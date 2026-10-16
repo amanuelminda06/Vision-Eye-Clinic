@@ -19,39 +19,21 @@ export default function Map({
   title = 'Map',
   openInMapsLabel = 'Open in Maps',
 }: Props) {
-  const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${zoom}/${lat}/${lng}`;
-  const googleUrl = `https://maps.google.com/?q=${lat},${lng}`;
+  const googleEmbedUrl = `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
 
   return (
     <div className={className}>
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 aspect-video bg-slate-50">
         <iframe
-          src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`}
+          src={googleEmbedUrl}
           width="100%"
-          height={height}
+          height="100%"
           style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
           title={title}
+          referrerPolicy="no-referrer-when-downgrade"
         />
-      </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <a
-          href={osmUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-        >
-          {openInMapsLabel}
-        </a>
-        <a
-          href={googleUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-        >
-          Google Maps
-        </a>
       </div>
     </div>
   );
