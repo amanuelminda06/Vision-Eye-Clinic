@@ -15,7 +15,7 @@ import {
   type AnnouncementItem,
   type WorkingHours,
 } from '@/modules/public-site';
-import { telHref, workingHoursLines } from '@/modules/public-site/format';
+import { telHref, publicServiceImageUrl, workingHoursLines } from '@/modules/public-site/format';
 import Reveal from '@/components/Reveal';
 import SiteLogo from '@/components/SiteLogo';
 import DoctorAvatar from '@/modules/public-site/components/DoctorAvatar';
@@ -180,7 +180,7 @@ export default async function HomePage() {
                   {service.imageUrl ? (
                     <div className="relative aspect-[4/3] w-full bg-slate-100">
                       <Image
-                        src={service.imageUrl}
+                        src={publicServiceImageUrl(service.id, service.imageUrl)!}
                         alt={locale === 'am' ? service.nameAm || service.name : service.name}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"

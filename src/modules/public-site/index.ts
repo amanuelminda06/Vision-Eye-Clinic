@@ -36,6 +36,7 @@ export {
   whatsappHref,
   telegramHref,
   formatNextAvailable,
+  publicServiceImageUrl,
   workingHoursLines,
   type WorkingHours,
 } from './format';

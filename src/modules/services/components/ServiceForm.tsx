@@ -41,7 +41,7 @@ export default function ServiceForm({ mode, service, route }: Props) {
     FormData
   >(action, null);
 
-  const [isPublic, setIsPublic] = useState(service?.isPublic ?? false);
+  const [isPublic, setIsPublic] = useState(service?.isPublic ?? true);
   const [publicDescriptionAm, setPublicDescriptionAm] = useState(service?.publicDescriptionAm ?? '');
 
   const failed = !!state && !state.ok;

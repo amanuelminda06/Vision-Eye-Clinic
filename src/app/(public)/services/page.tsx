@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { CATEGORY_LABEL_KEYS, isServiceCategory } from '@/modules/services/categories';
-import { getPublicServices, pageMetadata } from '@/modules/public-site';
+import { getPublicServices, pageMetadata, publicServiceImageUrl } from '@/modules/public-site';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('site');
@@ -87,7 +87,7 @@ export default async function ServicesPage() {
                     >
                       {service.imageUrl ? (
                         <Image
-                          src={service.imageUrl}
+                          src={publicServiceImageUrl(service.id, service.imageUrl)!}
                           alt={name}
                           width={1200}
                           height={800}

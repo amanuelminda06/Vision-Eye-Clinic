@@ -42,7 +42,6 @@ export function formatNextAvailable(
     return '';
   }
 }
-
 export type WorkingHours = SettingsFormValues['working_hours'];
 
 /**
@@ -62,4 +61,24 @@ export function workingHoursLines(
       value: value.closed ? closedLabel : `${value.open}–${value.close}`,
     };
   });
+}
+
+const SERVICE_IMAGE_URL_PREFIX = '/api/uploads/';
+
+/**
+ * Resolves the public-facing image URL for a service. Site-relative paths
+ * (e.g. `/services/foo.png`) are returned as-is so the browser/Next Image can
+ * load them directly. Uploaded images stored behind `/api/uploads/…` are
+ * rewritten to the public allow-listed route so they render on the public
+ * website without requiring a session.
+ */
+export function publicServiceImageUrl(
+  serviceId: string,
+  imageUrl: string | null | undefined,
+): string | null {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith(SERVICE_IMAGE_URL_PREFIX)) {
+    return `/api/public/services/${serviceId}/image`;
+  }
+  return imageUrl;
 }
