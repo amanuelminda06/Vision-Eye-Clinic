@@ -23,28 +23,72 @@ type Props = {
   phoneHref: string | null;
 };
 
-/** Stylized eye mark — an interesting graphic accent for an eye clinic's nav bar. */
-function ClinicMark() {
+/** Generates an Archimedean spiral path string. */
+function spiralPath({
+  cx,
+  cy,
+  a = 4,
+  b = 2.4,
+  turns = 2.2,
+  rotate = 0,
+}: {
+  cx: number;
+  cy: number;
+  a?: number;
+  b?: number;
+  turns?: number;
+  rotate?: number;
+}) {
+  let d = '';
+  const points = 140;
+  const twoPi = 2 * Math.PI;
+  for (let i = 0; i <= points; i++) {
+    const t = (i / points) * turns * twoPi + rotate;
+    const r = a + b * t;
+    const x = cx + r * Math.cos(t);
+    const y = cy + r * Math.sin(t);
+    d += `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)},${y.toFixed(2)}`;
+  }
+  return d;
+}
+
+/** Spiral background that circles the site logo. */
+function LogoSpiral() {
   return (
     <svg
-      viewBox="0 0 32 32"
-      className="h-7 w-7 text-orange-600 drop-shadow-md transition-transform duration-300 hover:scale-110"
+      viewBox="0 0 64 32"
+      className="absolute inset-0 w-full h-full pointer-events-none select-none"
       aria-hidden="true"
     >
-      {/* eyebrow */}
       <path
-        d="M8 10.5 Q16 6.5 24 10.5"
-        stroke="currentColor"
-        strokeWidth="2"
+        d={spiralPath({ cx: 32, cy: 16, a: 3, b: 2.6, turns: 2.2 })}
         fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
         strokeLinecap="round"
+        className="text-orange-500/70 drop-shadow-[0_0_8px_rgba(234,88,12,0.3)]"
       />
-      {/* eye shape */}
-      <ellipse cx="16" cy="17" rx="8" ry="5.5" fill="none" stroke="currentColor" strokeWidth="2" />
-      {/* pupil */}
-      <circle cx="16" cy="17" r="2.5" fill="currentColor" />
-      {/* gleam */}
-      <circle cx="15" cy="16" r="1" fill="#ffffff" />
+      <circle cx="32" cy="16" r="1.2" fill="currentColor" className="text-orange-600" />
+    </svg>
+  );
+}
+
+/** Spiral oval background behind the nav bar links (buttons sit on its oval). */
+function NavSpiral() {
+  return (
+    <svg
+      viewBox="0 0 200 56"
+      className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[260px] h-[56px] pointer-events-none select-none"
+      aria-hidden="true"
+    >
+      <path
+        d={spiralPath({ cx: 100, cy: 28, a: 12, b: 5, turns: 1.5 })}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        className="text-orange-400/50 drop-shadow-[0_0_10px_rgba(234,88,12,0.25)]"
+      />
     </svg>
   );
 }
@@ -78,16 +122,19 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-3" aria-label={clinicName}>
-          <ClinicMark />
-          <SiteLogo height={34} priority />
+        <Link href="/" className="flex items-center gap-3 relative" aria-label={clinicName}>
+          <div className="relative group inline-flex items-center">
+            <LogoSpiral />
+            <SiteLogo height={34} priority className="relative z-10" />
+          </div>
           <span className="hidden flex-col justify-center leading-tight sm:flex lg:flex">
             <span className="text-sm font-bold tracking-tight text-slate-900">{clinicName}</span>
             <span className="text-[11px] font-medium text-orange-800">{t('clinicNameAm')}</span>
           </span>
         </Link>
 
-        <nav className="ml-4 hidden items-center gap-0.5 lg:flex" aria-label={t('menuLabel')}>
+        <nav className="ml-4 relative hidden items-center gap-0.5 lg:flex" aria-label={t('menuLabel')}>
+          <NavSpiral />
           {links()}
         </nav>
 
