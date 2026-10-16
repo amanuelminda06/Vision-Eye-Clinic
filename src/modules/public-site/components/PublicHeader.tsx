@@ -23,71 +23,69 @@ type Props = {
   phoneHref: string | null;
 };
 
-/** Generates an Archimedean spiral path string. */
-function spiralPath({
-  cx,
-  cy,
-  a = 4,
-  b = 2.4,
-  turns = 2.2,
-  rotate = 0,
-}: {
-  cx: number;
-  cy: number;
-  a?: number;
-  b?: number;
-  turns?: number;
-  rotate?: number;
-}) {
-  let d = '';
-  const points = 140;
-  const twoPi = 2 * Math.PI;
-  for (let i = 0; i <= points; i++) {
-    const t = (i / points) * turns * twoPi + rotate;
-    const r = a + b * t;
-    const x = cx + r * Math.cos(t);
-    const y = cy + r * Math.sin(t);
-    d += `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)},${y.toFixed(2)}`;
-  }
-  return d;
-}
-
-/** Spiral background that circles the site logo. */
-function LogoSpiral() {
+/** Chain-link oval that circles the site logo. */
+function LogoChain() {
   return (
     <svg
-      viewBox="0 0 64 32"
+      viewBox="0 0 70 40"
       className="absolute inset-0 w-full h-full pointer-events-none select-none"
       aria-hidden="true"
     >
-      <path
-        d={spiralPath({ cx: 32, cy: 16, a: 3, b: 2.6, turns: 2.2 })}
+      <ellipse
+        cx="35"
+        cy="20"
+        rx="28"
+        ry="17"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.3"
+        strokeWidth="2.5"
         strokeLinecap="round"
         className="text-orange-500/70 drop-shadow-[0_0_8px_rgba(234,88,12,0.3)]"
       />
-      <circle cx="32" cy="16" r="1.2" fill="currentColor" className="text-orange-600" />
+      <ellipse
+        cx="35"
+        cy="20"
+        rx="26"
+        ry="15"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeDasharray="7 7"
+        className="text-orange-400/40"
+      />
     </svg>
   );
 }
 
-/** Spiral oval background behind the nav bar links (buttons sit on its oval). */
-function NavSpiral() {
+/** Chain-link oval behind a nav bar link (button sits inside the oval). */
+function NavChain() {
   return (
     <svg
-      viewBox="0 0 200 56"
-      className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[260px] h-[56px] pointer-events-none select-none"
+      viewBox="0 0 72 40"
+      className="absolute inset-0 w-full h-full pointer-events-none select-none"
       aria-hidden="true"
     >
-      <path
-        d={spiralPath({ cx: 100, cy: 28, a: 12, b: 5, turns: 1.5 })}
+      <ellipse
+        cx="36"
+        cy="20"
+        rx="30"
+        ry="16"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth="2"
         strokeLinecap="round"
         className="text-orange-400/50 drop-shadow-[0_0_10px_rgba(234,88,12,0.25)]"
+      />
+      <ellipse
+        cx="36"
+        cy="20"
+        rx="28"
+        ry="14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeDasharray="8 8"
+        className="text-orange-300/30"
       />
     </svg>
   );
@@ -102,19 +100,21 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
 
   const links = (onClick?: () => void, className = '') =>
     LINKS.map((link) => (
-      <Link
-        key={link.href}
-        href={link.href}
-        onClick={onClick}
-        aria-current={isActive(link.href) ? 'page' : undefined}
-        className={`relative rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 ${
-          isActive(link.href)
-            ? 'after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-orange-600 text-orange-900'
-            : 'text-slate-600 hover:bg-orange-50 hover:text-orange-800'
-        } ${className}`}
-      >
-        {t(link.labelKey as never)}
-      </Link>
+      <span key={link.href} className="relative inline-flex items-center">
+        <NavChain />
+        <Link
+          href={link.href}
+          onClick={onClick}
+          aria-current={isActive(link.href) ? 'page' : undefined}
+          className={`relative z-10 rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 ${
+            isActive(link.href)
+              ? 'after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-orange-600 text-orange-900'
+              : 'text-slate-600 hover:bg-orange-50 hover:text-orange-800'
+          } ${className}`}
+        >
+          {t(link.labelKey as never)}
+        </Link>
+      </span>
     ));
 
 
@@ -124,7 +124,7 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3 relative" aria-label={clinicName}>
           <div className="relative group inline-flex items-center">
-            <LogoSpiral />
+            <LogoChain />
             <SiteLogo height={34} priority className="relative z-10" />
           </div>
           <span className="hidden flex-col justify-center leading-tight sm:flex lg:flex">
@@ -134,7 +134,6 @@ export default function PublicHeader({ clinicName, phoneHref }: Props) {
         </Link>
 
         <nav className="ml-4 relative hidden items-center gap-0.5 lg:flex" aria-label={t('menuLabel')}>
-          <NavSpiral />
           {links()}
         </nav>
 
