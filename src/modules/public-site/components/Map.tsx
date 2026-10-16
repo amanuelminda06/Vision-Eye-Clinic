@@ -1,9 +1,24 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const L: any;
+const defaultIcon = L.icon({
+  iconUrl: (markerIcon as unknown as string),
+  iconRetinaUrl: (markerIcon2x as unknown as string),
+  shadowUrl: (markerShadow as unknown as string),
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41],
+});
+
+L.Marker.prototype.options.icon = defaultIcon;
 
 type Props = {
   lat: number;
@@ -25,7 +40,7 @@ export default function Map({
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!mapRef.current || typeof window === 'undefined' || typeof L === 'undefined') {
+    if (!mapRef.current || typeof L === 'undefined') {
       return;
     }
 

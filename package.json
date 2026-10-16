@@ -34,7 +34,9 @@
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",
     "@prisma/client": "^6.19.3",
+    "@types/leaflet": "^1.9.22",
     "decimal.js": "^10.6.0",
+    "leaflet": "^1.9.4",
     "next": "16.4.0",
     "next-auth": "^5.0.0-beta.32",
     "next-intl": "^4.14.9",

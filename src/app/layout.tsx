@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import Script from 'next/script';
 import { getLocale, getTranslations } from 'next-intl/server';
 import './globals.css';
 
@@ -20,16 +19,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale}>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          crossOrigin=""
-        />
-        <Script
-          strategy="beforeInteractive"
-          src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          id="leaflet-js"
-        />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
