@@ -1232,8 +1232,8 @@
   "ogTitle": " PLACEHOLDER — open-graph title",
   "ogSubtitle": " PLACEHOLDER — open-graph subtitle",
   "ogCity": " PLACEHOLDER — open-graph city",
-  "mapLat": "የካርታ ኬክሮስ",
-  "mapLng": "የካርታ ኬንትሮስ",
+  "mapLat": "የካርታ መስመር (ሰሜን / ደረብ)",
+  "mapLng": "የካርታ መስመር (ምሕረት / ምዕራብ)",
   "mapZoom": "የካርታ ዙም",
   "mapSection": "የካርታ አድራሻ"
  },
