@@ -68,9 +68,9 @@ export default async function ContactPage() {
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-block font-semibold text-orange-800 hover:text-orange-900"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-orange-800 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-900"
             >
-              {t('contact.directions')} →
+              {/maps\.app\.goo\.gl/i.test(mapUrl) ? 'View on Google Maps' : t('contact.directions')} →
             </a>
           ) : null}
         </div>

@@ -114,6 +114,14 @@ export default async function PublicFooter({
                   openInMapsLabel={t('openInMaps')}
                   title={clinicName}
                 />
+                <a
+                  href={`https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+                >
+                  View on Google Maps
+                </a>
               </div>
             </div>
           ) : null}        </div>

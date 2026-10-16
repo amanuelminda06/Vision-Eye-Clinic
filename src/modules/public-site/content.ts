@@ -150,8 +150,8 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     am: '',
   },
   contact_map_url: {
-    en: 'https://tile.openstreetmap.org/13/11/14.png',
-    am: 'https://tile.openstreetmap.org/13/11/14.png',
+    en: 'https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6',
+    am: 'https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6',
   },
   social_tiktok: {
     en: 'https://tiktok.com/@visioneyeclinic',
