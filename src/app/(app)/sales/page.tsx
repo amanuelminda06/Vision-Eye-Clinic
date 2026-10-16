@@ -106,13 +106,13 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
       </div>
 
       {allSales ? (
-        <form method="get" className="card flex flex-wrap items-end gap-3 p-4">
+        <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
           <div>
-            <label className="label" htmlFor="from">
+            <label className="label text-xs" htmlFor="from">
               {t('from')}
             </label>
             <input
-              className="input-field"
+              className="input-field text-sm"
               id="from"
               name="from"
               type="date"
@@ -120,23 +120,23 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             />
           </div>
           <div>
-            <label className="label" htmlFor="to">
+            <label className="label text-xs" htmlFor="to">
               {t('to')}
             </label>
             <input
-              className="input-field"
+              className="input-field text-sm"
               id="to"
               name="to"
               type="date"
               defaultValue={filters.to}
             />
           </div>
-          <div className="min-w-44 grow">
-            <label className="label" htmlFor="patient">
+          <div className="col-span-1 sm:col-span-2">
+            <label className="label text-xs" htmlFor="patient">
               {t('patient')}
             </label>
             <input
-              className="input-field"
+              className="input-field text-sm"
               id="patient"
               name="patient"
               type="search"
@@ -145,11 +145,11 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             />
           </div>
           <div>
-            <label className="label" htmlFor="serviceId">
+            <label className="label text-xs" htmlFor="serviceId">
               {t('service')}
             </label>
             <select
-              className="input-field"
+              className="input-field text-sm"
               id="serviceId"
               name="serviceId"
               defaultValue={filters.serviceId}
@@ -163,11 +163,11 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="doctorId">
+            <label className="label text-xs" htmlFor="doctorId">
               {t('doctor')}
             </label>
             <select
-              className="input-field"
+              className="input-field text-sm"
               id="doctorId"
               name="doctorId"
               defaultValue={filters.doctorId}
@@ -181,10 +181,10 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="status">
+            <label className="label text-xs" htmlFor="status">
               {tc('status')}
             </label>
-            <select className="input-field" id="status" name="status" defaultValue={filters.status}>
+            <select className="input-field text-sm" id="status" name="status" defaultValue={filters.status}>
               <option value="">{tc('all')}</option>
               {SALE_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -194,11 +194,11 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="paymentMethod">
+            <label className="label text-xs" htmlFor="paymentMethod">
               {t('paymentMethod')}
             </label>
             <select
-              className="input-field"
+              className="input-field text-sm"
               id="paymentMethod"
               name="paymentMethod"
               defaultValue={filters.paymentMethod}
@@ -211,13 +211,15 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
               ))}
             </select>
           </div>
-          <button type="submit" className="btn-secondary">
-            {tc('filter')}
-          </button>
-          <Link href="/sales" className="pb-2 text-sm text-slate-500 hover:text-slate-800">
-            {tc('clear')}
-          </Link>
-          <ExportLinks base="/api/sales/export" query={buildQuery(scoped, { page: 1 })} />
+          <div className="flex items-end">
+            <button type="submit" className="btn-secondary text-sm px-3 py-1.5">
+              {tc('filter')}
+            </button>
+            <Link href="/sales" className="ml-2 pb-1 text-xs text-slate-500 hover:text-slate-800">
+              {tc('clear')}
+            </Link>
+            <ExportLinks base="/api/sales/export" query={buildQuery(scoped, { page: 1 })} />
+          </div>
         </form>
       ) : null}
 

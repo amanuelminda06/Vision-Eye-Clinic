@@ -96,13 +96,13 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
         </div>
       </div>
 
-      <form method="get" className="card flex flex-wrap items-end gap-3 p-4">
-        <div className="min-w-52 grow">
-          <label className="label" htmlFor="q">
+      <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
+        <div className="col-span-1 sm:col-span-2">
+          <label className="label text-xs" htmlFor="q">
             {tc('search')}
           </label>
           <input
-            className="input-field"
+            className="input-field text-sm"
             id="q"
             name="q"
             type="search"
@@ -111,11 +111,11 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           />
         </div>
         <div>
-          <label className="label" htmlFor="idNo">
+          <label className="label text-xs" htmlFor="idNo">
             {t('idNo')}
           </label>
           <input
-            className="input-field"
+            className="input-field text-sm"
             id="idNo"
             name="idNo"
             type="search"
@@ -124,10 +124,10 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           />
         </div>
         <div>
-          <label className="label" htmlFor="tag">
+          <label className="label text-xs" htmlFor="tag">
             {t('tagFilter')}
           </label>
-          <select className="input-field" id="tag" name="tag" defaultValue={tag}>
+          <select className="input-field text-sm" id="tag" name="tag" defaultValue={tag}>
             <option value="">{tc('all')}</option>
             {tags.map((item) => (
               <option key={item.id} value={item.name}>
@@ -137,42 +137,44 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="consent">
+          <label className="label text-xs" htmlFor="consent">
             {t('consentFilter')}
           </label>
-          <select className="input-field" id="consent" name="consent" defaultValue={consent}>
+          <select className="input-field text-sm" id="consent" name="consent" defaultValue={consent}>
             <option value="">{tc('all')}</option>
             <option value="true">{t('consentYes')}</option>
             <option value="false">{t('consentNo')}</option>
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="dnm">
+          <label className="label text-xs" htmlFor="dnm">
             {t('dnmFilter')}
           </label>
-          <select className="input-field" id="dnm" name="dnm" defaultValue={dnm}>
+          <select className="input-field text-sm" id="dnm" name="dnm" defaultValue={dnm}>
             <option value="">{tc('all')}</option>
             <option value="true">{t('dnmYes')}</option>
             <option value="false">{t('dnmNo')}</option>
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="status">
+          <label className="label text-xs" htmlFor="status">
             {t('statusFilter')}
           </label>
-          <select className="input-field" id="status" name="status" defaultValue={status}>
+          <select className="input-field text-sm" id="status" name="status" defaultValue={status}>
             <option value="">{tc('all')}</option>
             <option value="true">{tc('active')}</option>
             <option value="false">{tc('inactive')}</option>
           </select>
         </div>
-        <button type="submit" className="btn-secondary">
-          {tc('filter')}
-        </button>
-        <Link href="/patients" className="pb-2 text-sm text-slate-500 hover:text-slate-800">
-          {tc('clear')}
-        </Link>
-        <ExportLinks base="/api/patients/export" query={buildQuery(filters, { page: 1 })} />
+        <div className="flex items-end">
+          <button type="submit" className="btn-secondary text-sm px-3 py-1.5">
+            {tc('filter')}
+          </button>
+          <Link href="/patients" className="ml-2 pb-1 text-xs text-slate-500 hover:text-slate-800">
+            {tc('clear')}
+          </Link>
+          <ExportLinks base="/api/patients/export" query={buildQuery(filters, { page: 1 })} />
+        </div>
       </form>
 
       <div className="card overflow-x-auto">

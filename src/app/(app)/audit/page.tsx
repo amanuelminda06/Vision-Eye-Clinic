@@ -80,13 +80,13 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         <ExportLinks base="/api/audit/export" query={buildQuery(filters)} />
       </div>
 
-      <form method="get" className="card flex flex-wrap items-end gap-3 p-4">
+      <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
         <div>
-          <label className="label" htmlFor="userId">
+          <label className="label text-xs" htmlFor="userId">
             {t('user')}
           </label>
           <select
-            className="input-field"
+            className="input-field text-sm"
             id="userId"
             name="userId"
             defaultValue={filters.userId ?? ''}
@@ -101,11 +101,11 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         </div>
 
         <div>
-          <label className="label" htmlFor="entity">
+          <label className="label text-xs" htmlFor="entity">
             {t('entity')}
           </label>
           <select
-            className="input-field"
+            className="input-field text-sm"
             id="entity"
             name="entity"
             defaultValue={filters.entity ?? ''}
@@ -120,11 +120,11 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         </div>
 
         <div>
-          <label className="label" htmlFor="action">
+          <label className="label text-xs" htmlFor="action">
             {t('action')}
           </label>
           <select
-            className="input-field"
+            className="input-field text-sm"
             id="action"
             name="action"
             defaultValue={filters.action ?? ''}
@@ -139,11 +139,11 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         </div>
 
         <div>
-          <label className="label" htmlFor="from">
+          <label className="label text-xs" htmlFor="from">
             {t('from')}
           </label>
           <input
-            className="input-field"
+            className="input-field text-sm"
             id="from"
             name="from"
             type="date"
@@ -152,24 +152,22 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         </div>
 
         <div>
-          <label className="label" htmlFor="to">
+          <label className="label text-xs" htmlFor="to">
             {t('to')}
           </label>
           <input
-            className="input-field"
+            className="input-field text-sm"
             id="to"
             name="to"
             type="date"
             defaultValue={filters.to ?? ''}
           />
         </div>
-
-        <button type="submit" className="btn-secondary">
-          {t('apply')}
-        </button>
-        <Link href="/audit" className="pb-2 text-sm text-slate-500 hover:text-slate-800">
-          {tc('clear')}
-        </Link>
+        <div className="flex items-end">
+          <button type="submit" className="btn-secondary text-sm px-3 py-1.5">
+            {t('apply')}
+          </button>
+        </div>
       </form>
 
       <div className="card overflow-x-auto">

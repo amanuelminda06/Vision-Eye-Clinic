@@ -39,13 +39,13 @@ export default async function StaffPage({ searchParams }: { searchParams: Search
         </Link>
       </div>
 
-      <form method="get" className="card flex flex-wrap items-end gap-3 p-4">
-        <div className="min-w-48 grow">
-          <label className="label" htmlFor="q">
+      <form method="get" className="card grid grid-cols-1 sm:grid-cols-4 gap-2 p-3">
+        <div className="col-span-1 sm:col-span-2">
+          <label className="label text-xs" htmlFor="q">
             {tc('search')}
           </label>
           <input
-            className="input-field"
+            className="input-field text-sm"
             id="q"
             name="q"
             type="search"
@@ -54,21 +54,23 @@ export default async function StaffPage({ searchParams }: { searchParams: Search
           />
         </div>
         <div>
-          <label className="label" htmlFor="status">
+          <label className="label text-xs" htmlFor="status">
             {tc('status')}
           </label>
-          <select className="input-field" id="status" name="status" defaultValue={status}>
+          <select className="input-field text-sm" id="status" name="status" defaultValue={status}>
             <option value="">{tc('all')}</option>
             <option value="true">{tc('active')}</option>
             <option value="false">{tc('inactive')}</option>
           </select>
         </div>
-        <button type="submit" className="btn-secondary">
-          {tc('filter')}
-        </button>
-        <Link href="/staff" className="pb-2 text-sm text-slate-500 hover:text-slate-800">
-          {tc('clear')}
-        </Link>
+        <div className="flex items-end">
+          <button type="submit" className="btn-secondary text-sm px-3 py-1.5">
+            {tc('filter')}
+          </button>
+          <Link href="/staff" className="ml-2 pb-1 text-xs text-slate-500 hover:text-slate-800">
+            {tc('clear')}
+          </Link>
+        </div>
       </form>
 
       <div className="card overflow-x-auto">

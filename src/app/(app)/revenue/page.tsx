@@ -135,11 +135,11 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
           <form method="get" className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="period" value="custom" />
             <div>
-              <label className="label" htmlFor="from">
+              <label className="label text-xs" htmlFor="from">
                 {t('from')}
               </label>
               <input
-                className="input-field"
+                className="input-field text-sm"
                 id="from"
                 name="from"
                 type="date"
@@ -147,18 +147,18 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
               />
             </div>
             <div>
-              <label className="label" htmlFor="to">
+              <label className="label text-xs" htmlFor="to">
                 {t('to')}
               </label>
               <input
-                className="input-field"
+                className="input-field text-sm"
                 id="to"
                 name="to"
                 type="date"
                 defaultValue={current.toKey}
               />
             </div>
-            <button type="submit" className="btn-secondary">
+            <button type="submit" className="btn-secondary text-sm px-3 py-1.5">
               {tc('filter')}
             </button>
           </form>
