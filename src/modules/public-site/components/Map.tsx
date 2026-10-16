@@ -1,5 +1,10 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const L: any;
+
 type Props = {
   lat: number;
   lng: number;
@@ -17,21 +22,42 @@ export default function Map({
   className = '',
   title = 'Map',
 }: Props) {
-  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`;
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapRef.current || typeof window === 'undefined' || typeof L === 'undefined') {
+      return;
+    }
+
+    const map = L.map(mapRef.current, {
+      center: [lat, lng],
+      zoom,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map);
+
+    map.invalidateSize();
+
+    return () => {
+      map.remove();
+    };
+  }, [lat, lng, zoom]);
 
   return (
     <div className={className}>
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-        <iframe
-          src={osmUrl}
-          width="100%"
-          height={height}
-          style={{ border: 0, display: 'block' }}
-          allowFullScreen
-          loading="eager"
-          title={title}
-        />
-      </div>
+      <div
+        ref={mapRef}
+        className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+        style={{ height: typeof height === 'number' ? `${height}px` : height }}
+        aria-label={title}
+      />
     </div>
   );
 }
