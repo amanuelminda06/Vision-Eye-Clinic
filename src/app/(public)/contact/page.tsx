@@ -135,7 +135,6 @@ export default async function ContactPage() {
               lng={parseFloat(mapLng)}
               zoom={mapZoom ? parseFloat(mapZoom) : 15}
               height={320}
-              openInMapsLabel={t('openInMaps')}
               title={t('contact.map')}
             />
             <p className="mt-2">

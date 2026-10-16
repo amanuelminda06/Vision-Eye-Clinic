@@ -110,7 +110,6 @@ export default async function PublicFooter({
                 lng={parseFloat(mapLng)}
                 zoom={mapZoom ? parseFloat(mapZoom) : 15}
                 height={120}
-                openInMapsLabel={t('openInMaps')}
                 title={clinicName}
               />
               <a

@@ -7,32 +7,29 @@ type Props = {
   height?: number | string;
   className?: string;
   title?: string;
-  openInMapsLabel?: string;
 };
 
 export default function Map({
   lat,
   lng,
   zoom = 15,
-  height = 280,
+  height = 200,
   className = '',
   title = 'Map',
-  openInMapsLabel = 'Open in Maps',
 }: Props) {
-  const googleEmbedUrl = `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
+  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`;
 
   return (
     <div className={className}>
-      <div className="overflow-hidden rounded-2xl border border-slate-200 aspect-video bg-slate-50">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
         <iframe
-          src={googleEmbedUrl}
+          src={osmUrl}
           width="100%"
-          height="100%"
-          style={{ border: 0 }}
+          height={height}
+          style={{ border: 0, display: 'block' }}
           allowFullScreen
-          loading="lazy"
+          loading="eager"
           title={title}
-          referrerPolicy="no-referrer-when-downgrade"
         />
       </div>
     </div>
