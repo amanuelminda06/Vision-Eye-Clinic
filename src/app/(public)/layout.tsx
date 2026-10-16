@@ -42,21 +42,21 @@ export default async function PublicLayout({ children }: { children: React.React
 
   const clinicName = profile.name;
   const address = pick(locale, content.contact_address) || null;
-  const phone = pick(locale, content.contact_phone) || null;
-  const phoneHref = telHref(phone);
-  const hoursText = pick(locale, content.hours_text) || null;
+  const phonePrimary = pick(locale, content.contact_phone_primary) || null;
+  const phoneHref = telHref(phonePrimary);
+  const hoursText = null;
   const footerNote = pick(locale, content.footer_note) || null;
   const announcementText = pick(locale, content.announcement_text);
 
   const socials = [
     pick(locale, content.social_tiktok)
-      ? { href: pick(locale, content.social_tiktok), label: 'TikTok', icon: '♪' }
+      ? { href: pick(locale, content.social_tiktok), label: 'TikTok', platform: 'tiktok' as const }
       : null,
     pick(locale, content.social_instagram)
-      ? { href: pick(locale, content.social_instagram), label: 'Instagram', icon: '📸' }
+      ? { href: pick(locale, content.social_instagram), label: 'Instagram', platform: 'instagram' as const }
       : null,
     pick(locale, content.social_telegram)
-      ? { href: pick(locale, content.social_telegram), label: 'Telegram', icon: '✉' }
+      ? { href: pick(locale, content.social_telegram), label: 'Telegram', platform: 'telegram' as const }
       : null,
   ].filter((link): link is NonNullable<typeof link> => !!link);
 
@@ -72,7 +72,7 @@ export default async function PublicLayout({ children }: { children: React.React
     '@type': 'MedicalClinic',
     name: clinicName,
     url: siteBaseUrl(),
-    ...(phone ? { telephone: phone } : {}),
+    ...(phonePrimary ? { telephone: phonePrimary } : {}),
     ...(address
       ? {
           address: {
@@ -111,7 +111,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <PublicFooter
         clinicName={clinicName}
         address={address}
-        phone={phone}
+        phone={phonePrimary}
         phoneHref={phoneHref}
         hoursText={hoursText}
         footerNote={footerNote}

@@ -1041,6 +1041,7 @@
   "clinicNameAm": "ቪዥን የዓይን ህክምና ክሊኒክ",
   "callNow": "Call now",
   "phonePending": "Phone number coming soon",
+  "phoneBackupLabel": "Backup: {number}",
   "menuLabel": "Menu",
   "menuClose": "Close menu",
   "languageLabel": "Language",
@@ -1076,7 +1077,8 @@
    "why3Title": "Care for the whole family",
    "why3Text": "From children to grandparents, we look after every stage of life.",
    "ctaTitle": "Ready to see clearly again?",
-   "ctaText": "Book a visit and our team will call you to confirm a time that suits you."
+   "ctaText": "Book a visit and our team will call you to confirm a time that suits you.",
+   "announcementsTitle": "Announcements"
   },
   "services": {
    "title": "Eye care services",
@@ -1164,7 +1166,6 @@
    "title": "Privacy policy",
    "updated": "This policy is a placeholder and must be reviewed by the clinic."
   },
-  "home.announcementsTitle": "Announcements",
   "footerMap": "Open map",
   "openInMaps": "Open in Maps",
   "viewMap": "View map",
@@ -1190,14 +1191,10 @@
   "heroSubtitle": "Hero subtitle",
   "heroPromise": "Hero promise",
   "homeIntro": "Home introduction",
-  "aboutBody": "About body",
-  "hoursText": "Opening hours (free text)",
-  "hoursHint": "Shown on the home and contact pages.",
   "contactAddress": "Address",
-  "contactPhone": "Phone",
+  "contactPhonePrimary": "Primary phone (call · WhatsApp · Telegram)",
+  "contactPhoneBackup": "Backup phone",
   "contactMapUrl": "Map link",
-  "contactWhatsapp": "WhatsApp number",
-  "contactTelegram": "Telegram username or link",
   "footerNote": "Footer note",
   "announcementActive": "Show the announcement banner",
   "announcementStart": "Show from (optional)",
@@ -1213,11 +1210,6 @@
   "removeTestimonial": "Remove",
   "privacyBody": "Privacy policy text",
   "servicesNotice": "Services shown on the website are managed under Services — mark a service as public and add a public description.",
-  "aboutTitle": "About title",
-  "box1Title": "Box 1 title",
-  "box1Body": "Box 1 body",
-  "box2Title": "Box 2 title",
-  "box2Body": "Box 2 body",
   "socialTiktok": "TikTok URL",
   "socialInstagram": "Instagram URL",
   "socialTelegram": "Telegram URL",
@@ -1248,6 +1240,5 @@
  "contact": {
   "openInMaps": "Open in Maps",
   "mapEmbedAlt": "Clinic location map"
- },
- "home.announcementsTitle": "Announcements"
+ }
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getLocale, getTranslations } from 'next-intl/server';
-import { getSiteContent, pageMetadata, pick } from '@/modules/public-site';
+import { getTranslations } from 'next-intl/server';
+import { pageMetadata } from '@/modules/public-site';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('site');
@@ -14,12 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const t = await getTranslations('site');
-  const locale = await getLocale();
-  const content = await getSiteContent();
-  const body = pick(locale, content.about_body)
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
+  const body = t('meta.aboutDescription').split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6">

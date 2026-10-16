@@ -35,7 +35,7 @@ describe('resolveContent', () => {
   it('merges DB rows over defaults and falls back to English for blank Amharic', () => {
     const resolved = resolveContent([
       { key: 'hero_title', valueEn: 'DB title', valueAm: '' },
-      { key: 'contact_phone', valueEn: '+251900000000', valueAm: '+251900000000' },
+      { key: 'contact_phone_primary', valueEn: '+251900000000', valueAm: '+251900000000' },
     ]);
     expect(resolved.hero_title).toEqual({ en: 'DB title', am: 'DB title' });
     expect(resolved.hero_subtitle).toEqual(DEFAULT_CONTENT.hero_subtitle);

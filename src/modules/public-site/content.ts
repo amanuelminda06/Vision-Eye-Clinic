@@ -13,13 +13,6 @@ export const CONTENT_KEYS = [
   'hero_subtitle',
   'hero_promise',
   'home_intro',
-  'about_title',
-  'about_body',
-  'box1_title',
-  'box1_body',
-  'box2_title',
-  'box2_body',
-  'hours_text',
   'footer_note',
   'privacy_body',
   'announcement_text',
@@ -30,10 +23,9 @@ export const CONTENT_KEYS = [
   'faq_items',
   'testimonials_items',
   'contact_address',
-  'contact_phone',
+  'contact_phone_primary',
+  'contact_phone_backup',
   'contact_map_url',
-  'contact_whatsapp',
-  'contact_telegram',
   'social_tiktok',
   'social_instagram',
   'social_telegram',
@@ -69,34 +61,6 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
   home_intro: {
     en: 'Our experienced ophthalmologists and optometrists provide thorough eye examinations, accurate diagnoses and clear guidance. We take the time to explain every step.',
     am: 'ልምድ ያላቸው የዓይን ሐኪሞቻችን እና የዓይን ብርጭቆ ባለሙያዎቻችን ጥልቅ ምርመራ፣ ትክክለኛ ምርመራ ውጤት እና ግልጽ ምክር ይሰጣሉ።',
-  },
-  about_body: {
-    en: 'Vision Eye Clinic is dedicated to protecting and restoring sight. From comprehensive eye exams and prescription glasses to the diagnosis and management of eye disease, our team combines modern equipment with attentive, personal care. This page is placeholder text — the clinic should replace it with its own story.',
-    am: 'PLACEHOLDER — Amharic about text pending native-speaker review.',
-  },
-  about_title: {
-    en: 'About Vision Eye Clinic',
-    am: 'PLACEHOLDER — Amharic about title pending native-speaker review.',
-  },
-  box1_title: {
-    en: 'Comprehensive eye care',
-    am: 'PLACEHOLDER — Amharic box title pending native-speaker review.',
-  },
-  box1_body: {
-    en: 'Routine exams, prescription glasses, contact lenses and specialist diagnosis under one roof.',
-    am: 'PLACEHOLDER — Amharic box body pending native-speaker review.',
-  },
-  box2_title: {
-    en: 'Patient-first care',
-    am: 'PLACEHOLDER — Amharic box title pending native-speaker review.',
-  },
-  box2_body: {
-    en: 'We take the time to explain every step, so you always know what is happening.',
-    am: 'PLACEHOLDER — Amharic box body pending native-speaker review.',
-  },
-  hours_text: {
-    en: 'Monday–Friday 8:00–17:00 · Saturday 8:00–12:00 · Sunday closed',
-    am: 'ሰኞ–አርብ 8:00–17:00 · ቅዳሜ 8:00–12:00 · እሁድ ዝግ',
   },
   footer_note: {
     en: 'This website is for general information only and does not replace a medical consultation.',
@@ -177,21 +141,17 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, Bilingual> = {
     en: 'PLACEHOLDER — Bole Road, Addis Ababa, Ethiopia',
     am: 'ጊዜያዊ — ቦሌ መንገድ፣ አዲስ አበባ፣ ኢትዮጵያ',
   },
-  contact_phone: {
+  contact_phone_primary: {
     en: '+251900000000',
     am: '+251900000000',
+  },
+  contact_phone_backup: {
+    en: '',
+    am: '',
   },
   contact_map_url: {
     en: 'https://tile.openstreetmap.org/13/11/14.png',
     am: 'https://tile.openstreetmap.org/13/11/14.png',
-  },
-  contact_whatsapp: {
-    en: '251900000000',
-    am: '251900000000',
-  },
-  contact_telegram: {
-    en: 'visioneyeclinic',
-    am: 'visioneyeclinic',
   },
   social_tiktok: {
     en: 'https://tiktok.com/@visioneyeclinic',

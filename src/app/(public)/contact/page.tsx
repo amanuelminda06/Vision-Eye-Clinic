@@ -37,14 +37,15 @@ export default async function ContactPage() {
   const [content, profile] = await Promise.all([getSiteContent(), getClinicProfile()]);
 
   const address = pick(locale, content.contact_address);
-  const phone = pick(locale, content.contact_phone);
-  const phoneHref = telHref(phone);
+  const phonePrimary = pick(locale, content.contact_phone_primary);
+  const phonePrimaryHref = telHref(phonePrimary);
+  const phoneBackup = pick(locale, content.contact_phone_backup);
   const mapUrl = pick(locale, content.contact_map_url);
   const mapLat = pick(locale, content.map_lat);
   const mapLng = pick(locale, content.map_lng);
   const mapZoom = pick(locale, content.map_zoom);
-  const whatsapp = whatsappHref(pick(locale, content.contact_whatsapp));
-  const telegram = telegramHref(pick(locale, content.contact_telegram));
+  const whatsapp = whatsappHref(phonePrimary);
+  const telegram = telegramHref(phonePrimary);
   const hours = workingHoursLines(
     profile.workingHours,
     (day) => ts(DAY_KEYS[day] as never),
@@ -76,10 +77,15 @@ export default async function ContactPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900">{t('contact.phone')}</h2>
-          {phone && phoneHref ? (
-            <a href={phoneHref} className="mt-3 block text-lg font-semibold text-orange-800">
-              {phone}
-            </a>
+          {phonePrimary && phonePrimaryHref ? (
+            <>
+              <a href={phonePrimaryHref} className="mt-3 block text-lg font-semibold text-orange-800">
+                {phonePrimary}
+              </a>
+              {phoneBackup ? (
+                <p className="mt-2 text-sm text-slate-600">{t('phoneBackupLabel', { number: phoneBackup })}</p>
+              ) : null}
+            </>
           ) : (
             <p className="mt-3 text-slate-600">{t('phonePending')}</p>
           )}

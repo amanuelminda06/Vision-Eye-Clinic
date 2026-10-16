@@ -13,8 +13,9 @@ import {
   parseItems,
   pick,
   type AnnouncementItem,
+  type WorkingHours,
 } from '@/modules/public-site';
-import { telHref } from '@/modules/public-site/format';
+import { telHref, workingHoursLines } from '@/modules/public-site/format';
 import Reveal from '@/components/Reveal';
 import SiteLogo from '@/components/SiteLogo';
 import DoctorAvatar from '@/modules/public-site/components/DoctorAvatar';
@@ -40,8 +41,9 @@ export default async function HomePage() {
     getPublicDoctorStatus(),
   ]);
 
-  const phone = pick(locale, content.contact_phone);
-  const phoneHref = telHref(phone);
+  const phonePrimary = pick(locale, content.contact_phone_primary);
+  const phonePrimaryHref = telHref(phonePrimary);
+  const phoneBackup = pick(locale, content.contact_phone_backup);
   const featured = services.slice(0, 6);
   const onDuty = doctors.filter((doctor) => doctor.status === 'ON_DUTY_NOW');
   const shownDoctors = (onDuty.length ? onDuty : doctors).slice(0, 4);
@@ -54,12 +56,21 @@ export default async function HomePage() {
     isAnnouncementItem,
   );
   const address = pick(locale, content.contact_address);
-  const aboutTitle = pick(locale, content.about_title);
-  const aboutBody = pick(locale, content.about_body);
-  const box1Title = pick(locale, content.box1_title);
-  const box1Body = pick(locale, content.box1_body);
-  const box2Title = pick(locale, content.box2_title);
-  const box2Body = pick(locale, content.box2_body);
+  const ts = await getTranslations('settings');
+  const DAY_KEYS: Record<keyof WorkingHours, string> = {
+    mon: 'dayMon',
+    tue: 'dayTue',
+    wed: 'dayWed',
+    thu: 'dayThu',
+    fri: 'dayFri',
+    sat: 'daySat',
+    sun: 'daySun',
+  };
+  const hoursLines = workingHoursLines(
+    profile.workingHours,
+    (day) => ts(DAY_KEYS[day] as never),
+    ts('closed'),
+  );
 
   return (
     <>
@@ -111,9 +122,9 @@ export default async function HomePage() {
               >
                 {t('bookAppointment')}
               </Link>
-              {phoneHref ? (
+              {phonePrimaryHref ? (
                 <a
-                  href={phoneHref}
+                  href={phonePrimaryHref}
                   className="rounded-xl border border-orange-300 px-6 py-3 text-base font-semibold text-orange-900 transition-colors hover:bg-orange-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
                 >
                   {t('callNow')}
@@ -279,16 +290,20 @@ export default async function HomePage() {
       <section className="bg-slate-50">
         <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
           <div className="accent-line mb-4" aria-hidden="true" />
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{aboutTitle}</h2>
-          <p className="mt-2 max-w-2xl text-slate-600">{aboutBody}</p>
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{t('meta.aboutTitle')}</h2>
+          <p className="mt-2 max-w-2xl text-slate-600">{t('meta.aboutDescription')}</p>
           <div className="mt-8 grid gap-5 sm:grid-cols-2">
             <Reveal delay={40} className="card card-hover p-6">
-              <h3 className="text-lg font-semibold text-slate-900">{box1Title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{box1Body}</p>
+              <h3 className="text-lg font-semibold text-slate-900">{t('home.why1Title')}</h3>
+              <p className="mt-2 text-sm text-slate-600">{t('home.why1Text')}</p>
             </Reveal>
             <Reveal delay={100} className="card card-hover p-6">
-              <h3 className="text-lg font-semibold text-slate-900">{box2Title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{box2Body}</p>
+              <h3 className="text-lg font-semibold text-slate-900">{t('home.why2Title')}</h3>
+              <p className="mt-2 text-sm text-slate-600">{t('home.why2Text')}</p>
+            </Reveal>
+            <Reveal delay={160} className="card card-hover p-6">
+              <h3 className="text-lg font-semibold text-slate-900">{t('home.why3Title')}</h3>
+              <p className="mt-2 text-sm text-slate-600">{t('home.why3Text')}</p>
             </Reveal>
           </div>
         </div>
@@ -332,12 +347,12 @@ export default async function HomePage() {
               >
                 {t('bookAppointment')}
               </Link>
-              {phoneHref ? (
+              {phonePrimaryHref ? (
                 <a
-                  href={phoneHref}
+                  href={phonePrimaryHref}
                   className="rounded-xl border border-orange-200 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-orange-700"
                 >
-                  {phone}
+                  {phonePrimary}
                 </a>
               ) : null}
             </div>
@@ -346,7 +361,14 @@ export default async function HomePage() {
             <h3 className="text-lg font-semibold">{t('home.locationTitle')}</h3>
             {address ? <p className="mt-2 text-orange-50">{address}</p> : null}
             <h3 className="mt-5 text-lg font-semibold">{t('home.hoursTitle')}</h3>
-            <p className="mt-2 text-orange-50">{pick(locale, content.hours_text)}</p>
+            <dl className="mt-2 space-y-1 text-sm text-orange-50">
+              {hoursLines.map((line) => (
+                <div key={line.day} className="flex justify-between">
+                  <dt className="text-orange-50/80">{line.day}</dt>
+                  <dd className="font-medium">{line.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </section>

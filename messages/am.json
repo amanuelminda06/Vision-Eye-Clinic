@@ -1041,6 +1041,7 @@
   "clinicNameAm": "ቪዥን የዓይን ህክምና ክሊኒክ",
   "callNow": "ዛሬ ይደውሉ",
   "phonePending": "የስልክ ቁጥር በቅርቡ",
+  "phoneBackupLabel": "ቁልፍ: {number}",
   "menuLabel": "ዝርዝር",
   "menuClose": "ምናሌን ዝጋ",
   "languageLabel": "ቋንቋ",
@@ -1076,7 +1077,8 @@
    "why3Title": "ለመላው ቤተሰብ እንክብካቤ",
    "why3Text": "ከልጆች እስከ አያቶች፣ የህይወትን ሁሉንም ደረጃ እንንከባከባለን።",
    "ctaTitle": "እንደገና በግልጽ ለማየት ተዘጋጅተዋል?",
-   "ctaText": "ጉብኝት ይያዙ፤ ቡድናችን ለእርስዎ የሚስማማውን ሰዓት ለማረጋገጥ ይደውልልዎታል።"
+   "ctaText": "ጉብኝት ይያዙ፤ ቡድናችን ለእርስዎ የሚስማማውን ሰዓት ለማረጋገጥ ይደውልልዎታል።",
+   "announcementsTitle": "ማስታወቂያዎች"
   },
   "services": {
    "title": "የዓይን ህክምና አገልግሎቶች",
@@ -1164,7 +1166,6 @@
    "title": "የግላዊነት ፖሊሲ",
    "updated": "ይህ ፖሊሲ ጊዜያዊ ነው፤ በክሊኒኩ መታየት አለበት።"
   },
-  "home.announcementsTitle": "ማስታወቂያዎች",
   "footerMap": "Open map",
   "openInMaps": "በካርታ ክፈት",
   "viewMap": "ካርታ ይመልከቱ",
@@ -1190,14 +1191,10 @@
   "heroSubtitle": "ንዑስ አርዕስት",
   "heroPromise": "የተስፋ ቃል",
   "homeIntro": "የመነሻ መግቢያ",
-  "aboutBody": "About body",
-  "hoursText": "የስራ ሰዓት (ነጻ ጽሑፍ)",
-  "hoursHint": "በመነሻና በመገኛ ገጾች ይታያል።",
   "contactAddress": "አድራሻ",
-  "contactPhone": "ስልክ",
+  "contactPhonePrimary": "መሪ ስልክ (ጋብዝ · WhatsApp · Telegram)",
+  "contactPhoneBackup": "ቁልፍ ስልክ",
   "contactMapUrl": "የካርታ አገናኝ",
-  "contactWhatsapp": "የዋትስአፕ ቁጥር",
-  "contactTelegram": "የቴሌግራም ስም ወይም አገናኝ",
   "footerNote": "የግርጌ ማስታወሻ",
   "announcementActive": "የማስታወሻ ባነሩን አሳይ",
   "announcementStart": "ከዚህ ቀን ጀምሮ (አማራጭ)",
@@ -1213,11 +1210,6 @@
   "removeTestimonial": "አስወግድ",
   "privacyBody": "የግላዊነት ፖሊሲ ጽሑፍ",
   "servicesNotice": "በድህረ ገጹ የሚታዩ አገልግሎቶች በአገልግሎቶች ስር ይተዳደራሉ — አገልግሎት ህዝባዊ ብለው ያመልክቱ።",
-  "aboutTitle": "About title",
-  "box1Title": "Box 1 title",
-  "box1Body": "Box 1 body",
-  "box2Title": "Box 2 title",
-  "box2Body": "Box 2 body",
   "socialTiktok": "TikTok URL",
   "socialInstagram": "Instagram URL",
   "socialTelegram": "Telegram URL",
@@ -1248,6 +1240,5 @@
  "contact": {
   "openInMaps": "በካርታ ክፈት",
   "mapEmbedAlt": "የክሊኒክ አድራሻ ካርታ"
- },
- "home.announcementsTitle": "ማስታወቂያዎች"
+ }
 }

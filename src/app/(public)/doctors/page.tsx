@@ -25,7 +25,7 @@ export default async function DoctorsPage() {
     getClinicProfile(),
     getSiteContent(),
   ]);
-  const phone = pick(locale, content.contact_phone);
+  const phone = pick(locale, content.contact_phone_primary);
   const phoneHref = telHref(phone);
   const doctorsIntro = pick(locale, content.doctors_intro);
 

@@ -2,8 +2,13 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { SiteLogoDark } from '@/components/SiteLogo';
 import Map from './Map';
+import { SocialIcon } from './SocialIcon';
 
-type SocialLink = { href: string; label: string; icon: string };
+type SocialLink = {
+  href: string;
+  label: string;
+  platform: 'instagram' | 'telegram' | 'tiktok';
+};
 
 type Props = {
   clinicName: string;
@@ -62,9 +67,7 @@ export default async function PublicFooter({
                   title={link.label}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 hover:bg-orange-50 hover:text-orange-800"
                 >
-                  <span className="text-base" aria-hidden>
-                    {link.icon}
-                  </span>
+                  <SocialIcon platform={link.platform} />
                   <span className="sr-only">{link.label}</span>
                 </a>
               ))}

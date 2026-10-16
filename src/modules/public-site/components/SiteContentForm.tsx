@@ -22,14 +22,7 @@ const TEXT_FIELDS: Array<{ key: string; labelKey: string; rows?: number }> = [
   { key: 'hero_subtitle', labelKey: 'heroSubtitle', rows: 2 },
   { key: 'hero_promise', labelKey: 'heroPromise' },
   { key: 'home_intro', labelKey: 'homeIntro', rows: 3 },
-  { key: 'about_title', labelKey: 'aboutTitle' },
-  { key: 'about_body', labelKey: 'aboutBody', rows: 6 },
-  { key: 'box1_title', labelKey: 'box1Title' },
-  { key: 'box1_body', labelKey: 'box1Body', rows: 4 },
-  { key: 'box2_title', labelKey: 'box2Title' },
-  { key: 'box2_body', labelKey: 'box2Body', rows: 4 },
   { key: 'doctors_intro', labelKey: 'doctorsIntro', rows: 3 },
-  { key: 'hours_text', labelKey: 'hoursText' },
   { key: 'footer_note', labelKey: 'footerNote', rows: 2 },
   { key: 'privacy_body', labelKey: 'privacyBody', rows: 6 },
   { key: 'announcement_text', labelKey: 'announcementText' },
@@ -40,10 +33,9 @@ const TEXT_FIELDS: Array<{ key: string; labelKey: string; rows?: number }> = [
   { key: 'og_subtitle', labelKey: 'ogSubtitle', rows: 2 },
   { key: 'og_city', labelKey: 'ogCity' },
   { key: 'contact_address', labelKey: 'contactAddress' },
-  { key: 'contact_phone', labelKey: 'contactPhone' },
+  { key: 'contact_phone_primary', labelKey: 'contactPhonePrimary' },
+  { key: 'contact_phone_backup', labelKey: 'contactPhoneBackup' },
   { key: 'contact_map_url', labelKey: 'contactMapUrl' },
-  { key: 'contact_whatsapp', labelKey: 'contactWhatsapp' },
-  { key: 'contact_telegram', labelKey: 'contactTelegram' },
   { key: 'map_lat', labelKey: 'mapLat' },
   { key: 'map_lng', labelKey: 'mapLng' },
   { key: 'map_zoom', labelKey: 'mapZoom' },
@@ -124,7 +116,6 @@ export default function SiteContentForm({ content }: Props) {
             rows={field.rows}
             values={content[field.key]}
             disabled={pending}
-            hint={field.key === 'hours_text' ? t('hoursHint') : undefined}
           />
         ))}
       </section>
