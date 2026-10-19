@@ -1,6 +1,7 @@
 import type { Prisma, Sex } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { phoneSearchVariants } from '@/lib/phone';
+import { startOfDay, endOfDay } from '@/lib/datetime';
 import { isSimilarName } from './duplicates';
 
 export const PATIENTS_PAGE_SIZE = 20;
@@ -12,8 +13,8 @@ export const EXPORT_ROW_CAP = 5000;
 export type PatientListFilters = {
   q?: string;
   idNo?: string;
-  tag?: string;
-  dnm?: 'true' | 'false' | '';
+  dateFrom?: string;
+  dateTo?: string;
   status?: 'true' | 'false' | '';
   sort?: string;
   dir?: string;
@@ -47,9 +48,11 @@ export function buildPatientWhere(filters: PatientListFilters): Prisma.PatientWh
   const idNo = filters.idNo?.trim();
   if (idNo) and.push({ idNo: { equals: idNo, mode: 'insensitive' } });
 
-  if (filters.tag) and.push({ tags: { some: { tagId: filters.tag } } });
-  if (filters.dnm === 'true') and.push({ doNotMessage: true });
-  if (filters.dnm === 'false') and.push({ doNotMessage: false });
+  const dateFrom = filters.dateFrom?.trim();
+  if (dateFrom) and.push({ createdAt: { gte: startOfDay(dateFrom) } });
+  const dateTo = filters.dateTo?.trim();
+  if (dateTo) and.push({ createdAt: { lt: endOfDay(dateTo) } });
+
   if (filters.status === 'true') and.push({ active: true });
   if (filters.status === 'false') and.push({ active: false });
 
@@ -106,26 +109,6 @@ export async function listPatientsForExport(
     orderBy: [{ [sortFrom(filters.sort)]: dirFrom(filters.dir) }, { id: 'asc' }],
     take: EXPORT_ROW_CAP,
   });
-}
-
-export type TagWithCount = {
-  id: string;
-  name: string;
-  color: string;
-  patientCount: number;
-};
-
-export async function listTagsForFilter(): Promise<TagWithCount[]> {
-  const tags = await prisma.tag.findMany({
-    orderBy: { name: 'asc' },
-    include: { _count: { select: { patients: true } } },
-  });
-  return tags.map((tag) => ({
-    id: tag.id,
-    name: tag.name,
-    color: tag.color,
-    patientCount: tag._count.patients,
-  }));
 }
 
 export type PatientDetail = Prisma.PatientGetPayload<{

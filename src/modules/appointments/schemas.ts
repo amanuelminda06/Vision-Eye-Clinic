@@ -1,14 +1,5 @@
 import { z } from 'zod';
-import {
-  APPT_TIME_RE,
-  DATE_RE,
-  DURATIONS,
-  FOLLOW_UP_PRESETS,
-  MAX_APPT_NOTES,
-  MAX_CANCEL_REASON,
-  MAX_FOLLOW_UP_REASON,
-  MAX_REQUEST_MESSAGE,
-} from './constants';
+import { APPT_TIME_RE, DATE_RE, DURATIONS, FOLLOW_UP_PRESETS, MAX_APPT_NOTES, MAX_CANCEL_REASON, MAX_FOLLOW_UP_REASON } from './constants';
 
 const dateKey = z.string().regex(DATE_RE, 'invalidDate');
 const timeKey = z.string().regex(APPT_TIME_RE, 'invalidTime');
@@ -72,52 +63,3 @@ export const followUpStatusSchema = z.object({
   id: z.string().min(1, 'required').max(64, 'tooLong'),
   status: z.enum(['DONE', 'CANCELLED'], 'invalidStatus'),
 });
-
-export const requestStatusSchema = z
-  .object({
-    id: z.string().min(1, 'required').max(64, 'tooLong'),
-    status: z.enum(['NEW', 'CONTACTED', 'CONVERTED', 'DECLINED', 'SPAM'], 'invalidStatus'),
-  })
-  .refine((values) => values.status !== 'CONVERTED', {
-    message: 'convertViaForm',
-    path: ['status'],
-  });
-
-export type RequestStatusValues = z.infer<typeof requestStatusSchema>;
-
-export const convertRequestSchema = z.object({
-  requestId: z.string().min(1, 'required').max(64, 'tooLong'),
-  doctorId: z.string().min(1, 'doctorRequired').max(64, 'tooLong'),
-  serviceId: z.string().max(64, 'tooLong').optional(),
-  patientId: z.string().max(64, 'tooLong').optional(),
-  notes: z.string().trim().max(MAX_APPT_NOTES, 'tooLong').optional(),
-});
-
-export type ConvertRequestValues = z.infer<typeof convertRequestSchema>;
-
-export const publicRequestSchema = z.object({
-  name: z.string().trim().min(1, 'required').max(100, 'tooLong'),
-  phone: z.string().trim().min(1, 'required').max(32, 'tooLong'),
-  preferredDate: dateKey,
-  preferredTimeWindow: z
-    .string()
-    .trim()
-    .max(40, 'tooLong')
-    .optional()
-    .transform((value) => value || null),
-  serviceInterest: z
-    .string()
-    .trim()
-    .max(200, 'tooLong')
-    .optional()
-    .transform((value) => value || null),
-  message: z
-    .string()
-    .trim()
-    .max(MAX_REQUEST_MESSAGE, 'tooLong')
-    .optional()
-    .transform((value) => value || null),
-  language: z.enum(['en', 'am'], 'invalidLanguage').default('en'),
-});
-
-export type PublicRequestValues = z.infer<typeof publicRequestSchema>;

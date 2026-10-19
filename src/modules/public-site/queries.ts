@@ -3,7 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { DEFAULT_TIMEZONE } from '@/lib/datetime';
 import { getSettingsMap, settingsFromMap, timezoneFrom } from '@/modules/settings';
 import { resolveContent, type SiteContentMap } from './content';
-import { toPublicService, type PublicService, type PublicServiceRow } from './projection';
+import {
+  toPublicFeedback,
+  toPublicService,
+  type PublicFeedback,
+  type PublicFeedbackRow,
+  type PublicService,
+  type PublicServiceRow,
+} from './projection';
 
 /**
  * Public-website data access. Every function here returns ONLY whitelisted
@@ -38,6 +45,23 @@ export const getPublicServices = cache(async (): Promise<PublicService[]> => {
   });
   return rows.map((row) => toPublicService(row as PublicServiceRow));
 });
+
+/**
+ * Feedback entries the OWNER approved for the website (the CMS
+ * "show on website" checkbox), newest first. Only the display name, the text
+ * and the rating are selected — never the reply address or the ip hash.
+ */
+export const getPublicFeedbackTestimonials = cache(
+  async (): Promise<PublicFeedback[]> => {
+    const rows = await prisma.feedback.findMany({
+      where: { showOnWebsite: true },
+      select: { id: true, name: true, text: true, rating: true },
+      orderBy: { createdAt: 'desc' },
+      take: 12,
+    });
+    return rows.map((row) => toPublicFeedback(row as PublicFeedbackRow));
+  },
+);
 
 export type ClinicProfile = {
   name: string;

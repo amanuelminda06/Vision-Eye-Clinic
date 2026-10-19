@@ -3,6 +3,8 @@ import { AuthorizationError, requireRole } from '@/lib/require-role';
 import { exportResponse, auditExport, isExportFormat } from '@/lib/export';
 import { listPatientsForExport, PATIENT_ROLES } from '@/modules/patients';
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 /** Filtered CSV/XLSX export (OWNER + RECEPTION) — same filters as the list screen. */
 export async function GET(request: NextRequest) {
   let actor;
@@ -21,13 +23,14 @@ export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const formatRaw = params.get('format');
   const format = isExportFormat(formatRaw) ? formatRaw : 'csv';
-  const dnmParam = (params.get('dnm') as 'true' | 'false' | null) ?? '';
   const statusParam = (params.get('status') as 'true' | 'false' | null) ?? '';
+  const dateFromRaw = params.get('dateFrom')?.slice(0, 10);
+  const dateToRaw = params.get('dateTo')?.slice(0, 10);
   const filters: import('@/modules/patients').PatientListFilters = {
     q: params.get('q')?.slice(0, 100) || undefined,
     idNo: params.get('idNo')?.slice(0, 32) || undefined,
-    tag: params.get('tag')?.slice(0, 64) || undefined,
-    dnm: dnmParam,
+    dateFrom: dateFromRaw && DATE_RE.test(dateFromRaw) ? dateFromRaw : undefined,
+    dateTo: dateToRaw && DATE_RE.test(dateToRaw) ? dateToRaw : undefined,
     status: statusParam,
     sort: params.get('sort') ?? undefined,
     dir: params.get('dir') ?? undefined,

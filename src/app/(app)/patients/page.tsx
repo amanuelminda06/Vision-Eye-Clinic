@@ -4,7 +4,6 @@ import { requirePageRole } from '@/lib/require-role';
 import ExportLinks from '@/components/ExportLinks';
 import {
   listPatients,
-  listTagsForFilter,
   sortFrom,
   dirFrom,
   PATIENTS_PAGE_SIZE,
@@ -14,11 +13,13 @@ import {
   type SortDir,
 } from '@/modules/patients';
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 type SearchParams = Promise<{
   q?: string;
   idNo?: string;
-  tag?: string;
-  dnm?: string;
+  dateFrom?: string;
+  dateTo?: string;
   status?: string;
   sort?: string;
   dir?: string;
@@ -30,8 +31,8 @@ function buildQuery(filters: PatientListFilters, patch: Partial<PatientListFilte
   const params = new URLSearchParams();
   if (merged.q) params.set('q', merged.q);
   if (merged.idNo) params.set('idNo', merged.idNo);
-  if (merged.tag) params.set('tag', merged.tag);
-  if (merged.dnm) params.set('dnm', merged.dnm);
+  if (merged.dateFrom) params.set('dateFrom', merged.dateFrom);
+  if (merged.dateTo) params.set('dateTo', merged.dateTo);
   if (merged.status) params.set('status', merged.status);
   if (merged.sort && merged.sort !== 'fullName') params.set('sort', merged.sort);
   if (merged.dir && merged.dir !== 'asc') params.set('dir', merged.dir);
@@ -48,15 +49,17 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
 
   const q = sp.q?.slice(0, 100) ?? '';
   const idNo = sp.idNo?.slice(0, 32) ?? '';
-  const tag = sp.tag?.slice(0, 64) ?? '';
-  const dnm = sp.dnm === 'true' || sp.dnm === 'false' ? sp.dnm : '';
+  const dateFromRaw = sp.dateFrom?.slice(0, 10) ?? '';
+  const dateFrom = DATE_RE.test(dateFromRaw) ? dateFromRaw : '';
+  const dateToRaw = sp.dateTo?.slice(0, 10) ?? '';
+  const dateTo = DATE_RE.test(dateToRaw) ? dateToRaw : '';
   const status = sp.status === 'true' || sp.status === 'false' ? sp.status : '';
   const sort = sortFrom(sp.sort);
   const dir = dirFrom(sp.dir);
   const page = Number(sp.page) || 1;
 
-  const filters: PatientListFilters = { q, idNo, tag, dnm, status, sort, dir, page };
-  const [tags, result] = await Promise.all([listTagsForFilter(), listPatients(filters)]);
+  const filters: PatientListFilters = { q, idNo, dateFrom, dateTo, status, sort, dir, page };
+  const result = await listPatients(filters);
   const { rows, total, page: currentPage, pageCount } = result;
 
   const sortLink = (key: PatientSort, label: string) => {
@@ -121,27 +124,28 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
           />
         </div>
         <div>
-          <label className="label text-xs" htmlFor="tag">
-            {t('tagFilter')}
+          <label className="label text-xs" htmlFor="dateFrom">
+            {t('dateFrom')}
           </label>
-          <select className="input-field text-sm" id="tag" name="tag" defaultValue={tag}>
-            <option value="">{tc('all')}</option>
-            {tags.map((item) => (
-              <option key={item.id} value={item.name}>
-                {item.name} ({item.patientCount})
-              </option>
-            ))}
-          </select>
+          <input
+            className="input-field text-sm"
+            id="dateFrom"
+            name="dateFrom"
+            type="date"
+            defaultValue={dateFrom}
+          />
         </div>
         <div>
-          <label className="label text-xs" htmlFor="dnm">
-            {t('dnmFilter')}
+          <label className="label text-xs" htmlFor="dateTo">
+            {t('dateTo')}
           </label>
-          <select className="input-field text-sm" id="dnm" name="dnm" defaultValue={dnm}>
-            <option value="">{tc('all')}</option>
-            <option value="true">{t('dnmYes')}</option>
-            <option value="false">{t('dnmNo')}</option>
-          </select>
+          <input
+            className="input-field text-sm"
+            id="dateTo"
+            name="dateTo"
+            type="date"
+            defaultValue={dateTo}
+          />
         </div>
         <div>
           <label className="label text-xs" htmlFor="status">
@@ -182,7 +186,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Sea
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
-                  {q || tag || dnm || status ? tc('noResults') : tc('empty')}
+                  {q || dateFrom || dateTo || status ? tc('noResults') : tc('empty')}
                 </td>
               </tr>
             ) : (

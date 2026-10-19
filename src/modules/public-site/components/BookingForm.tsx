@@ -6,7 +6,14 @@ import type { PublicService } from '../projection';
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-const ERROR_CODES = ['required', 'tooLong', 'invalidDate', 'invalidTimeWindow', 'consent'] as const;
+const ERROR_CODES = [
+  'required',
+  'tooLong',
+  'invalidDate',
+  'invalidTimeWindow',
+  'consent',
+  'pastSlot',
+] as const;
 type ErrorCode = (typeof ERROR_CODES)[number];
 
 function errorLabel(code: string | undefined): ErrorCode | null {
@@ -28,6 +35,8 @@ export default function BookingForm({ services, windows, minDate }: Props) {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
+  /** Slot the server just approved — echoed in the confirmation. */
+  const [booked, setBooked] = useState<{ date: string; time: string; doctor?: string } | null>(null);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,6 +75,7 @@ export default function BookingForm({ services, windows, minDate }: Props) {
         ok?: boolean;
         error?: string;
         fields?: Record<string, string>;
+        appointment?: { date?: string; time?: string; doctor?: string };
       };
 
       if (response.status === 429) {
@@ -74,6 +84,12 @@ export default function BookingForm({ services, windows, minDate }: Props) {
         return;
       }
       if (response.ok && json.ok) {
+        const slot = json.appointment;
+        setBooked(
+          slot?.date && slot.time
+            ? { date: slot.date, time: slot.time, doctor: slot.doctor }
+            : null,
+        );
         setStatus('success');
         form.reset();
         window.turnstile?.reset();
@@ -97,10 +113,21 @@ export default function BookingForm({ services, windows, minDate }: Props) {
         className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center"
       >
         <p className="text-lg font-semibold text-emerald-900">{t('book.successTitle')}</p>
-        <p className="mt-1 text-sm text-emerald-800">{t('book.successBody')}</p>
+        <p className="mt-1 text-sm text-emerald-800">
+          {booked?.doctor
+            ? t('book.successBody', {
+                date: booked.date,
+                time: booked.time,
+                doctor: booked.doctor,
+              })
+            : t('book.successBodyGeneric')}
+        </p>
         <button
           type="button"
-          onClick={() => setStatus('idle')}
+          onClick={() => {
+            setBooked(null);
+            setStatus('idle');
+          }}
           className="mt-4 rounded-lg border border-emerald-300 px-4 py-2 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
         >
           {t('book.successAgain')}

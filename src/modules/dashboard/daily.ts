@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { formatMoney } from '@/lib/money';
 import { dateKeyAdd, combineDateAndTime, formatInTz } from '@/lib/datetime';
 import { listRevenueSales, buildRevenueReport, type RevenueReport } from '@/modules/sales';
-import { countAppointmentsOnDay, countNewRequests } from '@/modules/appointments';
+import { countAppointmentsOnDay } from '@/modules/appointments';
 
 export type DailySummary = {
   dayKey: string;
@@ -10,7 +10,6 @@ export type DailySummary = {
   /** Confirmed receipts issued that day (in receipt-number order). */
   receipts: string[];
   appointmentsToday: number;
-  newRequests: number;
 };
 
 /**
@@ -26,7 +25,7 @@ export async function getDailySummary(
   const from = combineDateAndTime(dayKey, '00:00', timeZone);
   const to = combineDateAndTime(dateKeyAdd(dayKey, 1), '00:00', timeZone);
 
-  const [sales, receipts, appointmentsToday, newRequests] = await Promise.all([
+  const [sales, receipts, appointmentsToday] = await Promise.all([
     listRevenueSales(from, to),
     prisma.sale.findMany({
       where: { status: 'CONFIRMED', saleDate: { gte: from, lt: to } },
@@ -34,7 +33,6 @@ export async function getDailySummary(
       orderBy: { receiptNumber: 'asc' },
     }),
     countAppointmentsOnDay(dayKey),
-    countNewRequests(),
   ]);
 
   return {
@@ -42,7 +40,6 @@ export async function getDailySummary(
     report: buildRevenueReport(sales, timeZone),
     receipts: receipts.map((row) => row.receiptNumber),
     appointmentsToday,
-    newRequests,
   };
 }
 
@@ -58,7 +55,6 @@ export function buildDailySummaryText(
     `Generated: ${opts.sentAt.toISOString()}`,
     '',
     `Appointments today (scheduled/confirmed): ${summary.appointmentsToday}`,
-    `New appointment requests pending: ${summary.newRequests}`,
     `Confirmed sales: ${summary.report.salesCount}`,
     `Total revenue: ${money(summary.report.totalRevenue)}`,
     `Average sale: ${money(summary.report.averageSale)}`,

@@ -61,18 +61,11 @@ enum AppointmentStatus {
   CANCELLED
 }
 
-/// Where an appointment came from: booked at the clinic vs. a website request.
+/// Where an appointment came from: booked by staff vs. booked online (the
+/// public website books straight into an approved appointment).
 enum AppointmentSource {
   STAFF
   WEBSITE_REQUEST
-}
-
-enum RequestStatus {
-  NEW
-  CONTACTED
-  CONVERTED
-  DECLINED
-  SPAM
 }
 
 enum FollowUpStatus {
@@ -273,46 +266,10 @@ model Appointment {
   createdAt    DateTime          @default(now()) @db.Timestamptz
   updatedAt    DateTime          @updatedAt @db.Timestamptz
 
-  appointmentRequest AppointmentRequest?
-
   @@index([doctorId, startsAt])
   @@index([patientId, startsAt])
   @@index([status, startsAt])
   @@index([startsAt])
-}
-
-/// A website visitor asking to book an appointment. Publicly created; ipHash
-/// only (the raw IP is never stored).
-model AppointmentRequest {
-  id                  String        @id @default(cuid())
-  name                String
-  /// E.164 — normalized by src/lib/phone.ts before write.
-  phoneE164           String
-  /// Preferred calendar day, clinic-local `YYYY-MM-DD`.
-  preferredDate       String
-  /// Free text window ("morning", "afternoon", …).
-  preferredTimeWindow String?
-  /// Service interest — free text or a service id.
-  serviceInterest     String?
-  /// Free text, max 500 chars.
-  message             String?
-  language            String        @default("en")
-  status              RequestStatus @default(NEW)
-  /// User id of the staff member who handled the request.
-  handledBy           String?
-  handledAt           DateTime?     @db.Timestamptz
-  /// Linked patient (null until converted, or when no match was found yet).
-  patientId           String?
-  patient             Patient?      @relation(fields: [patientId], references: [id])
-  /// Linked appointment once the request is CONVERTED.
-  appointmentId       String?       @unique
-  appointment         Appointment?  @relation(fields: [appointmentId], references: [id])
-  /// sha-256 hex of the submitter's IP (privacy — never store the raw IP).
-  ipHash              String
-  createdAt           DateTime      @default(now()) @db.Timestamptz
-
-  @@index([status, createdAt])
-  @@index([phoneE164])
 }
 
 /// A scheduled recall/review for a patient (non-clinical reason text).
@@ -398,7 +355,6 @@ model Patient {
   sales Sale[]
 
   appointments        Appointment[]
-  appointmentRequests AppointmentRequest[]
   followUps           FollowUp[]
   messages            MessageTask[]
   sickLeaves          PatientSickLeave[]
@@ -757,4 +713,32 @@ model Audience {
   updatedAt  DateTime @updatedAt @db.Timestamptz
 
   @@index([createdBy])
+}
+
+/// Feedback left through the public website's contact form. New rows are never
+/// public: they appear in the website's testimonials section only after the
+/// OWNER ticks "show on website" (`showOnWebsite`).
+model Feedback {
+  id        String  @id @default(cuid())
+  /// Display name as typed by the visitor (published when approved).
+  name      String
+  /// Optional reply address — CMS only, never exposed publicly.
+  email     String?
+  /// Optional 1–5 rating from the public form.
+  rating    Int?
+  /// The feedback text (published together with `name` when approved).
+  text      String
+  /// Visitor locale at submission ('en' | 'am').
+  language  String  @default("en")
+  /// Approved for the public website's testimonials section.
+  showOnWebsite Boolean @default(false)
+  /// sha-256 of the visitor IP — the raw IP is never stored.
+  ipHash    String?
+  /// Submitting actor: 'public-website' for the public form.
+  createdBy String
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@index([showOnWebsite, createdAt])
+  @@index([createdAt])
 }

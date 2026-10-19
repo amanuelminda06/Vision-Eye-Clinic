@@ -7,7 +7,7 @@ import { writeAudit } from '@/lib/audit';
 import { ok, fail, withAuth, type ActionResult } from '@/lib/action';
 import { validate, ValidationError } from '@/lib/errors';
 import { generateTemporaryPassword, passwordError } from '@/lib/passwords';
-import { userCreateSchema, userUpdateSchema } from './schemas';
+import { userCreateSchema, userPasswordSetSchema, userUpdateSchema } from './schemas';
 
 function isPrismaError(err: unknown, code: string): boolean {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === code;
@@ -184,5 +184,57 @@ export async function resetUserPasswordAction(
     });
 
     return ok({ tempPassword });
+  });
+}
+
+/**
+ * Owner-chosen password for a user (direct edit, no temp-password roundtrip).
+ * - enforces the same strength rules as self-service changes
+ * - clears any lockout so the user can sign in right away
+ * - optionally forces a change at next sign-in (checkbox)
+ * - audits USER_PASSWORD_SET (the hash is redacted by writeAudit)
+ */
+export async function setUserPasswordAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return withAuth(['OWNER'], async (actor) => {
+    const id = String(formData.get('id') ?? '');
+    const mustChange = String(formData.get('mustChange') ?? '') === 'true';
+    const values = validate(userPasswordSetSchema, {
+      password: String(formData.get('password') ?? ''),
+      confirmPassword: String(formData.get('confirmPassword') ?? ''),
+    });
+
+    const before = await prisma.user.findUnique({
+      where: { id },
+      select: { email: true, name: true, passwordHash: true, mustChangePassword: true },
+    });
+    if (!before) return fail('unknownError');
+
+    const strength = passwordError(values.password, { email: before.email, name: before.name });
+    if (strength) throw new ValidationError({ password: strength });
+
+    const passwordHash = await hash(values.password);
+    await prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash,
+        mustChangePassword: mustChange,
+        failedLoginCount: 0,
+        lockedUntil: null,
+      },
+    });
+
+    await writeAudit({
+      user: actor,
+      entity: 'User',
+      entityId: id,
+      action: 'USER_PASSWORD_SET',
+      old: { passwordHash: before.passwordHash, mustChangePassword: before.mustChangePassword },
+      new: { passwordHash, mustChangePassword: mustChange },
+    });
+
+    return ok();
   });
 }

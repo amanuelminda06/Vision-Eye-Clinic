@@ -5,13 +5,11 @@ import {
   canManageAppointments,
   canOverrideTerminalTransition,
   FOLLOW_UP_ROLES,
-  REQUEST_ROLES,
 } from './roles';
 
 describe('appointments role access', () => {
-  it('appointments, requests and follow-ups are OWNER + RECEPTION', () => {
+  it('appointments and follow-ups are OWNER + RECEPTION', () => {
     expect(APPT_ROLES).toEqual(['OWNER', 'RECEPTION']);
-    expect(REQUEST_ROLES).toEqual(['OWNER', 'RECEPTION']);
     expect(FOLLOW_UP_ROLES).toEqual(['OWNER', 'RECEPTION']);
   });
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /** Lowercased, trimmed email — shared by auth and user forms. */
 export const emailField = z

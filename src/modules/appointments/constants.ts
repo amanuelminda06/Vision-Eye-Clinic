@@ -28,17 +28,6 @@ export const APPOINTMENT_SOURCE_LABEL_KEYS: Record<AppointmentSourceValue, strin
   WEBSITE_REQUEST: 'sourceWebsite',
 };
 
-export const REQUEST_STATUSES = ['NEW', 'CONTACTED', 'CONVERTED', 'DECLINED', 'SPAM'] as const;
-export type RequestStatusValue = (typeof REQUEST_STATUSES)[number];
-
-export const REQUEST_STATUS_LABEL_KEYS: Record<RequestStatusValue, string> = {
-  NEW: 'statusNew',
-  CONTACTED: 'statusContacted',
-  CONVERTED: 'statusConverted',
-  DECLINED: 'statusDeclined',
-  SPAM: 'statusSpam',
-};
-
 export const FOLLOW_UP_STATUSES = ['OPEN', 'DONE', 'CANCELLED'] as const;
 export type FollowUpStatusValue = (typeof FOLLOW_UP_STATUSES)[number];
 
@@ -65,9 +54,6 @@ export const TIME_WINDOWS: readonly TimeWindow[] = [
 /** Follow-up due presets offered when completing an appointment. */
 export const FOLLOW_UP_PRESETS = ['2w', '1m', '3m', '6m', 'custom'] as const;
 export type FollowUpPreset = (typeof FOLLOW_UP_PRESETS)[number];
-
-/** Requests older (in clinic working time) than this are flagged red. */
-export const REQUEST_WAIT_WORKING_MINUTES = 120;
 
 export const MAX_APPT_NOTES = 300;
 export const MAX_CANCEL_REASON = 300;

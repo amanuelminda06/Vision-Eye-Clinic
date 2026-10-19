@@ -4,17 +4,15 @@ import { prisma } from '@/lib/prisma';
 import { writeAudit } from '@/lib/audit';
 import { ok, fail, withAuth, type ActionResult } from '@/lib/action';
 import { validate } from '@/lib/errors';
-import { clinicDateKey } from '@/lib/datetime';
+import { clinicDateKey, combineDateAndTime, dateKeyAdd } from '@/lib/datetime';
 import { getSettingsMap, timezoneFrom } from '@/modules/settings';
 import { normalizePhone } from '@/lib/phone';
-import { APPT_ROLES, REQUEST_ROLES, FOLLOW_UP_ROLES } from './roles';
+import { APPT_ROLES, FOLLOW_UP_ROLES } from './roles';
 import {
   appointmentFormSchema,
   appointmentStatusSchema,
-  convertRequestSchema,
   followUpFormSchema,
   followUpStatusSchema,
-  requestStatusSchema,
   type AppointmentFormValues,
 } from './schemas';
 import {
@@ -28,7 +26,12 @@ import {
 } from './logic';
 import { getApprovedLeaveInRange, getDoctorShiftsForCoverage, listAppointments } from './queries';
 import { onAppointmentChanged, onFollowUpChanged } from '@/modules/messaging';
-import { FOLLOW_UP_PRESETS } from './constants';
+import {
+  DEFAULT_DURATION,
+  FOLLOW_UP_PRESETS,
+  MAX_APPT_NOTES,
+  MAX_REQUEST_DATE_DAYS_AHEAD,
+} from './constants';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -418,159 +421,92 @@ export async function setFollowUpStatusAction(
 }
 
 // ---------------------------------------------------------------------------
-// Website requests
+// Public website bookings (auto-approved)
 // ---------------------------------------------------------------------------
 
-export async function convertRequestAction(
-  _prev: ActionResult | null,
-  formData: FormData,
-): Promise<ActionResult<{ id: string }>> {
-  return withAuth<{ id: string }>(REQUEST_ROLES, async (actor) => {
-    const values = validate(convertRequestSchema, {
-      requestId: formData.get('requestId') ?? '',
-      doctorId: formData.get('doctorId') ?? '',
-      serviceId: formData.get('serviceId') ?? undefined,
-      patientId: formData.get('patientId') ?? undefined,
-      notes: formData.get('notes') ?? undefined,
-    });
+/**
+ * `createdBy` marker for rows the public website creates — nobody is signed
+ * in behind a booking, and `createdBy` has no FK to the users table.
+ */
+const PUBLIC_BOOKING_ACTOR = 'public-booking';
 
-    const request = await prisma.appointmentRequest.findUnique({
-      where: { id: values.requestId },
-      select: {
-        id: true,
-        name: true,
-        phoneE164: true,
-        preferredDate: true,
-        preferredTimeWindow: true,
-        language: true,
-        status: true,
-        appointmentId: true,
+export type PublicBookingResult =
+  | {
+      ok: true;
+      id: string;
+      /** Echoed back so the website can name the slot it just approved. */
+      appointment: { date: string; time: string; doctor: string };
+    }
+  | { ok: false; error: string };
+
+/**
+ * Website bookings never name a doctor, so one is assigned here: an active
+ * doctor with nothing overlapping the slot, the least busy of that day when
+ * several are free, or any active doctor when every slot is taken (the clinic
+ * would rather see the booking than lose it — staff can reassign later).
+ */
+async function pickBookingDoctor(
+  doctors: { id: string; fullName: string }[],
+  startsAt: Date,
+  endsAt: Date,
+  timeZone: string,
+): Promise<{ id: string; fullName: string; assignedDespiteClash: boolean }> {
+  const ids = doctors.map((doctor) => doctor.id);
+  const dayKey = clinicDateKey(startsAt, timeZone);
+  const dayFrom = combineDateAndTime(dayKey, '00:00', timeZone);
+  const dayTo = combineDateAndTime(dateKeyAdd(dayKey, 1), '00:00', timeZone);
+
+  const [clashes, loads] = await Promise.all([
+    prisma.appointment.findMany({
+      where: {
+        doctorId: { in: ids },
+        status: { in: ['SCHEDULED', 'CONFIRMED'] as never },
+        startsAt: { lt: endsAt },
+        endsAt: { gt: startsAt },
       },
-    });
-    if (!request) return fail('notFound');
-    if (request.appointmentId || request.status === 'CONVERTED')
-      return fail('requestAlreadyConverted');
-
-    const doctor = await prisma.staff.findUnique({
-      where: { id: values.doctorId },
-      select: { id: true, active: true, isDoctor: true },
-    });
-    if (!doctor || !doctor.active || !doctor.isDoctor) return fail('doctorRequired');
-
-    const tz = await timezone();
-    const slot = slotForTimeWindow(request.preferredTimeWindow);
-    const { startsAt, endsAt } = appointmentInstants(request.preferredDate, slot.start, 30, tz);
-
-    const appointmentId = await prisma.$transaction(async (tx) => {
-      let patientId = values.patientId || null;
-      if (!patientId) {
-        const existing = await tx.patient.findUnique({
-          where: { phoneE164: request.phoneE164 },
-          select: { id: true },
-        });
-        patientId = existing
-          ? existing.id
-          : (
-              await tx.patient.create({
-                data: {
-                  fullName: request.name,
-                  phoneE164: request.phoneE164,
-                  createdBy: actor.id,
-                  preferredLanguage: request.language === 'am' ? 'am' : 'en',
-                },
-                select: { id: true },
-              })
-            ).id;
-      }
-
-      const appointment = await tx.appointment.create({
-        data: {
-          patientId,
-          doctorId: doctor.id,
-          startsAt,
-          endsAt,
-          serviceId: values.serviceId || null,
-          status: 'SCHEDULED',
-          createdFrom: 'WEBSITE_REQUEST',
-          createdBy: actor.id,
-          notes: values.notes || null,
-        },
-        select: { id: true },
-      });
-
-      await tx.appointmentRequest.update({
-        where: { id: request.id },
-        data: {
-          status: 'CONVERTED',
-          handledBy: actor.id,
-          handledAt: new Date(),
-          patientId,
-          appointmentId: appointment.id,
-        },
-      });
-
-      return appointment.id;
-    });
-
-    await writeAudit({
-      user: actor,
-      entity: 'AppointmentRequest',
-      entityId: request.id,
-      action: 'REQUEST_CONVERTED',
-      new: {
-        appointmentId,
-        doctorId: doctor.id,
-        patientId: values.patientId ?? 'matched-or-created',
-        startsAt: startsAt.toISOString(),
-        endsAt: endsAt.toISOString(),
+      select: { doctorId: true },
+      take: 500,
+    }),
+    prisma.appointment.groupBy({
+      by: ['doctorId'],
+      where: {
+        doctorId: { in: ids },
+        status: { in: ['SCHEDULED', 'CONFIRMED'] as never },
+        startsAt: { gte: dayFrom, lt: dayTo },
       },
-    });
-    await messageForAppointment(appointmentId);
-    return ok({ id: appointmentId });
-  });
+      _count: { _all: true },
+    }),
+  ]);
+
+  const busy = new Set(clashes.map((row) => row.doctorId));
+  const free = doctors.filter((doctor) => !busy.has(doctor.id));
+  const pool = free.length > 0 ? free : doctors;
+  const loadOf = (id: string) => loads.find((row) => row.doctorId === id)?._count._all ?? 0;
+  const chosen = pool.reduce((best, doctor) => (loadOf(doctor.id) < loadOf(best.id) ? doctor : best));
+
+  return { ...chosen, assignedDespiteClash: free.length === 0 };
 }
 
-export async function setRequestStatusAction(
-  _prev: ActionResult | null,
-  formData: FormData,
-): Promise<ActionResult> {
-  return withAuth(REQUEST_ROLES, async (actor) => {
-    const values = validate(requestStatusSchema, {
-      id: formData.get('id') ?? '',
-      status: formData.get('status') ?? '',
-    });
-
-    const request = await prisma.appointmentRequest.findUnique({
-      where: { id: values.id },
-      select: { id: true, status: true, handledBy: true },
-    });
-    if (!request) return fail('notFound');
-    if (request.status === 'CONVERTED') return fail('requestAlreadyConverted');
-
-    const updated = await prisma.appointmentRequest.update({
-      where: { id: request.id },
-      data: {
-        status: values.status as never,
-        handledBy: request.handledBy ?? actor.id,
-        handledAt: request.handledBy ? undefined : new Date(),
-      },
-      select: { id: true },
-    });
-
-    await writeAudit({
-      user: actor,
-      entity: 'AppointmentRequest',
-      entityId: updated.id,
-      action: 'REQUEST_STATUS_CHANGED',
-      old: { status: request.status },
-      new: { status: values.status },
-    });
-    return ok();
-  });
+/** Non-clinical booking text kept on the appointment for the front desk. */
+function bookingNotes(
+  message: string | null,
+  serviceInterest: string | null,
+  serviceId: string | null,
+): string | null {
+  const parts: string[] = [];
+  if (message) parts.push(message);
+  if (serviceInterest && !serviceId) parts.push(`Service of interest: ${serviceInterest}`);
+  const notes = parts.join('\n');
+  return notes ? notes.slice(0, MAX_APPT_NOTES) : null;
 }
 
-/** Shared by the public POST route (validates + normalizes before calling). */
-export async function createPublicRequest(input: {
+/**
+ * Auto-approves a public booking: the visitor is matched (or created) as a
+ * patient and a CONFIRMED appointment is inserted straight away — there is no
+ * request queue to clear. The messaging hook then queues the confirmation SMS
+ * (due immediately) plus the usual reminders.
+ */
+export async function createPublicBooking(input: {
   name: string;
   phoneE164: string;
   preferredDate: string;
@@ -579,29 +515,113 @@ export async function createPublicRequest(input: {
   message: string | null;
   language: string;
   ipHash: string;
-}): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+}): Promise<PublicBookingResult> {
   try {
-    const existing = await prisma.patient.findUnique({
-      where: { phoneE164: input.phoneE164 },
-      select: { id: true },
+    const tz = await timezone();
+    const todayKey = clinicDateKey(new Date(), tz);
+    const lastBookableKey = dateKeyAdd(todayKey, MAX_REQUEST_DATE_DAYS_AHEAD);
+    if (input.preferredDate < todayKey || input.preferredDate > lastBookableKey) {
+      return { ok: false, error: 'invalidDate' };
+    }
+
+    const slot = slotForTimeWindow(input.timeWindow);
+    const { startsAt, endsAt } = appointmentInstants(
+      input.preferredDate,
+      slot.start,
+      DEFAULT_DURATION,
+      tz,
+    );
+    // "Today" with a slot that has already gone by — nothing left to approve.
+    if (startsAt.getTime() <= Date.now()) return { ok: false, error: 'pastSlot' };
+
+    const doctors = await prisma.staff.findMany({
+      where: { active: true, isDoctor: true },
+      select: { id: true, fullName: true },
+      orderBy: { fullName: 'asc' },
     });
-    const request = await prisma.appointmentRequest.create({
-      data: {
-        name: input.name,
-        phoneE164: input.phoneE164,
-        preferredDate: input.preferredDate,
-        preferredTimeWindow: input.timeWindow,
-        serviceInterest: input.serviceInterest,
-        message: input.message,
-        language: input.language,
+    if (doctors.length === 0) return { ok: false, error: 'noDoctorAvailable' };
+    const doctor = await pickBookingDoctor(doctors, startsAt, endsAt, tz);
+
+    const { appointmentId, serviceId } = await prisma.$transaction(async (tx) => {
+      const existing = await tx.patient.findUnique({
+        where: { phoneE164: input.phoneE164 },
+        select: { id: true },
+      });
+      const patientId = existing
+        ? existing.id
+        : (
+            await tx.patient.create({
+              data: {
+                fullName: input.name,
+                phoneE164: input.phoneE164,
+                preferredLanguage: input.language === 'am' ? 'am' : 'en',
+                createdBy: PUBLIC_BOOKING_ACTOR,
+              },
+              select: { id: true },
+            })
+          ).id;
+
+      const service = input.serviceInterest
+        ? await tx.service.findFirst({
+            where: {
+              active: true,
+              name: { equals: input.serviceInterest, mode: 'insensitive' },
+            },
+            select: { id: true },
+          })
+        : null;
+
+      const appointment = await tx.appointment.create({
+        data: {
+          patientId,
+          doctorId: doctor.id,
+          startsAt,
+          endsAt,
+          serviceId: service?.id ?? null,
+          status: 'CONFIRMED',
+          createdFrom: 'WEBSITE_REQUEST',
+          createdBy: PUBLIC_BOOKING_ACTOR,
+          notes: bookingNotes(input.message, input.serviceInterest, service?.id ?? null),
+        },
+        select: { id: true },
+      });
+
+      return { appointmentId: appointment.id, serviceId: service?.id ?? null };
+    });
+
+    await writeAudit({
+      user: null,
+      entity: 'Appointment',
+      entityId: appointmentId,
+      action: 'APPOINTMENT_CREATED',
+      // Public submissions never store the raw IP — only the sha-256 hash.
+      ip: null,
+      new: {
+        source: 'WEBSITE',
+        status: 'CONFIRMED',
+        doctorId: doctor.id,
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+        serviceId,
         ipHash: input.ipHash,
-        patientId: existing?.id ?? null,
+        ...(doctor.assignedDespiteClash ? { assignedDespiteClash: true } : {}),
       },
-      select: { id: true },
     });
-    return { ok: true, id: request.id };
+
+    try {
+      await messageForAppointment(appointmentId);
+    } catch (err) {
+      // The booking already exists — a messaging hiccup must not fail it.
+      console.error('[appointments] booking message hook failed:', err);
+    }
+
+    return {
+      ok: true,
+      id: appointmentId,
+      appointment: { date: input.preferredDate, time: slot.start, doctor: doctor.fullName },
+    };
   } catch (err) {
-    console.error('[appointments] public request create failed:', err);
+    console.error('[appointments] public booking failed:', err);
     return { ok: false, error: 'unknownError' };
   }
 }

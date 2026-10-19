@@ -14,7 +14,6 @@ import {
 } from '@/modules/sales';
 import {
   countAppointmentsOnDay,
-  countNewRequests,
   countOpenFollowUpsOverdue,
   getStaffAppointmentsInPeriod,
 } from '@/modules/appointments';
@@ -31,7 +30,6 @@ import {
 
 export type DashboardData = {
   todayAppointments: number;
-  newRequests: number;
   overdueFollowUps: number;
   messagesDueToday: number;
   messagesOverdue: number;
@@ -70,7 +68,6 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
     ]);
     return {
       todayAppointments: 0,
-      newRequests: 0,
       overdueFollowUps: 0,
       messagesDueToday: 0,
       messagesOverdue: 0,
@@ -88,10 +85,9 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
     };
   }
 
-  const [todayCount, requestCount, overdueCount, messages, docs, pendingLeave, voids] =
+  const [todayCount, overdueCount, messages, docs, pendingLeave, voids] =
     await Promise.all([
       countAppointmentsOnDay(todayKey),
-      countNewRequests(),
       countOpenFollowUpsOverdue(todayKey),
       countDueToday(),
       getOnDutyDoctors(),
@@ -112,7 +108,6 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
 
   return {
     todayAppointments: todayCount,
-    newRequests: requestCount,
     overdueFollowUps: overdueCount,
     messagesDueToday: messages.dueToday,
     messagesOverdue: messages.overdue,

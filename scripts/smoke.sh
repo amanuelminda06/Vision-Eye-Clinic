@@ -282,7 +282,7 @@ if grep -q -e 'annualLeaveDays' -e 'jobTitle' -e '"email"' -e '"phone"' /tmp/ope
 curl -s -D /tmp/opencode/public.headers -o /dev/null "$BASE/api/public/doctors"
 contains "public feed cached for 60s" "max-age=60" /tmp/opencode/public.headers
 
-# 11c. Appointments, website requests, follow-ups + public intake
+# 11c. Appointments, website bookings, follow-ups + public intake
 code=$(curl -s -b "$JAR" -o /tmp/opencode/appts.html -w '%{http_code}' "$BASE/appointments")
 check "owner /appointments → 200" 200 "$code"
 contains "appointments title" "Appointments" /tmp/opencode/appts.html
@@ -292,16 +292,6 @@ contains "appointments has new button" "New appointment" /tmp/opencode/appts.htm
 code=$(curl -s -b "$JAR" -o /tmp/opencode/appts-week.html -w '%{http_code}' "$BASE/appointments?view=week")
 check "owner /appointments?view=week → 200" 200 "$code"
 contains "week view renders patient" "Fatuma Hassan" /tmp/opencode/appts-week.html
-
-code=$(curl -s -b "$JAR" -o /tmp/opencode/reqs.html -w '%{http_code}' "$BASE/requests")
-check "owner /requests → 200" 200 "$code"
-contains "requests title" "Appointment requests" /tmp/opencode/reqs.html
-contains "requests shows new request" "Selam Girma" /tmp/opencode/reqs.html
-contains "requests shows convert action" "Convert to appointment" /tmp/opencode/reqs.html
-code=$(curl -s -b "$JAR" -o /tmp/opencode/reqs-new.html -w '%{http_code}' "$BASE/requests?status=NEW")
-check "owner /requests?status=NEW → 200" 200 "$code"
-contains "NEW filter keeps NEW request" "Selam Girma" /tmp/opencode/reqs-new.html
-if grep -q "Hanna Tadesse" /tmp/opencode/reqs-new.html; then FAIL=$((FAIL+1)); echo "✗ NEW filter leaks DECLINED request"; else PASS=$((PASS+1)); echo "✓ NEW filter hides DECLINED request"; fi
 
 code=$(curl -s -b "$JAR" -o /tmp/opencode/fups.html -w '%{http_code}' "$BASE/follow-ups")
 check "owner /follow-ups → 200" 200 "$code"
@@ -315,28 +305,27 @@ if grep -q "Contact lens review" /tmp/opencode/fups-over.html; then FAIL=$((FAIL
 # seeded demo counts
 AC=$(sql "const n = await p.appointment.count({ where: { id: { startsWith: 'seed-appt-' } } }); console.log(String(n));")
 check "seeded appointments = 20" 20 "$AC"
-RC=$(sql "const n = await p.appointmentRequest.count({ where: { id: { startsWith: 'seed-request-' } } }); console.log(String(n));")
-check "seeded requests = 5" 5 "$RC"
 FC=$(sql "const n = await p.followUp.count({ where: { id: { startsWith: 'seed-followup-' } } }); console.log(String(n));")
 check "seeded follow-ups = 5" 5 "$FC"
 
-# public website request intake (no session, no raw IP stored)
+# public website booking intake (no session, no raw IP stored) — auto-approved
 code=$(curl -s -o /tmp/opencode/pub-badjson.html -w '%{http_code}' -X POST "$BASE/api/public/requests" \
   -H 'Content-Type: application/json' -H "X-Forwarded-For: 10.0.0.11" --data 'not-json')
-check "public request invalid JSON → 400" 400 "$code"
+check "public booking invalid JSON → 400" 400 "$code"
 code=$(curl -s -o /tmp/opencode/pub-bad.html -w '%{http_code}' -X POST "$BASE/api/public/requests" \
   -H 'Content-Type: application/json' -H "X-Forwarded-For: 10.0.0.12" \
   --data '{"name":"","phone":"nope"}')
-check "public request invalid fields → 422" 422 "$code"
-contains "public request reports validation error" "validationError" /tmp/opencode/pub-bad.html
+check "public booking invalid fields → 422" 422 "$code"
+contains "public booking reports validation error" "validationError" /tmp/opencode/pub-bad.html
 code=$(curl -s -o /tmp/opencode/pub-ok.html -w '%{http_code}' -X POST "$BASE/api/public/requests" \
   -H 'Content-Type: application/json' -H "X-Forwarded-For: 10.0.0.13" \
   --data '{"name":"Smoke Test","phone":"0911000001","preferredDate":"2027-01-05","language":"en"}')
-check "public request valid → 200" 200 "$code"
-contains "public request returns ok" "\"ok\":true" /tmp/opencode/pub-ok.html
-STORED=$(sql "const row = await p.appointmentRequest.findFirst({ where: { name: 'Smoke Test' }, select: { ipHash: true } }); console.log(row ? row.ipHash : 'missing');")
-if [ "$STORED" = "missing" ] || [ -z "$STORED" ]; then FAIL=$((FAIL+1)); echo "✗ public request not persisted ($STORED)"; else PASS=$((PASS+1)); echo "✓ public request persisted (ipHash only)"; fi
-sql "await p.appointmentRequest.deleteMany({ where: { name: 'Smoke Test' } }); console.log('cleaned');"
+check "public booking valid → 200" 200 "$code"
+contains "public booking returns ok" "\"ok\":true" /tmp/opencode/pub-ok.html
+contains "public booking names the slot" "\"appointment\"" /tmp/opencode/pub-ok.html
+BOOKED=$(sql "const row = await p.appointment.findFirst({ where: { patient: { phoneE164: '+251911000001' }, createdFrom: 'WEBSITE_REQUEST' }, select: { status: true, createdBy: true, doctorId: true } }); console.log(row ? row.status + ':' + row.createdBy + ':' + (row.doctorId ? 'doctor' : 'none') : 'missing');")
+check "public booking auto-created a CONFIRMED appointment" "CONFIRMED:public-booking:doctor" "$BOOKED"
+sql "const rows = await p.patient.findMany({ where: { phoneE164: '+251911000001' }, select: { id: true } }); const ids = rows.map(r => r.id); await p.messageTask.deleteMany({ where: { patientId: { in: ids } } }); await p.appointment.deleteMany({ where: { patientId: { in: ids } } }); await p.patient.deleteMany({ where: { id: { in: ids } } }); console.log('cleaned');"
 
 # role gates: reception may view, staff is denied
 code=$(curl -s -b "$JAR2B" -o /tmp/opencode/rec-fups.html -w '%{http_code}' "$BASE/follow-ups")
@@ -347,9 +336,8 @@ check "reception /appointments → 200" 200 "$code"
 code=$(curl -s -b "$JAR5" -o /tmp/opencode/staff-appts.html -w '%{http_code}' "$BASE/appointments")
 check "staff /appointments → 200 (flight redirect)" 200 "$code"
 contains "staff /appointments forbidden" "NEXT_REDIRECT;replace;/403" /tmp/opencode/staff-appts.html
-code=$(curl -s -b "$JAR5" -o /tmp/opencode/staff-reqs.html -w '%{http_code}' "$BASE/requests")
-check "staff /requests → 200 (flight redirect)" 200 "$code"
-contains "staff /requests forbidden" "NEXT_REDIRECT;replace;/403" /tmp/opencode/staff-reqs.html
+code=$(curl -s -b "$JAR" -o /dev/null -w '%{http_code}' "$BASE/requests")
+check "removed /requests → 404" 404 "$code"
 
 # 11d. Messaging: outbox, templates, campaigns, reports, count API + job gate
 code=$(curl -s -b "$JAR" -o /tmp/opencode/messages.html -w '%{http_code}' "$BASE/messages")

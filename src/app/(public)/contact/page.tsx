@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
+  FeedbackForm,
   getClinicProfile,
   getSiteContent,
   pageMetadata,
@@ -9,7 +10,7 @@ import {
   type WorkingHours,
 } from '@/modules/public-site';
 import { telHref, telegramHref, whatsappHref } from '@/modules/public-site/format';
-import Map from '@/modules/public-site/components/Map';
+import Map from '@/modules/public-site/components/MapLazy';
 
 const DAY_KEYS: Record<keyof WorkingHours, string> = {
   mon: 'dayMon',
@@ -123,6 +124,15 @@ export default async function ContactPage() {
               </div>
             ))}
           </dl>
+        </div>
+      </div>
+
+      <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+        <div className="accent-line mb-4" aria-hidden="true" />
+        <h2 className="text-xl font-semibold text-slate-900">{t('feedback.title')}</h2>
+        <p className="mt-2 max-w-2xl text-slate-600">{t('feedback.intro')}</p>
+        <div className="mt-6">
+          <FeedbackForm />
         </div>
       </div>
 

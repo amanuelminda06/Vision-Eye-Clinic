@@ -53,6 +53,13 @@ export const PUBLIC_DOCTOR_FIELDS = [
   'nextShiftStartsAt',
 ] as const;
 
+/**
+ * The only fields a published feedback entry (testimonial) may expose. The
+ * reply address and the ip hash stay CMS-only, and unpublished rows are
+ * filtered out before the projection ever runs.
+ */
+export const PUBLIC_FEEDBACK_FIELDS = ['id', 'name', 'text', 'rating'] as const;
+
 export type PublicService = {
   id: string;
   name: string;
@@ -93,6 +100,31 @@ export function toPublicService(row: PublicServiceRow): PublicService {
     imageUrl: row.imageUrl,
     descriptionEn: row.publicDescriptionEn,
     descriptionAm: row.publicDescriptionAm,
+  };
+}
+
+export type PublicFeedback = {
+  id: string;
+  name: string;
+  text: string;
+  rating: number | null;
+};
+
+/** DB row subset selected for the public testimonials (never email/ipHash). */
+export type PublicFeedbackRow = {
+  id: string;
+  name: string;
+  text: string;
+  rating: number | null;
+};
+
+/** Maps an approved feedback row to the exact public testimonial shape. */
+export function toPublicFeedback(row: PublicFeedbackRow): PublicFeedback {
+  return {
+    id: row.id,
+    name: row.name,
+    text: row.text,
+    rating: row.rating,
   };
 }
 

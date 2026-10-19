@@ -15,8 +15,6 @@ import { NAV_MODULES, type NavModule as NavModuleDef } from '@/modules/nav';
 type Props = {
   user: { name: string; email: string; role: Role; mustChangePassword: boolean };
   loginUrl: string;
-  /** Unhandled website-appointment requests → shown as a badge on /requests. */
-  requestCount?: number;
   /** Messages due now or overdue → shown as a badge on /messages. */
   messageCount?: number;
   children: React.ReactNode;
@@ -25,7 +23,6 @@ type Props = {
 export default function AppShell({
   user,
   loginUrl,
-  requestCount = 0,
   messageCount = 0,
   children,
 }: Props) {
@@ -57,11 +54,7 @@ export default function AppShell({
     items: module.items
       .filter((item) => item.roles.includes(user.role))
       .map((item) =>
-        item.href === '/requests'
-          ? { ...item, badge: requestCount }
-          : item.href === '/messages'
-            ? { ...item, badge: messageCount }
-            : item,
+        item.href === '/messages' ? { ...item, badge: messageCount } : item,
       ),
   })).filter((module) => module.items.length > 0);
 

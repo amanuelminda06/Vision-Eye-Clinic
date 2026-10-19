@@ -206,67 +206,6 @@ export async function countStaffAppointmentsInPeriod(
 }
 
 // ---------------------------------------------------------------------------
-// Requests
-// ---------------------------------------------------------------------------
-
-export type RequestRow = {
-  id: string;
-  name: string;
-  phoneE164: string;
-  preferredDate: string;
-  preferredTimeWindow: string | null;
-  serviceInterest: string | null;
-  message: string | null;
-  language: string;
-  status: string;
-  handledBy: string | null;
-  handledAt: Date | null;
-  patientId: string | null;
-  appointmentId: string | null;
-  createdAt: Date;
-};
-
-const REQUEST_SELECT = {
-  id: true,
-  name: true,
-  phoneE164: true,
-  preferredDate: true,
-  preferredTimeWindow: true,
-  serviceInterest: true,
-  message: true,
-  language: true,
-  status: true,
-  handledBy: true,
-  handledAt: true,
-  patientId: true,
-  appointmentId: true,
-  createdAt: true,
-} as const;
-
-export async function listAppointmentRequests(params: {
-  status?: string;
-  limit?: number;
-}): Promise<RequestRow[]> {
-  const rows = await prisma.appointmentRequest.findMany({
-    where: params.status ? { status: params.status as never } : {},
-    select: REQUEST_SELECT,
-    orderBy: { createdAt: 'asc' },
-    take: params.limit ?? 200,
-  });
-  return rows as RequestRow[];
-}
-
-export async function getAppointmentRequest(id: string): Promise<RequestRow | null> {
-  const row = await prisma.appointmentRequest.findUnique({ where: { id }, select: REQUEST_SELECT });
-  return row ? (row as RequestRow) : null;
-}
-
-/** Unhandled (NEW) website requests — drives the sidebar badge + dashboard. */
-export async function countNewRequests(): Promise<number> {
-  return prisma.appointmentRequest.count({ where: { status: 'NEW' } });
-}
-
-// ---------------------------------------------------------------------------
 // Follow-ups
 // ---------------------------------------------------------------------------
 

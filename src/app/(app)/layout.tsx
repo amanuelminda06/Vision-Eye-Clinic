@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { auth, loginPath } from '@/auth';
 import AppShell from '@/components/AppShell';
-import { countNewRequests } from '@/modules/appointments';
 import { countDueTasks } from '@/modules/messaging/queries';
 import MessagesTicker from '@/modules/messaging/components/MessagesTicker';
 
@@ -17,10 +16,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   const t = await getTranslations('app');
   const canSeeMessages = user.role === 'OWNER' || user.role === 'RECEPTION';
-  const [requestCount, messageCount] = await Promise.all([
-    countNewRequests().catch(() => 0),
-    canSeeMessages ? countDueTasks().catch(() => 0) : Promise.resolve(0),
-  ]);
+  const messageCount = canSeeMessages ? await countDueTasks().catch(() => 0) : 0;
 
   return (
     <AppShell
@@ -31,7 +27,6 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         mustChangePassword: user.mustChangePassword,
       }}
       loginUrl={loginPath}
-      requestCount={requestCount}
       messageCount={messageCount}
     >
       {canSeeMessages ? <MessagesTicker baseTitle={t('name')} /> : null}

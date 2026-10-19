@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import Map from './Map';
+import Map from './MapLazy';
 import { SocialIcon } from './SocialIcon';
 
 type SocialLink = {

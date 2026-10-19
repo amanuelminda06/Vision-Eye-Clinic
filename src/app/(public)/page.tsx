@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { getPublicDoctorStatus } from '@/modules/hr';
 import {
   getClinicProfile,
+  getPublicFeedbackTestimonials,
   getPublicServices,
   getSiteContent,
   isAnnouncementItem,
@@ -31,14 +32,17 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+type DisplayTestimonial = { name: string; text: string; rating?: number | null };
+
 export default async function HomePage() {
   const t = await getTranslations('site');
   const locale = await getLocale();
-  const [content, services, profile, doctors] = await Promise.all([
+  const [content, services, profile, doctors, approvedFeedback] = await Promise.all([
     getSiteContent(),
     getPublicServices(),
     getClinicProfile(),
     getPublicDoctorStatus(),
+    getPublicFeedbackTestimonials(),
   ]);
 
   const phonePrimary = pick(locale, content.contact_phone_primary);
@@ -47,10 +51,17 @@ export default async function HomePage() {
   const featured = services.slice(0, 6);
   const onDuty = doctors.filter((doctor) => doctor.status === 'ON_DUTY_NOW');
   const shownDoctors = (onDuty.length ? onDuty : doctors).slice(0, 4);
-  const testimonials = parseItems(pick(locale, content.testimonials_items), isTestimonial).slice(
-    0,
-    3,
-  );
+  // Approved feedback first (the CMS "show on website" checkbox), then the
+  // hand-written testimonials from the Website content editor — three cards max.
+  const manualTestimonials = parseItems(pick(locale, content.testimonials_items), isTestimonial);
+  const testimonials: DisplayTestimonial[] = [
+    ...approvedFeedback.map((item) => ({
+      name: item.name,
+      text: item.text,
+      rating: item.rating,
+    })),
+    ...manualTestimonials,
+  ].slice(0, 3);
   const announcements = parseItems<AnnouncementItem>(
     pick(locale, content.announcements_items),
     isAnnouncementItem,
@@ -322,6 +333,20 @@ export default async function HomePage() {
                   key={index}
                   className="card card-hover p-6 text-slate-700"
                 >
+                  {item.rating ? (
+                    <span
+                      role="img"
+                      aria-label={t('home.ratingAria', { rating: item.rating, max: 5 })}
+                      className="mb-2 block text-sm"
+                    >
+                      <span aria-hidden="true" className="text-amber-500">
+                        {'★'.repeat(item.rating)}
+                      </span>
+                      <span aria-hidden="true" className="text-slate-300">
+                        {'★'.repeat(5 - item.rating)}
+                      </span>
+                    </span>
+                  ) : null}
                   <p className="text-sm">“{item.text}”</p>
                   <footer className="mt-4 text-sm font-semibold text-slate-900">
                     {item.name}
@@ -330,7 +355,9 @@ export default async function HomePage() {
               ))}
             </div>
           </Reveal>
-          <p className="mt-4 text-xs text-slate-400">{t('home.testimonialsPlaceholder')}</p>
+          {approvedFeedback.length ? null : (
+            <p className="mt-4 text-xs text-slate-400">{t('home.testimonialsPlaceholder')}</p>
+          )}
         </section>
       ) : null}
 

@@ -4,7 +4,7 @@ import { validate, ValidationError } from '@/lib/errors';
 import { parsePhone } from '@/lib/phone';
 import { hashClientIp } from '@/lib/ip';
 import { checkRateLimit } from '@/lib/ratelimit';
-import { createPublicRequest } from '@/modules/appointments/actions';
+import { createPublicBooking } from '@/modules/appointments/actions';
 import { bookingFormSchema, isHoneypotTripped } from '@/modules/public-site/schemas';
 import { verifyTurnstile } from '@/modules/public-site/turnstile';
 
@@ -14,10 +14,12 @@ export const PUBLIC_BOOKING_RATE_WINDOW_MS = 60 * 60_000;
 
 /**
  * Public, unauthenticated endpoint for the clinic website's "book an
- * appointment" form. Defences: honeypot field, per-IP rate limit, optional
- * Cloudflare Turnstile (off by default), strict zod validation, and only the
- * sha-256 IP hash is stored — never the raw IP. Excluded from the session gate
- * by `src/proxy.ts` (its matcher skips `/api`).
+ * appointment" form. The booking is auto-approved: it becomes a CONFIRMED
+ * appointment (doctor assigned server-side) instead of a request to review.
+ * Defences: honeypot field, per-IP rate limit, optional Cloudflare Turnstile
+ * (off by default), strict zod validation, and only the sha-256 IP hash is
+ * kept — never the raw IP. Excluded from the session gate by `src/proxy.ts`
+ * (its matcher skips `/api`).
  */
 export async function POST(request: Request) {
   await connection();
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await createPublicRequest({
+  const result = await createPublicBooking({
     name: values.name,
     phoneE164: phone.value,
     preferredDate: values.preferredDate,
@@ -79,11 +81,19 @@ export async function POST(request: Request) {
   });
 
   if (!result.ok) {
-    return NextResponse.json({ ok: false, error: result.error }, { status: 500 });
+    // Date/window problems are the visitor's to fix; show them inline.
+    if (result.error === 'invalidDate' || result.error === 'pastSlot') {
+      return NextResponse.json(
+        { ok: false, error: 'validationError', fields: { preferredDate: result.error } },
+        { status: 422 },
+      );
+    }
+    const status = result.error === 'noDoctorAvailable' ? 503 : 500;
+    return NextResponse.json({ ok: false, error: result.error }, { status });
   }
 
   return NextResponse.json(
-    { ok: true, id: result.id },
+    { ok: true, id: result.id, appointment: result.appointment },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

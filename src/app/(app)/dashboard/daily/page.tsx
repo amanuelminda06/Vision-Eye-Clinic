@@ -141,10 +141,6 @@ export default async function DailySummaryPage({ searchParams }: { searchParams:
               <dt className="text-xs text-slate-500">{t('appointmentsToday')}</dt>
               <dd className="text-lg font-semibold text-slate-900">{summary.appointmentsToday}</dd>
             </div>
-            <div>
-              <dt className="text-xs text-slate-500">{t('newRequests')}</dt>
-              <dd className="text-lg font-semibold text-slate-900">{summary.newRequests}</dd>
-            </div>
           </dl>
         </section>
       </div>

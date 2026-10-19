@@ -11,7 +11,6 @@ export type { PatientFormSubmit, ImportPreview, ImportDone } from './actions';
 export {
   listPatients,
   listPatientsForExport,
-  listTagsForFilter,
   listAllTags,
   getPatient,
   findPatientByPhone,
@@ -29,7 +28,6 @@ export type {
   PatientDetail,
   PatientSort,
   SortDir,
-  TagWithCount,
 } from './queries';
 export { PATIENT_ROLES } from './roles';
 export { patientFormSchema, SEX_VALUES, LANGUAGE_VALUES, MAX_NOTES_CHARS } from './schemas';

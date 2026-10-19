@@ -47,7 +47,6 @@ export const NAV_MODULES: NavModule[] = [
       { href: '/sales', labelKey: 'sales', roles: ['OWNER', 'RECEPTION'] },
       { href: '/revenue', labelKey: 'revenue', roles: ['OWNER'] },
       { href: '/appointments', labelKey: 'appointments', roles: ['OWNER', 'RECEPTION'] },
-      { href: '/requests', labelKey: 'requests', roles: ['OWNER', 'RECEPTION'] },
       { href: '/follow-ups', labelKey: 'followUps', roles: ['OWNER', 'RECEPTION'] },
     ],
   },
@@ -80,6 +79,7 @@ export const NAV_MODULES: NavModule[] = [
     items: [
       { href: '/dashboard/services', labelKey: 'services', roles: ['OWNER'] },
       { href: '/dashboard/content', labelKey: 'websiteContent', roles: ['OWNER'] },
+      { href: '/dashboard/feedback', labelKey: 'feedback', roles: ['OWNER'] },
       { href: '/settings', labelKey: 'settings', roles: ['OWNER'] },
     ],
   },

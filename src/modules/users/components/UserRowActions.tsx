@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import ActionError from '@/components/ActionError';
 import { resetUserPasswordAction, setUserActiveAction } from '@/modules/users/actions';
+import SetPasswordForm from './SetPasswordForm';
 import type { ActionResult } from '@/lib/action';
 
 type Props = {
@@ -24,6 +25,7 @@ export default function UserRowActions({ userId, active, isSelf }: Props) {
     FormData
   >(resetUserPasswordAction, null);
   const [copied, setCopied] = useState(false);
+  const [showSetPassword, setShowSetPassword] = useState(false);
 
   const tempPassword = resetState?.ok ? resetState.data?.tempPassword : undefined;
 
@@ -72,6 +74,16 @@ export default function UserRowActions({ userId, active, isSelf }: Props) {
           {tu('resetPassword')}
         </button>
       </form>
+
+      <button
+        type="button"
+        className="text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+        aria-expanded={showSetPassword}
+        onClick={() => setShowSetPassword((open) => !open)}
+      >
+        {tu('setPassword')}
+      </button>
+      {showSetPassword ? <SetPasswordForm userId={userId} /> : null}
 
       <ActionError error={activeState && !activeState.ok ? activeState.error : undefined} />
       <ActionError error={resetState && !resetState.ok ? resetState.error : undefined} />

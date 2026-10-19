@@ -4,9 +4,12 @@ import { buildPublicDoctorStatus, type PublicStaffInput } from '@/modules/hr/pub
 import {
   FORBIDDEN_PUBLIC_FIELDS,
   PUBLIC_DOCTOR_FIELDS,
+  PUBLIC_FEEDBACK_FIELDS,
   PUBLIC_SERVICE_FIELDS,
   findForbiddenFields,
+  toPublicFeedback,
   toPublicService,
+  type PublicFeedbackRow,
 } from './projection';
 
 describe('public projection allow-lists', () => {
@@ -71,8 +74,34 @@ describe('public projection allow-lists', () => {
     expect(findForbiddenFields(doctor).size).toBe(0);
   });
 
+  it('maps an approved feedback row to the testimonial shape and drops private columns', () => {
+    const row: PublicFeedbackRow & {
+      email: string;
+      ipHash: string;
+      showOnWebsite: boolean;
+      createdBy: string;
+    } = {
+      id: 'fb-1',
+      name: 'Tigist',
+      text: 'Quick, kind and thorough.',
+      rating: 5,
+      email: 'patient@example.com',
+      ipHash: 'e3b0c442…',
+      showOnWebsite: true,
+      createdBy: 'public-website',
+    };
+    const testimonial = toPublicFeedback(row);
+    expect(Object.keys(testimonial).sort()).toEqual([...PUBLIC_FEEDBACK_FIELDS].sort());
+    expect(findForbiddenFields(testimonial).size).toBe(0);
+    expect(JSON.stringify(testimonial)).not.toContain('patient@example.com');
+  });
+
   it('keeps the forbidden-field list free of public allow-listed names', () => {
-    const allowed = new Set<string>([...PUBLIC_SERVICE_FIELDS, ...PUBLIC_DOCTOR_FIELDS]);
+    const allowed = new Set<string>([
+      ...PUBLIC_SERVICE_FIELDS,
+      ...PUBLIC_DOCTOR_FIELDS,
+      ...PUBLIC_FEEDBACK_FIELDS,
+    ]);
     for (const field of FORBIDDEN_PUBLIC_FIELDS) {
       expect(allowed.has(field)).toBe(false);
     }

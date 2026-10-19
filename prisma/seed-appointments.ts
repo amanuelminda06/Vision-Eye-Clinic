@@ -8,11 +8,10 @@ import {
 } from '../src/lib/datetime';
 
 /**
- * Appointments + website requests + follow-ups demo data: 20 appointments
- * across the next 7 days (placed inside doctor shifts, skipping Sundays and
- * approved leave), 5 website requests (mixed statuses/matched patients) and
- * 5 follow-ups (overdue / upcoming / done). Deterministic and idempotent —
- * the seed records carry `seed-*` ids and are replaced on every run.
+ * Appointments + follow-ups demo data: 20 appointments across the next 7 days
+ * (placed inside doctor shifts, skipping Sundays and approved leave) and 5
+ * follow-ups (overdue / upcoming / done). Deterministic and idempotent — the
+ * seed records carry `seed-*` ids and are replaced on every run.
  */
 
 type Patient = { id: string; fullName: string; phoneE164: string };
@@ -64,7 +63,6 @@ export async function seedAppointments(prisma: PrismaClient): Promise<void> {
   // Replace the seed records on every run (keeps counts stable + idempotent).
   await prisma.followUp.deleteMany({ where: { id: { startsWith: 'seed-followup-' } } });
   await prisma.appointment.deleteMany({ where: { id: { startsWith: 'seed-appt-' } } });
-  await prisma.appointmentRequest.deleteMany({ where: { id: { startsWith: 'seed-request-' } } });
 
   // Approved leave for doctors → skip those dates.
   const approved = await prisma.leaveRequest.findMany({
@@ -202,95 +200,7 @@ export async function seedAppointments(prisma: PrismaClient): Promise<void> {
 
   console.log(`✓ appointments (${created.length})`);
 
-  // 3. Website requests — 5, deterministic ids, mixed statuses.
-  const existingPhones = new Set(patientList.map((p) => p.phoneE164));
-  const newPhone = '+251911000059';
-  const requestRows = [
-    {
-      id: 'seed-request-1',
-      name: patientList[0].fullName,
-      phoneE164: patientList[0].phoneE164,
-      patientId: patientList[0].id,
-      preferredDate: dateKeyAdd(todayKey, 1),
-      preferredTimeWindow: 'morning',
-      serviceInterest: services[0]?.name ?? null,
-      message: null,
-      language: 'en',
-      status: 'NEW',
-      ipHash: 'seed',
-    },
-    {
-      id: 'seed-request-2',
-      name: patientList[1].fullName,
-      phoneE164: patientList[1].phoneE164,
-      patientId: patientList[1].id,
-      preferredDate: dateKeyAdd(todayKey, 2),
-      preferredTimeWindow: 'afternoon',
-      serviceInterest: services[1]?.name ?? null,
-      message: 'I need help choosing glasses.',
-      language: 'am',
-      status: 'NEW',
-      ipHash: 'seed',
-    },
-    {
-      id: 'seed-request-3',
-      name: 'Selam Girma',
-      phoneE164: newPhone,
-      patientId: null,
-      preferredDate: dateKeyAdd(todayKey, 1),
-      preferredTimeWindow: 'any',
-      serviceInterest: null,
-      message: 'First visit — can I have an eye exam?',
-      language: 'en',
-      status: 'NEW',
-      ipHash: 'seed',
-    },
-    {
-      id: 'seed-request-4',
-      name: patientList[2] ? patientList[2].fullName : 'New Patient',
-      phoneE164: patientList[2] ? patientList[2].phoneE164 : '+251911000060',
-      patientId: patientList[2] ? patientList[2].id : null,
-      preferredDate: dateKeyAdd(todayKey, 3),
-      preferredTimeWindow: 'evening',
-      serviceInterest: null,
-      message: 'Follow-up after surgery.',
-      language: 'en',
-      status: 'CONTACTED',
-      ipHash: 'seed',
-    },
-    {
-      id: 'seed-request-5',
-      name: 'Hanna Tadesse',
-      phoneE164: existingPhones.has('+251911000061') ? '+251922000061' : '+251911000061',
-      patientId: null,
-      preferredDate: dateKeyAdd(todayKey, 1),
-      preferredTimeWindow: 'morning',
-      serviceInterest: null,
-      message: null,
-      language: 'am',
-      status: 'DECLINED',
-      ipHash: 'seed',
-    },
-  ];
-
-  const requestStatuses: Record<string, { handledBy: string | null; handledAt: Date | null }> = {
-    'seed-request-4': { handledBy: creator, handledAt: new Date(Date.now() - 3600_000) },
-    'seed-request-5': { handledBy: creator, handledAt: new Date(Date.now() - 7200_000) },
-  };
-
-  for (const row of requestRows) {
-    const handled = requestStatuses[row.id] ?? { handledBy: null, handledAt: null };
-    await prisma.appointmentRequest.create({
-      data: {
-        ...row,
-        ...handled,
-        status: row.status as 'NEW' | 'CONTACTED' | 'CONVERTED' | 'DECLINED' | 'SPAM',
-      },
-    });
-  }
-  console.log(`✓ appointment requests (${requestRows.length})`);
-
-  // 4. Follow-ups — 3 open (2 overdue), 1 due soon, 1 done.
+  // 3. Follow-ups — 3 open (2 overdue), 1 due soon, 1 done.
   const completedAppt = await prisma.appointment.findUnique({
     where: { id: 'seed-appt-past-completed' },
     select: { id: true },
