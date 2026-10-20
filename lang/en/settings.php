@@ -1,0 +1,37 @@
+<?php
+
+// Generated from messages/en.json — do not edit by hand; edit the JSON and re-run scripts/convert-messages.php
+
+return [
+    'title' => 'Settings',
+    'clinicName' => 'Clinic name',
+    'currency' => 'Currency',
+    'timezone' => 'Timezone',
+    'workingHours' => 'Working hours',
+    'open' => 'Open',
+    'close' => 'Close',
+    'closed' => 'Closed',
+    'dayMon' => 'Monday',
+    'dayTue' => 'Tuesday',
+    'dayWed' => 'Wednesday',
+    'dayThu' => 'Thursday',
+    'dayFri' => 'Friday',
+    'daySat' => 'Saturday',
+    'daySun' => 'Sunday',
+    'reminderSendTime' => 'Reminder send time',
+    'reminderOffset' => 'Send reminders this many minutes before',
+    'followupLeadDays' => 'Follow-up lead (days)',
+    'recallMonths' => 'Recall interval (months)',
+    'reviewLink' => 'Review link',
+    'smsMode' => 'SMS mode',
+    'smsManualLink' => 'Manual link (send from the clinic phone)',
+    'smsGateway' => 'Gateway (automatic)',
+    'campaignMaxRecipients' => 'Max campaign recipients',
+    'digestEnabled' => 'Send a daily "still unsent" email',
+    'digestEmail' => 'Digest email address',
+    'receptionCampaigns' => 'Reception may send campaigns',
+    'defaultLanguage' => 'Default language',
+    'groupSmsAllowFiltered' => 'Allow group sending for filtered audiences (owner override)',
+    'groupSmsMaxRecipients' => 'Max recipients per group',
+    'groupSmsHint' => 'Groups are sent one batch at a time from the clinic phone. This does not turn the app into an SMS gateway.',
+];

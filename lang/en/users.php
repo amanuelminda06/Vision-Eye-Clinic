@@ -1,0 +1,38 @@
+<?php
+
+// Generated from messages/en.json — do not edit by hand; edit the JSON and re-run scripts/convert-messages.php
+
+return [
+    'title' => 'Users',
+    'newUser' => 'New user',
+    'editUser' => 'Edit user',
+    'staffLink' => 'Linked staff member',
+    'noStaff' => 'No link',
+    'password' => 'Initial password',
+    'passwordHint' => 'Minimum 10 characters. The user will be asked to change it at first sign-in.',
+    'searchPlaceholder' => 'Search name or email…',
+    'roleFilter' => 'Role',
+    'statusFilter' => 'Status',
+    'create' => 'Create user',
+    'update' => 'Save changes',
+    'lastLogin' => 'Last sign-in',
+    'created' => 'User created.',
+    'updated' => 'User updated.',
+    'statusUpdated' => 'Account status updated.',
+    'deactivate' => 'Deactivate',
+    'reactivate' => 'Reactivate',
+    'deactivateConfirm' => 'Deactivate this account? They will not be able to sign in.',
+    'resetPassword' => 'Reset password',
+    'resetConfirm' => 'Reset this user\'s password? A temporary password will be shown once.',
+    'tempPassword' => 'Temporary password',
+    'tempPasswordHint' => 'Shown once — give it to the user and ask them to change it at sign-in.',
+    'deactivated' => 'Account deactivated.',
+    'reactivated' => 'Account reactivated.',
+    'resetDone' => 'Password reset.',
+    'setPassword' => 'Set password',
+    'newPassword' => 'New password',
+    'confirmPassword' => 'Confirm password',
+    'mustChangeLabel' => 'Require change at next sign-in',
+    'setPasswordHint' => 'Minimum 10 characters. The user signs in with this password.',
+    'passwordSet' => 'Password updated.',
+];

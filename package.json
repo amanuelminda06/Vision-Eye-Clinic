@@ -1,72 +1,19 @@
 {
-  "name": "erp",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "eslint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "messages": "node scripts/messages-check.mjs",
-    "db:up": "node scripts/db.mjs",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:load": "tsx prisma/seed-load.ts",
-    "db:reset": "prisma migrate reset --force",
-    "db:studio": "prisma studio",
-    "backup": "bash scripts/backup.sh",
-    "restore": "bash scripts/restore.sh",
-    "export:client": "tsx scripts/client-data-export.ts",
-    "security:scan": "node scripts/security-scan.mjs",
-    "audit:deps": "bash scripts/audit-deps.sh",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "pretest:e2e": "npm run build",
-    "test:e2e": "playwright test"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
-  "dependencies": {
-    "@node-rs/argon2": "^2.2.2",
-    "@prisma/client": "^6.19.3",
-    "@types/leaflet": "^1.9.22",
-    "decimal.js": "^10.6.0",
-    "leaflet": "^1.9.4",
-    "next": "16.4.0",
-    "next-auth": "^5.0.0-beta.32",
-    "next-intl": "^4.14.9",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "react-icons": "^5.7.0",
-    "zod": "^4.6.5"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.64.0",
-    "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.1.11",
-    "embedded-postgres": "^18.4.0-beta.17",
-    "eslint": "^9",
-    "eslint-config-next": "16.4.0",
-    "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.9.9",
-    "prisma": "^6.19.3",
-    "tailwindcss": "^4",
-    "tsx": "^4.23.15",
-    "typescript": "^5",
-    "vitest": "^4.1.11"
-  },
-  "overrides": {
-    "braces": "^3.0.3",
-    "micromatch": "^4.0.8",
-    "fast-glob": "^3.3.3",
-    "deepmerge-ts": "^8.0.2"
-  }
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.0.0",
+        "concurrently": "^10.0.3",
+        "laravel-vite-plugin": "^3.1",
+        "tailwindcss": "^4.0.0",
+        "vite": "^8.0.0"
+    },
+    "optionalDependencies": {
+        "@laravel/multiplex": "^0.4.1"
+    }
 }

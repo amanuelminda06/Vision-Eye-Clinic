@@ -1,0 +1,37 @@
+<?php
+
+// Generated from messages/am.json — do not edit by hand; edit the JSON and re-run scripts/convert-messages.php
+
+return [
+    'title' => 'ቅድምና',
+    'clinicName' => 'የክሊኒክ ስም',
+    'currency' => 'ገንዘብ',
+    'timezone' => 'የሰዓት ክፍለ ዘመን',
+    'workingHours' => 'የሥራ ሰዓት',
+    'open' => 'ክፍት',
+    'close' => 'ዝጋ',
+    'closed' => 'ዝግ',
+    'dayMon' => 'ሰኞ',
+    'dayTue' => 'ማክሰኞ',
+    'dayWed' => 'ረቡዕ',
+    'dayThu' => 'ሐሙስ',
+    'dayFri' => 'ዓርብ',
+    'daySat' => 'ቅዳሜ',
+    'daySun' => 'እሁድ',
+    'reminderSendTime' => 'የማስታወሻ መላኪያ ሰዓት',
+    'reminderOffset' => 'ከዓመቂ ደቂቃዎች በፊት ላክ',
+    'followupLeadDays' => 'የቀጥታ ተከታታይ (ቀናት)',
+    'recallMonths' => 'የመልሰው የጊዜ ክፍለ ዛር (ወራት)',
+    'reviewLink' => 'የግምገማ አገናኝ',
+    'smsMode' => 'የኤስኤምኤስ ዘዴ',
+    'smsManualLink' => 'በእጅ ግንኙነት (ከክሊኒኩ ስልክ)',
+    'smsGateway' => 'ጌትዌይ (ራስ-ሰር)',
+    'campaignMaxRecipients' => 'የማስተዋወቂያ ተቀባዮች ጣሪያ',
+    'digestEnabled' => 'የቀሩ መልእክቶች የኢሜይል ማጠቃለያ ላክ',
+    'digestEmail' => 'የማጠቃለያ ኢሜይል',
+    'receptionCampaigns' => 'ደረሰኝ መቀበያ ማስተዋወቂያ መላክ ይችላል',
+    'defaultLanguage' => 'የመጀመሪያ ቋንቋ',
+    'groupSmsAllowFiltered' => 'ለተጣሩ ተመልካቾች የቡድን መላክ ፍቀድ (የባለቤት ፈቃድ)',
+    'groupSmsMaxRecipients' => 'በቡድን ከፍተኛ የተቀባዮች ቁጥር',
+    'groupSmsHint' => 'ቡድኖች ከክሊኒኩ ስልክ በአንድ ጊዜ በአንድ ክፍል ይላካሉ። ይህ መተግበሪያውን የኤስኤምኤስ ማስተላለፊያ አያደርግም።',
+];

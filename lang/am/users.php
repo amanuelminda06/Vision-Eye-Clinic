@@ -1,0 +1,38 @@
+<?php
+
+// Generated from messages/am.json — do not edit by hand; edit the JSON and re-run scripts/convert-messages.php
+
+return [
+    'title' => 'ተጠቃሚዎች',
+    'newUser' => 'አዲስ ተጠቃሚ',
+    'editUser' => 'ተጠቃሚን አስተካክል',
+    'staffLink' => 'የተገናኙ አሳዳጊ',
+    'noStaff' => 'አልተገናኙም',
+    'password' => 'የመጀመሪያ የይለፍ ቃል',
+    'passwordHint' => 'ከ 10 ቁጥሮች በላይ ይሆን። ተጠቃሚው በመጀመሪያ ሲገባ ይቀይረዋል።',
+    'searchPlaceholder' => 'ስም ወይም ኢሜይል ፈልግ…',
+    'roleFilter' => 'ሚና',
+    'statusFilter' => 'ሁኔታ',
+    'create' => 'ተጠቃሚ ፍጠር',
+    'update' => 'ለውጦችን አስቀምጥ',
+    'lastLogin' => 'የመጨረሻ መግባት',
+    'created' => 'ተጠቃሚው ተፈጥሯል።',
+    'updated' => 'ተጠቃሚው ተስተካክሏል።',
+    'statusUpdated' => 'የመለያ ሁኔታ ተስተካክሏል።',
+    'deactivate' => 'አቦር',
+    'reactivate' => 'አንቂ አድርግ',
+    'deactivateConfirm' => 'ይህን መለያ አቦር? አይገቡም።',
+    'resetPassword' => 'የይለፍ ቃል አስመድን',
+    'resetConfirm' => 'የይለፍ ቃል አስመድን? ጊዜያዊ የይለፍ ቃል አንድ ጊዜ ይታያል።',
+    'tempPassword' => 'ጊዜያዊ የይለፍ ቃል',
+    'tempPasswordHint' => 'አንድ ጊዜ ብቻ ይታያል — ለተጠቃሚው ይስጡት፤ በመግባት ላይ ይቀይሩት።',
+    'deactivated' => 'መለያው ተቦርቷል።',
+    'reactivated' => 'መለያው አንቂ ተደርጓል።',
+    'resetDone' => 'የይለፍ ቃል ተመድቧል።',
+    'setPassword' => 'የይለፍ ቃል ያስቀምጡ',
+    'newPassword' => 'አዲስ የይለፍ ቃል',
+    'confirmPassword' => 'የይለፍ ቃል አረጋግጥ',
+    'mustChangeLabel' => 'በመግባት ላይ መቀየር ይጠይቁ',
+    'setPasswordHint' => 'ከ 10 ቁጥሮች በላይ ይሆን። ተጠቃሚው በዚህ የይለፍ ቃል ይገባል።',
+    'passwordSet' => 'የይለፍ ቃል ተስተካክሏል።',
+];
