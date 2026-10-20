@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\Sale;
+use App\Support\ClinicTime;
+use App\Support\Money;
 use App\Support\Phone;
+use App\Support\Settings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,8 +21,10 @@ use Illuminate\Http\Request;
  * chars, is restricted to active patients, and matches name (insensitive) or a
  * phone search variant — 6 hits, ordered by name.
  *
- * The sales and appointments groups are filled in by slices 3 and 5; until
- * those models have their queries, they return empty arrays (the response shape
+ * The sales branch matches receipt number, patient name or a phone variant
+ * (newest first). Every group is finally sorted by title with a locale-aware
+ * comparison, mirroring the legacy `hitSorter`. The appointments group is
+ * filled in by slice 5; until then it stays an empty array (the response shape
  * is identical, so the front-end needs no change).
  */
 class SearchController extends Controller
@@ -36,6 +42,7 @@ class SearchController extends Controller
         }
 
         $patients = [];
+        $sales = [];
 
         if (mb_strlen($q, 'UTF-8') >= 3) {
             $query = Patient::query()
@@ -61,11 +68,57 @@ class SearchController extends Controller
             }
         }
 
+        $tz = Settings::timezone();
+
+        $saleRows = Sale::query()
+            ->with('patient:id,full_name')
+            ->where(function ($inner) use ($q): void {
+                $inner->where('receipt_number', 'like', '%'.self::escapeLike($q).'%')
+                    ->orWhereHas('patient', function ($p) use ($q): void {
+                        $p->where('full_name', 'like', '%'.self::escapeLike($q).'%');
+                    });
+
+                foreach (Phone::phoneSearchVariants($q) ?? [] as $variant) {
+                    $inner->orWhereHas('patient', function ($p) use ($variant): void {
+                        $p->where('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
+                    });
+                }
+            })
+            ->orderByDesc('sale_date')
+            ->take(6)
+            ->get();
+
+        foreach ($saleRows as $sale) {
+            $sales[] = [
+                'id' => $sale->id,
+                'title' => $sale->receipt_number,
+                'subtitle' => implode(' · ', [
+                    $sale->patient?->full_name ?? '',
+                    Money::toDecimalString($sale->total),
+                    ClinicTime::formatInTz($sale->sale_date, $tz),
+                ]),
+                'href' => "/sales/{$sale->id}",
+            ];
+        }
+
         return response()->json([
-            'patients' => $patients,
-            'sales' => [],
+            'patients' => self::sortHits($patients),
+            'sales' => self::sortHits($sales),
             'appointments' => [],
         ])->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * Locale-aware title sort (legacy `hitSorter`).
+     *
+     * @param  list<array<string, mixed>>  $hits
+     * @return list<array<string, mixed>>
+     */
+    private static function sortHits(array $hits): array
+    {
+        usort($hits, fn (array $a, array $b): int => strcoll((string) $a['title'], (string) $b['title']));
+
+        return $hits;
     }
 
     private static function escapeLike(string $value): string

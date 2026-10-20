@@ -10,7 +10,12 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientExportController;
 use App\Http\Controllers\PatientImportController;
 use App\Http\Controllers\PatientSickLeaveController;
+use App\Http\Controllers\RevenueController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SaleExportController;
+use App\Http\Controllers\SaleVoidController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -86,4 +91,47 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
     Route::post('/patients/{id}/sick-leave', [PatientSickLeaveController::class, 'store'])->name('patients.sick-leave.store');
     Route::post('/patients/{id}/sick-leave/{sickId}', [PatientSickLeaveController::class, 'update'])->name('patients.sick-leave.update');
     Route::post('/patients/{id}/sick-leave/{sickId}/delete', [PatientSickLeaveController::class, 'destroy'])->name('patients.sick-leave.destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Sales (slice 3) — OWNER + RECEPTION only, server-side gated
+|--------------------------------------------------------------------------
+|
+| The front desk creates and confirms sales; confirmed sales are immutable and
+| the only transition is the void flow (slice 3's SaleVoidController). STAFF
+| never reaches any money surface.
+|
+*/
+Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(function () {
+    // Export (before /sales/{id} so it wins).
+    Route::get('/sales/export', SaleExportController::class)->name('sales.export');
+
+    Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/new', [SaleController::class, 'create'])->name('sales.create');
+    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+
+    // Void inbox is OWNER-only (see the group below); the request route lives
+    // here so RECEPTION can file one.
+    Route::post('/sales/{id}/void-request', [SaleVoidController::class, 'request'])->name('sales.void-request');
+
+    Route::get('/sales/{id}', [SaleController::class, 'show'])->name('sales.show');
+});
+
+// Revenue + direct voids/approvals: OWNER only.
+Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function () {
+    Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
+
+    Route::get('/sales/voids', [SaleVoidController::class, 'index'])->name('sales.voids');
+    Route::post('/sales/{id}/void', [SaleVoidController::class, 'void'])->name('sales.void');
+    Route::post('/sales/{id}/void-approve', [SaleVoidController::class, 'approve'])->name('sales.void-approve');
+    Route::post('/sales/{id}/void-reject', [SaleVoidController::class, 'reject'])->name('sales.void-reject');
+
+    // Service catalogue (prices) is OWNER-only.
+    Route::get('/dashboard/services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/dashboard/services/new', [ServiceController::class, 'create'])->name('services.create');
+    Route::post('/dashboard/services', [ServiceController::class, 'store'])->name('services.store');
+    Route::get('/dashboard/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+    Route::post('/dashboard/services/{id}', [ServiceController::class, 'update'])->name('services.update');
+    Route::post('/dashboard/services/{id}/status', [ServiceController::class, 'setActive'])->name('services.status');
 });

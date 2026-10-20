@@ -114,4 +114,47 @@ final class Roles
     {
         return self::canManage($role);
     }
+
+    // -----------------------------------------------------------------------
+    // Sales predicates (src/modules/sales/roles.ts + src/modules/services/roles.ts)
+    // -----------------------------------------------------------------------
+
+    /** @var list<string> SALES_ROLES — creating and confirming sales. */
+    public const SALES_ROLES = [self::OWNER, self::RECEPTION];
+
+    /** @var list<string> SALES_OWNER_ROLES — revenue, void approval, direct voids. */
+    public const SALES_OWNER_ROLES = [self::OWNER];
+
+    /** @var list<string> SERVICES_ROLES — service management (prices) is OWNER-only. */
+    public const SERVICES_ROLES = [self::OWNER];
+
+    /** Nothing financial ("Revenue"/"Sales" totals) is visible to STAFF. */
+    public static function canViewRevenue(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
+
+    /** Only the OWNER approves or rejects a pending void request. */
+    public static function canApproveVoid(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
+
+    /** Only the OWNER voids a confirmed sale directly. */
+    public static function canVoidDirectly(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
+
+    /** RECEPTION (and OWNER) may ask the OWNER to void a sale. */
+    public static function canRequestVoid(?string $role): bool
+    {
+        return $role === self::OWNER || $role === self::RECEPTION;
+    }
+
+    /** OWNER sees every sale; RECEPTION only their own, today. */
+    public static function canSeeAllSales(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
 }
