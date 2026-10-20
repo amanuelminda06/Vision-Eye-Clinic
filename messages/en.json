@@ -263,7 +263,11 @@
         "defaultLanguage": "Default language",
         "groupSmsAllowFiltered": "Allow group sending for filtered audiences (owner override)",
         "groupSmsMaxRecipients": "Max recipients per group",
-        "groupSmsHint": "Groups are sent one batch at a time from the clinic phone. This does not turn the app into an SMS gateway."
+        "groupSmsHint": "Groups are sent one batch at a time from the clinic phone. This does not turn the app into an SMS gateway.",
+        "patientIdPhotosEnabled": "Patient ID photos",
+        "patientIdPhotosEnabledHint": "Off by default. When off, the upload, the capture and every view of a stored ID photo are disabled.",
+        "patientSickLeaveEnabled": "Patient sick leave",
+        "patientSickLeaveEnabledHint": "Off by default. When off, the sick-leave tab and every sick-leave write are disabled."
     },
     "audit": {
         "title": "Audit log",
@@ -332,7 +336,9 @@
         "invalidDuration": "Choose a valid duration.",
         "invalidStatus": "Choose a valid status.",
         "invalidPreset": "Choose a follow-up preset.",
-        "maxLength": "Keep it within {max} characters."
+        "maxLength": "Keep it within {max} characters.",
+        "idPhotoDisabled": "Patient ID photos are disabled.",
+        "sickLeaveDisabled": "Patient sick leave is disabled."
     },
     "appointments": {
         "title": "Appointments",

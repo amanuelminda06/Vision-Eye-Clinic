@@ -39,6 +39,8 @@ class SettingsController extends Controller
         'default_language',
         'group_sms_allow_for_filtered',
         'group_sms_max_recipients',
+        'patient_id_photos_enabled',
+        'patient_sick_leave_enabled',
     ];
 
     /** GET /settings */
@@ -126,6 +128,8 @@ class SettingsController extends Controller
             'reception_can_send_campaigns',
             'digest_enabled',
             'group_sms_allow_for_filtered',
+            'patient_id_photos_enabled',
+            'patient_sick_leave_enabled',
         ], true)) {
             return (string) $request->input($key, 'false') === 'true';
         }

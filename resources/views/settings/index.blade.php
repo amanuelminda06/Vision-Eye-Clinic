@@ -153,6 +153,25 @@
                         {{ __('settings.groupSmsAllowFiltered') }}
                     </label>
                 </div>
+
+                {{-- Opt-in features (both OFF by default) --}}
+                <div class="space-y-3">
+                    <div>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="patient_id_photos_enabled" value="true" @checked(($values['patient_id_photos_enabled'] ?? false) === true)>
+                            {{ __('settings.patientIdPhotosEnabled') }}
+                        </label>
+                        <p class="mt-1 text-xs text-slate-500">{{ __('settings.patientIdPhotosEnabledHint') }}</p>
+                    </div>
+
+                    <div>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="patient_sick_leave_enabled" value="true" @checked(($values['patient_sick_leave_enabled'] ?? false) === true)>
+                            {{ __('settings.patientSickLeaveEnabled') }}
+                        </label>
+                        <p class="mt-1 text-xs text-slate-500">{{ __('settings.patientSickLeaveEnabledHint') }}</p>
+                    </div>
+                </div>
             </section>
 
             <button type="submit" class="btn-primary">{{ __('common.save') }}</button>

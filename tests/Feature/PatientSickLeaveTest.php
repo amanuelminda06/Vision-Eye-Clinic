@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\PatientSickLeave;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesPatients;
@@ -28,6 +29,17 @@ class PatientSickLeaveTest extends TestCase
     private function owner(): User
     {
         return $this->createUser(['role' => 'OWNER']);
+    }
+
+    /** The feature is opt-in — turn it on for the tests that use it. */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Setting::query()->updateOrCreate(
+            ['key' => 'patient_sick_leave_enabled'],
+            ['value' => true],
+        );
     }
 
     public function test_the_sick_leave_tab_renders_for_a_patient(): void

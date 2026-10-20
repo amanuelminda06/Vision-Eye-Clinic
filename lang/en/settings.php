@@ -34,4 +34,8 @@ return [
     'groupSmsAllowFiltered' => 'Allow group sending for filtered audiences (owner override)',
     'groupSmsMaxRecipients' => 'Max recipients per group',
     'groupSmsHint' => 'Groups are sent one batch at a time from the clinic phone. This does not turn the app into an SMS gateway.',
+    'patientIdPhotosEnabled' => 'Patient ID photos',
+    'patientIdPhotosEnabledHint' => 'Off by default. When off, the upload, the capture and every view of a stored ID photo are disabled.',
+    'patientSickLeaveEnabled' => 'Patient sick leave',
+    'patientSickLeaveEnabledHint' => 'Off by default. When off, the sick-leave tab and every sick-leave write are disabled.',
 ];

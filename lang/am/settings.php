@@ -34,4 +34,8 @@ return [
     'groupSmsAllowFiltered' => 'ለተጣሩ ተመልካቾች የቡድን መላክ ፍቀድ (የባለቤት ፈቃድ)',
     'groupSmsMaxRecipients' => 'በቡድን ከፍተኛ የተቀባዮች ቁጥር',
     'groupSmsHint' => 'ቡድኖች ከክሊኒኩ ስልክ በአንድ ጊዜ በአንድ ክፍል ይላካሉ። ይህ መተግበሪያውን የኤስኤምኤስ ማስተላለፊያ አያደርግም።',
+    'patientIdPhotosEnabled' => 'የታማኒ ፎቶ',
+    'patientIdPhotosEnabledHint' => 'በመጀመሪያ ጠፋፋል። ሲዘግ ከተከፈለ፣ ማስገቢያው፣ የማንሳፊያው እና የተቀመጠውን ፎቶ መመልከት ሁሉ ይዘግባሉ።',
+    'patientSickLeaveEnabled' => 'የታማኒ በሽታ ፈልጋ',
+    'patientSickLeaveEnabledHint' => 'በመጀመሪያ ጠፋፋል። ሲዘግ የበሽታ ትሮችና ማስገቢያዎች ሁሉ ይዘግባሉ።',
 ];

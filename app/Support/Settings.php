@@ -50,4 +50,23 @@ final class Settings
 
         return is_string($value) && $value !== '' ? $value : 'ETB';
     }
+
+    /**
+     * Patient ID photos are OFF by default — the clinic opts in from the
+     * settings screen. When off the upload, the capture and every view of a
+     * stored photo are refused (the UI hides them too).
+     */
+    public static function patientIdPhotosEnabled(): bool
+    {
+        return self::get('patient_id_photos_enabled', false) === true;
+    }
+
+    /**
+     * Patient sick leave is OFF by default — the clinic opts in from the
+     * settings screen. When off the whole tab and every write are refused.
+     */
+    public static function patientSickLeaveEnabled(): bool
+    {
+        return self::get('patient_sick_leave_enabled', false) === true;
+    }
 }

@@ -13,8 +13,12 @@
         'sales' => 'tabSales',
         'appointments' => 'tabAppointments',
         'messages' => 'tabMessages',
-        'sick' => 'tabSick',
     ];
+
+    // The sick-leave tab only exists while the feature is enabled.
+    if ($sickLeaveEnabled ?? false) {
+        $tabs['sick'] = 'tabSick';
+    }
 
     $sexLabel = match ($patient->sex) {
         'MALE' => __('patients.sexMale'),
@@ -78,7 +82,8 @@
                     </div>
                 </div>
 
-                {{-- ID photo capture --}}
+                {{-- ID photo capture (opt-in feature) --}}
+                @if ($idPhotosEnabled ?? false)
                 <form method="POST" action="{{ route('patients.photo', $patient->id) }}" enctype="multipart/form-data" class="card space-y-3 p-4">
                     @csrf
                     <div class="flex items-center gap-3">
@@ -105,6 +110,7 @@
                     @enderror
                     <button type="submit" class="btn-primary text-xs">{{ __('common.save') }}</button>
                 </form>
+                @endif
 
                 {{-- Tabs --}}
                 <div class="border-b border-slate-200">

@@ -31,6 +31,7 @@ class SeederTest extends TestCase
         'reception_can_send_campaigns', 'campaign_max_recipients',
         'digest_enabled', 'digest_email', 'default_language',
         'group_sms_allow_for_filtered', 'group_sms_max_recipients',
+        'patient_id_photos_enabled', 'patient_sick_leave_enabled',
     ];
 
     public function test_it_creates_exactly_the_expected_settings_keys(): void
@@ -58,6 +59,9 @@ class SeederTest extends TestCase
         $this->assertSame('en', Setting::find('default_language')->value);
         $this->assertFalse(Setting::find('group_sms_allow_for_filtered')->value);
         $this->assertSame(15, Setting::find('group_sms_max_recipients')->value);
+        // The opt-in features are OFF by default.
+        $this->assertFalse(Setting::find('patient_id_photos_enabled')->value);
+        $this->assertFalse(Setting::find('patient_sick_leave_enabled')->value);
     }
 
     public function test_the_working_hours_default_closes_sunday(): void

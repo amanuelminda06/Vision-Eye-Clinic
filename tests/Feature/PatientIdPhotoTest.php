@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\Patient;
+use App\Models\Setting;
 use App\Models\StoredFile;
 use App\Models\User;
 use App\Support\Patients\PatientValidation;
@@ -33,6 +34,17 @@ class PatientIdPhotoTest extends TestCase
     private function owner(): User
     {
         return $this->createUser(['role' => 'OWNER']);
+    }
+
+    /** The feature is opt-in — turn it on for the tests that use it. */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Setting::query()->updateOrCreate(
+            ['key' => 'patient_id_photos_enabled'],
+            ['value' => true],
+        );
     }
 
     private function png(int $bytes = 64): UploadedFile

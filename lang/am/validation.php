@@ -51,4 +51,6 @@ return [
     'invalidStatus' => 'ትክክለኛ ሁኔታ ይምረጡ።',
     'invalidPreset' => 'የተከታታይ ክትትል ቅድመ-ገደብ ይምረጡ።',
     'maxLength' => 'እስከ {max} ቁምፊዎች ያቆዩ።',
+    'idPhotoDisabled' => 'የታማኒ ፎቶ አልተፈቀደም።',
+    'sickLeaveDisabled' => 'የታማኒ በሽታ ፈልጋ አልተፈቀደም።',
 ];

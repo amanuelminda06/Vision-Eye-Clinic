@@ -98,6 +98,7 @@
                 @enderror
             </div>
 
+            @if ($idPhotosEnabled ?? false)
             <div>
                 <label class="label" for="idPhoto">{{ __('patients.idPhoto') }}</label>
                 <div class="flex flex-wrap items-center gap-3">
@@ -120,6 +121,7 @@
                     <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>
                 @enderror
             </div>
+            @endif
 
             <div>
                 <label class="label" for="idNo">{{ __('patients.idNo') }}</label>

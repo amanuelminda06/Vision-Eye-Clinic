@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\PatientSickLeave;
 use App\Support\Audit;
 use App\Support\Patients\PatientValidation;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -18,12 +19,17 @@ use Illuminate\Http\Request;
  * Sick leave is recorded FOR a patient (issued by the clinic) — non-clinical
  * free text only. Rows are hard-deleted (the module's only hard delete) with a
  * PATIENT_SICK_LEAVE_DELETED audit carrying the full old snapshot.
+ *
+ * The whole feature is opt-in: `patient_sick_leave_enabled` is off by
+ * default, and while it is off every write is refused.
  */
 class PatientSickLeaveController extends Controller
 {
     /** POST /patients/{id}/sick-leave — create. */
     public function store(Request $request, string $id): RedirectResponse
     {
+        $this->guardFeature();
+
         $validated = PatientValidation::sickLeave($this->input($request, $id));
 
         if ($validated['fields'] !== []) {
@@ -61,6 +67,8 @@ class PatientSickLeaveController extends Controller
     /** POST /patients/{id}/sick-leave/{sickId} — update. */
     public function update(Request $request, string $id, string $sickId): RedirectResponse
     {
+        $this->guardFeature();
+
         $before = PatientSickLeave::find($sickId);
         abort_if($before === null, 404);
 
@@ -105,6 +113,8 @@ class PatientSickLeaveController extends Controller
     /** POST /patients/{id}/sick-leave/{sickId}/delete — hard delete. */
     public function destroy(Request $request, string $id, string $sickId): RedirectResponse
     {
+        $this->guardFeature();
+
         $before = PatientSickLeave::find($sickId);
 
         if ($before === null) {
@@ -144,6 +154,17 @@ class PatientSickLeaveController extends Controller
             'reason' => (string) $request->input('reason', ''),
             'note' => (string) $request->input('note', ''),
         ];
+    }
+
+    /**
+     * Sick leave is opt-in: while the setting is off the feature does not
+     * exist for anybody.
+     */
+    private function guardFeature(): void
+    {
+        if (! Settings::patientSickLeaveEnabled()) {
+            abort(403, 'Patient sick leave is disabled.');
+        }
     }
 
     private function backToSick(string $id): RedirectResponse

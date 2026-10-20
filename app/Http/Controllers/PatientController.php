@@ -96,6 +96,7 @@ class PatientController extends Controller
             'route' => '/patients',
             'similar' => [],
             'duplicate' => null,
+            'idPhotosEnabled' => Settings::patientIdPhotosEnabled(),
         ]);
     }
 
@@ -128,8 +129,14 @@ class PatientController extends Controller
             }
         }
 
+        if ($request->hasFile('idPhoto') && ! Settings::patientIdPhotosEnabled()) {
+            return back()->withErrors(['idPhoto' => 'idPhotoDisabled'])
+                ->withInput($request->except('idPhoto'));
+        }
+
         $language = $values['preferredLanguage'] ?? Settings::defaultLanguage();
         $idPhotoUrl = $this->storeIdPhoto($request);
+
         $actor = $request->user();
 
         try {
@@ -171,9 +178,18 @@ class PatientController extends Controller
         $this->logView($patient->id, $request->user());
 
         $tab = PatientTabs::from($request->query('tab'));
+        $sickLeaveEnabled = Settings::patientSickLeaveEnabled();
+
+        // The sick-leave tab does not exist while the feature is off.
+        if (! $sickLeaveEnabled && $tab === 'sick') {
+            $tab = 'overview';
+        }
+
         $payload = PatientTabs::load($tab, $patient->id);
 
-        $sickRows = SickLeaveQueries::listForPatient($patient->id);
+        $sickRows = $sickLeaveEnabled
+            ? SickLeaveQueries::listForPatient($patient->id)
+            : collect();
         $patientSales = SaleQueries::listPatientSales($patient->id);
         $patientAppointments = ApptQueries::listPatientAppointments($patient->id);
         $patientMessages = MsgQueries::listPatientMessages($patient->id);
@@ -190,6 +206,8 @@ class PatientController extends Controller
             'patientAppointments' => $patientAppointments,
             'editing' => $editing,
             'timezone' => Settings::timezone(),
+            'idPhotosEnabled' => Settings::patientIdPhotosEnabled(),
+            'sickLeaveEnabled' => $sickLeaveEnabled,
         ]);
     }
 
@@ -205,6 +223,7 @@ class PatientController extends Controller
             'route' => "/patients/{$patient->id}",
             'similar' => [],
             'duplicate' => null,
+            'idPhotosEnabled' => Settings::patientIdPhotosEnabled(),
         ]);
     }
 
@@ -238,6 +257,11 @@ class PatientController extends Controller
             if ($similar !== []) {
                 return back()->with('similarPatients', $similar)->withInput($request->except('idPhoto'));
             }
+        }
+
+        if ($request->hasFile('idPhoto') && ! Settings::patientIdPhotosEnabled()) {
+            return back()->withErrors(['idPhoto' => 'idPhotoDisabled'])
+                ->withInput($request->except('idPhoto'));
         }
 
         $language = $values['preferredLanguage'] ?? $before->preferred_language;
@@ -413,6 +437,11 @@ class PatientController extends Controller
     /** POST /patients/{id}/photo — capture/upload an ID photo on the detail page. */
     public function capturePhoto(Request $request, string $id): RedirectResponse
     {
+        // ID photos are opt-in (the setting is off by default).
+        if (! Settings::patientIdPhotosEnabled()) {
+            abort(403, 'Patient ID photos are disabled.');
+        }
+
         if (! $request->hasFile('idPhoto')) {
             return back()->withErrors(['idPhoto' => 'noFile']);
         }
@@ -479,6 +508,11 @@ class PatientController extends Controller
     /** Store an uploaded ID photo and return its /uploads URL, or null. */
     private function storeIdPhoto(Request $request): ?string
     {
+        // The feature is opt-in: without it a photo is never stored.
+        if (! Settings::patientIdPhotosEnabled()) {
+            return null;
+        }
+
         if (! $request->hasFile('idPhoto')) {
             return null;
         }

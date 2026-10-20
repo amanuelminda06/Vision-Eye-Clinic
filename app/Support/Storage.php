@@ -20,6 +20,9 @@ final class Storage
     /** Prefix used for every patient ID photo key. */
     public const PATIENT_ID_PHOTO_PREFIX = '/uploads/';
 
+    /** The key prefix of a stored patient ID photo (`patient-id-<uuid>.<ext>`). */
+    public const PATIENT_ID_PHOTO_KEY_PREFIX = 'patient-id-';
+
     /**
      * Legacy URLs pointed at `/api/uploads/{key}`; the Laravel route serves the
      * same keys from `/uploads/{key}`. Accept both so old rows keep resolving.
@@ -74,6 +77,12 @@ final class Storage
         }
 
         return 'application/octet-stream';
+    }
+
+    /** True when the storage key holds a patient ID photo. */
+    public static function isPatientIdPhotoKey(string $key): bool
+    {
+        return str_starts_with($key, self::PATIENT_ID_PHOTO_KEY_PREFIX);
     }
 
     /** Extract the storage key from a stored URL, or null when it is not ours. */

@@ -51,4 +51,6 @@ return [
     'invalidStatus' => 'Choose a valid status.',
     'invalidPreset' => 'Choose a follow-up preset.',
     'maxLength' => 'Keep it within {max} characters.',
+    'idPhotoDisabled' => 'Patient ID photos are disabled.',
+    'sickLeaveDisabled' => 'Patient sick leave is disabled.',
 ];

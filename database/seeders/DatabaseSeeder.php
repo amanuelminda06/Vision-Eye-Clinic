@@ -55,6 +55,9 @@ class DatabaseSeeder extends Seeder
         'default_language' => 'en',
         'group_sms_allow_for_filtered' => false,
         'group_sms_max_recipients' => 15,
+        // Off by default: the clinic opts in from the settings screen.
+        'patient_id_photos_enabled' => false,
+        'patient_sick_leave_enabled' => false,
     ];
 
     public function run(): void
