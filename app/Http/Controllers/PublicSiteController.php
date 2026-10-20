@@ -202,7 +202,13 @@ class PublicSiteController extends Controller
 
         $paths = ['/', '/about', '/services', '/doctors', '/book', '/contact', '/faq', '/privacy'];
 
-        $xml = view('site.sitemap', ['base' => $base, 'paths' => $paths, 'now' => $now])->render();
+        // The XML prolog is a PHP string on purpose: a literal prolog inside
+        // a template is parsed as a SHORT OPEN TAG when `short_open_tag` is
+        // On (the PHP default when no php.ini is loaded) and the whole
+        // document turns into a parse error.
+        $prolog = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+
+        $xml = $prolog.view('site.sitemap', ['base' => $base, 'paths' => $paths, 'now' => $now])->render();
 
         return response($xml, 200, ['Content-Type' => 'application/xml; charset=utf-8']);
     }

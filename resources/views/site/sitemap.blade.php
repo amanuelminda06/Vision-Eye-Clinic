@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+{{-- The XML prolog is added by the controller (see PublicSiteController).
+     A literal prolog here would be parsed as a short open tag when
+     `short_open_tag` is On and break the whole document. --}}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 @foreach ($paths as $path)
     <url>

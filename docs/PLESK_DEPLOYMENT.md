@@ -38,6 +38,28 @@ CSS/JS committed under `public/build`) · session auth with argon2id.
 **Plesk PHP settings:** set the domain's PHP version to **8.3+** and enable the
 extensions above (`Domains → your-domain → PHP Settings`).
 
+> **The lock file is resolved for PHP 8.3** (`composer.json` →
+> `config.platform.php = 8.3.0`), because 8.3 is the oldest version this app
+> supports. That is why the dependency set in `composer.lock` installs on
+> PHP 8.3 **and** on 8.4 — do not run `composer update` on a newer PHP, or the
+> lock will pull packages that need PHP 8.4 and the host will refuse to
+> install them.
+
+> **`short_open_tag` must be Off** (the Plesk/Debian default). It is off by
+> default only when a php.ini is loaded — a bare PHP without one defaults to
+> On, and then any literal XML prolog in a template is parsed as a short open
+> tag. The sitemap is safe either way (the prolog is emitted from PHP as a
+> string), and `scripts/php-version-check.php` guards the rest.
+
+To check the host before deploying:
+
+```bash
+php -v                              # 8.3 or newer
+php -r 'var_dump(extension_loaded("pdo_mysql"), extension_loaded("bcmath"));'
+php -i | grep short_open_tag         # Off
+composer check-platform-reqs         # every requirement satisfied
+```
+
 ---
 
 ## 2. Create the database

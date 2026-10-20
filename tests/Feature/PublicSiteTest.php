@@ -43,6 +43,35 @@ class PublicSiteTest extends TestCase
         }
     }
 
+    public function test_the_sitemap_starts_with_the_xml_prolog(): void
+    {
+        $response = $this->get('/sitemap.xml');
+
+        $response->assertOk();
+        $this->assertStringStartsWith(
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            (string) $response->getContent(),
+            'The sitemap must start with the XML prolog.',
+        );
+    }
+
+    public function test_no_template_contains_a_raw_xml_prolog(): void
+    {
+        // A literal `<?xml` inside a template is parsed as a SHORT OPEN TAG
+        // when `short_open_tag` is On (the PHP default when no php.ini is
+        // loaded) and the whole page becomes a parse error. The prolog must
+        // be emitted from PHP as a string.
+        $offenders = [];
+
+        foreach (glob(resource_path('views').'/**/*.blade.php') ?: [] as $file) {
+            if (preg_match('/<\?xml/i', (string) file_get_contents($file)) === 1) {
+                $offenders[] = $file;
+            }
+        }
+
+        $this->assertSame([], $offenders, 'A template contains a raw `<?xml` prolog.');
+    }
+
     public function test_the_sitemap_lists_the_eight_public_urls(): void
     {
         $response = $this->get('/sitemap.xml')->assertOk();
