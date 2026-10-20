@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AppointmentExportController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ErrorController;
+use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaveCalendarController;
 use App\Http\Controllers\LeaveController;
@@ -124,6 +127,32 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function ()
     Route::get('/dashboard/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::post('/dashboard/services/{id}', [ServiceController::class, 'update'])->name('services.update');
     Route::post('/dashboard/services/{id}/status', [ServiceController::class, 'setActive'])->name('services.status');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Appointments + follow-ups (slice 5) — OWNER + RECEPTION only
+|--------------------------------------------------------------------------
+|
+| The board is a normal POST form (no client-side framework): the server
+| recomputes every warning, the status graph and the receipt of the request.
+| The public booking intake lives in routes/api.php (no session required).
+|
+*/
+Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(function () {
+    Route::get('/appointments/export', AppointmentExportController::class)->name('appointments.export');
+
+    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+    Route::get('/appointments/new', [AppointmentController::class, 'create'])->name('appointments.create');
+    Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+    Route::get('/appointments/{id}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');
+    Route::post('/appointments/{id}', [AppointmentController::class, 'update'])->name('appointments.update');
+    Route::post('/appointments/{id}/status', [AppointmentController::class, 'setStatus'])->name('appointments.status');
+
+    Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('followups.index');
+    Route::get('/follow-ups/new', [FollowUpController::class, 'create'])->name('followups.create');
+    Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('followups.store');
+    Route::post('/follow-ups/{id}/status', [FollowUpController::class, 'setStatus'])->name('followups.status');
 });
 
 /*

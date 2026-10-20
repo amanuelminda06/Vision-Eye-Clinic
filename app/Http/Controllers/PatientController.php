@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Models\Tag;
+use App\Support\Appointments\ApptQueries;
 use App\Support\Audit;
 use App\Support\Messaging\MessageTasks;
 use App\Support\Patients\PatientImport;
@@ -173,6 +174,7 @@ class PatientController extends Controller
 
         $sickRows = SickLeaveQueries::listForPatient($patient->id);
         $patientSales = SaleQueries::listPatientSales($patient->id);
+        $patientAppointments = ApptQueries::listPatientAppointments($patient->id);
         $editId = (string) $request->query('edit', '');
         $editing = $editId !== '' ? $sickRows->firstWhere('id', $editId) : null;
 
@@ -183,6 +185,7 @@ class PatientController extends Controller
             'allTags' => PatientQueries::listAllTags(),
             'sickRows' => $sickRows,
             'patientSales' => $patientSales,
+            'patientAppointments' => $patientAppointments,
             'editing' => $editing,
             'timezone' => Settings::timezone(),
         ]);
