@@ -45,13 +45,13 @@ seam for a follow-up slice.
 
 ## Testing / operations
 
-- `npm test` covers 200+ unit tests and `scripts/smoke.sh` covers 173 checks;
+- `php artisan test` covers the whole suite and `scripts/smoke.sh` checks the live screens;
   the browser-level **README checklist (items 1–50) still needs a human**, in
   particular the real-device SMS test (item 36) and Lighthouse run (item 48).
-- Playwright E2E specs exist under `e2e/` (`npm run test:e2e`) and require a
-  seeded database and a running server; they are not wired into CI yet.
-- Backup/restore requires PostgreSQL client tools, which the embedded dev
-  database does not ship (`docs/backup-restore.md`).
+- The browser-level E2E layer was a Playwright suite in the legacy app; the
+  rebuild covers the same flows with PHPUnit feature tests.
+- Backup/restore requires the MySQL client tools (`mysqldump` / `mysql`) on the
+  host (`docs/backup-restore.md`).
 
 ## Explicitly out of scope
 

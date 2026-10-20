@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Staff;
 use App\Models\User;
@@ -60,8 +61,9 @@ class DatabaseSeeder extends Seeder
         $this->seedSettings();
         $doctor = $this->seedDoctor();
         $this->seedUsers($doctor);
+        $this->seedServices();
 
-        $this->command?->info('Seeded settings, staff and accounts (no demo data).');
+        $this->command?->info('Seeded settings, staff, services and accounts (no demo data).');
     }
 
     /** Settings only ever create missing keys — admin edits are never overwritten. */
@@ -86,6 +88,112 @@ class DatabaseSeeder extends Seeder
         ])->save();
 
         return $doctor;
+    }
+
+    /**
+     * The clinic's real six services.
+     *
+     * Idempotent and keyed on `name_en` (never a unique constraint): a
+     * service that already exists keeps its clinic-set price and flags — only
+     * the missing description is filled in. The legacy demo services are
+     * deactivated, never deleted.
+     *
+     * @var list<array{nameEn: string, nameAm: string, category: string, price: string, displayOrder: int, imageUrl: string, receiptLabelEn?: string, receiptLabelAm?: string}>
+     */
+    private const SERVICES = [
+        [
+            'nameEn' => 'General Eye Care',
+            'nameAm' => 'ጠቅላላ የዓይን ህክምና',
+            'category' => 'consultation',
+            'price' => '300.00',
+            'displayOrder' => 1,
+            'imageUrl' => '/services/general-eye-care.png',
+        ],
+        [
+            'nameEn' => 'Eye Examination for Glasses (Modern Equipment)',
+            'nameAm' => 'በዘመናዊ መሳሪያዎች የመነጽር ምርመራ',
+            'category' => 'diagnostics',
+            'price' => '500.00',
+            'displayOrder' => 2,
+            'imageUrl' => '/services/eye-examination-glasses.png',
+        ],
+        [
+            'nameEn' => 'Glasses Making and Sales',
+            'nameAm' => 'የመነጽር ስራ እና ሽያጭ',
+            'category' => 'optical',
+            'price' => '1500.00',
+            'displayOrder' => 3,
+            'imageUrl' => '/services/glasses-making-sales.png',
+        ],
+        [
+            'nameEn' => 'Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients',
+            'nameAm' => 'ለስኳርና ደም ግፊት ህመምተኞች ልዩ የዓይን ምርመራና ክትትል',
+            'category' => 'specialist',
+            'price' => '400.00',
+            'displayOrder' => 4,
+            'imageUrl' => '/services/specialist-diabetes-bp.png',
+            'receiptLabelEn' => 'Specialist eye check-up',
+            'receiptLabelAm' => 'ልዩ የዓይን ክትትል',
+        ],
+        [
+            'nameEn' => "Children's Eye Exam and Treatment",
+            'nameAm' => 'የህጻናት የዓይን ምርመራና ህክምና',
+            'category' => 'specialist',
+            'price' => '400.00',
+            'displayOrder' => 5,
+            'imageUrl' => '/services/children-eye-exam.png',
+        ],
+        [
+            'nameEn' => 'Minor Eye Surgery',
+            'nameAm' => 'መለስተኛ የዓይን ቀዶ ህክምና',
+            'category' => 'surgery',
+            'price' => '5000.00',
+            'displayOrder' => 6,
+            'imageUrl' => '/services/minor-eye-surgery.png',
+        ],
+    ];
+
+    /**
+     * The six real services (idempotent, clinic-set prices are preserved).
+     */
+    private function seedServices(): void
+    {
+        foreach (self::SERVICES as $service) {
+            $existing = Service::query()
+                ->where('name_en', $service['nameEn'])
+                ->orWhere('name', $service['nameEn'])
+                ->first();
+
+            if ($existing !== null) {
+                // The clinic owns the price and the flags — only fill in what
+                // is missing.
+                $existing->forceFill(array_filter([
+                    'name_am' => $existing->name_am ?? $service['nameAm'],
+                    'category' => $existing->category ?: $service['category'],
+                    'image_url' => $existing->image_url ?? $service['imageUrl'],
+                    'receipt_label_en' => $existing->receipt_label_en ?? ($service['receiptLabelEn'] ?? null),
+                    'receipt_label_am' => $existing->receipt_label_am ?? ($service['receiptLabelAm'] ?? null),
+                ], static fn ($value): bool => $value !== null))->save();
+
+                continue;
+            }
+
+            Service::create([
+                'name' => $service['nameEn'],
+                'name_en' => $service['nameEn'],
+                'name_am' => $service['nameAm'],
+                'category' => $service['category'],
+                'current_price' => $service['price'],
+                'active' => true,
+                'is_public' => true,
+                'public_description_en' => null,
+                'public_description_am' => null,
+                'receipt_label_en' => $service['receiptLabelEn'] ?? null,
+                'receipt_label_am' => $service['receiptLabelAm'] ?? null,
+                'display_order' => $service['displayOrder'],
+                'image_url' => $service['imageUrl'],
+            ]);
+        }
     }
 
     /**

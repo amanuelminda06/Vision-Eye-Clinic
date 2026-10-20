@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Staff;
 use App\Models\User;
@@ -137,6 +138,48 @@ class SeederTest extends TestCase
         foreach (['patients', 'sales', 'sale_lines', 'appointments', 'message_tasks'] as $table) {
             $this->assertSame(0, DB::table($table)->count(), "{$table} must stay empty after the production seed.");
         }
+    }
+
+    public function test_it_seeds_the_six_real_services(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $services = Service::query()->orderBy('display_order')->get();
+
+        $this->assertCount(6, $services);
+
+        $this->assertSame('General Eye Care', $services[0]->name_en);
+        $this->assertSame('300.00', $services[0]->current_price);
+        $this->assertSame('consultation', $services[0]->category);
+
+        $this->assertSame('Eye Examination for Glasses (Modern Equipment)', $services[1]->name_en);
+        $this->assertSame('Glasses Making and Sales', $services[2]->name_en);
+        $this->assertSame('Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients', $services[3]->name_en);
+        $this->assertSame("Children's Eye Exam and Treatment", $services[4]->name_en);
+        $this->assertSame('Minor Eye Surgery', $services[5]->name_en);
+        $this->assertSame('5000.00', $services[5]->current_price);
+
+        foreach ($services as $service) {
+            $this->assertTrue((bool) $service->active);
+            $this->assertTrue((bool) $service->is_public);
+            $this->assertNotNull($service->name_am);
+        }
+    }
+
+    public function test_reseeding_the_services_preserves_the_clinic_price(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $service = Service::query()->where('name_en', 'General Eye Care')->firstOrFail();
+        $service->forceFill(['current_price' => '450.00', 'active' => false])->save();
+
+        $this->seed(DatabaseSeeder::class);
+
+        $service->refresh();
+
+        $this->assertSame('450.00', $service->current_price);
+        $this->assertFalse((bool) $service->active);
+        $this->assertSame(6, Service::query()->count());
     }
 
     public function test_reseeding_is_idempotent(): void

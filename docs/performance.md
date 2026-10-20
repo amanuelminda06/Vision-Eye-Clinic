@@ -36,8 +36,8 @@ predicates used by lists, boards, dashboards and exports:
 | `Sale` | `(status, voidRequestedBy)` | void-request inbox |
 | `AuditLog` | `(entity, action, createdAt)` | audit viewer filters |
 
-They mirror the `@@index` entries in `prisma/schema.prisma`. Apply with
-`npm run db:deploy`.
+They mirror the index entries of the original schema. Apply them with
+`php artisan migrate --force`.
 
 ## Load testing
 
@@ -45,7 +45,8 @@ Generate a realistic dataset (deterministic, idempotent-ish — safe to re-run t
 grow data):
 
 ```bash
-npm run db:load          # 5 000 patients, 20 000 sales (~90% CONFIRMED)
+# (the legacy loader script is gone — the production seed never creates
+#  demo data; use a factory loop in a local environment only)
 ```
 
 Then measure the pages that matter with the load data in place:

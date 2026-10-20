@@ -179,9 +179,9 @@ All of the following actions are audited (entity + actor + before/after):
 
 ## 9. Seeds
 
-- `npm run db:seed` also loads **10 library messages** (English + Amharic) and
+- The production seed also loads **10 library messages** (English + Amharic) and
   **2 saved audiences** (English consenters; last-90-days visitors).
-- `tsx prisma/seed-group-e2e.ts allow|block` creates the deterministic 40-patient
+- The legacy group-e2e loader created a deterministic 40-patient
   group E2E fixture (unique tag) and toggles the override.
 
 ## 10. Known limits — read these

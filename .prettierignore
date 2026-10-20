@@ -1,7 +1,0 @@
-node_modules
-.next
-.pgdata
-package-lock.json
-storage
-playwright-report
-test-results

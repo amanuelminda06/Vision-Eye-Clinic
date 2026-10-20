@@ -390,8 +390,10 @@ class ScheduleTest extends TestCase
 
     public function test_the_staff_member_sees_only_their_own_rows(): void
     {
-        $staffRecord = $this->createStaff();
-        $other = $this->createStaff();
+        // Explicit names: the faker can repeat a name inside one test, which
+        // would make the "not on this page" assertion flaky.
+        $staffRecord = $this->createStaff(['full_name' => 'Own Schedule Person']);
+        $other = $this->createStaff(['full_name' => 'Other Schedule Person']);
         $user = $this->createUser(['role' => Roles::STAFF, 'staff_id' => $staffRecord->id]);
 
         $this->createShift([
@@ -409,7 +411,7 @@ class ScheduleTest extends TestCase
 
         $body = $this->actingAs($user)->get('/schedule?week=2026-10-08')->getContent();
 
-        $this->assertStringContainsString($staffRecord->full_name, $body);
-        $this->assertStringNotContainsString($other->full_name, $body);
+        $this->assertStringContainsString('Own Schedule Person', $body);
+        $this->assertStringNotContainsString('Other Schedule Person', $body);
     }
 }

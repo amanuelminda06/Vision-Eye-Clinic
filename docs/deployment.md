@@ -1,102 +1,69 @@
 # Deployment
 
-Two deployables share one database and one `.env`:
+**The full deployment guide lives in
+[PLESK_DEPLOYMENT.md](PLESK_DEPLOYMENT.md)** — Plesk, PHP 8.3+, MySQL 8.0,
+no Node.js on the host, the cron entry, the backups and the go-live checklist.
 
-1. **The ERP app** (this project) — secret-link login at `/login/<LOGIN_SECRET_PATH>`.
-2. The **public website** — the `(public)` routes in the same Next.js build
-   (`/`, `/about`, `/services`, `/doctors`, `/book`, `/contact`, `/faq`, `/privacy`).
+This page is the short version.
+
+## What gets deployed
+
+| Part | Path | Notes |
+| --- | --- | --- |
+| Public website | `/`, `/about`, `/services`, `/doctors`, `/book`, `/contact`, `/faq`, `/privacy` | No session, no patient data, no prices. |
+| The ERP | everything else | Reachable only through `/login/<LOGIN_SECRET_PATH>`. |
+| JSON APIs | `/api/*` | Session-free where the contract says so. |
+
+One Laravel application, one MySQL database, one `.env`.
 
 ## Prerequisites
 
-- Node.js 20+ and npm.
-- PostgreSQL 16+ reachable via `DATABASE_URL`.
-- A reverse proxy/TLS terminator (Caddy, nginx, or a platform LB).
-- PostgreSQL client tools (`pg_dump`/`pg_restore`/`psql`) for backups.
+- PHP 8.3+ with `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`,
+  `ctype`, `json`, `fileinfo` and **bcmath** (the money helpers need it).
+- MySQL 8.0.
+- The document root must point at `public/`.
+- One cron entry: `php artisan schedule:run` every five minutes.
 
-## 1. Configure
+## The short version
 
 ```bash
+# 1. Upload the repository into /var/www/vision (document root → public/)
+composer install --no-dev --optimize-autoloader
+
+# 2. Configure
 cp .env.example .env
+php artisan key:generate
+#   → APP_URL, DB_*, LOGIN_SECRET_PATH, the three seed accounts, PUBLIC_BASE_URL
+
+# 3. Schema + seed (no demo data)
+php artisan migrate --force
+php artisan db:seed --force
+
+# 4. Permissions
+chown -R <user>:<user> storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+chmod 640 .env
+
+# 5. Cron (Plesk → Tools & Settings → Cron Jobs, every 5 minutes)
+cd /var/www/vision && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
+
+# 6. HTTPS (Plesk → SSL/TLS → Let's Encrypt → force HTTPS)
+
+# 7. Verify
+BASE=https://clinic.example.com bash scripts/smoke.sh
 ```
 
-Fill, at minimum:
+## Front-end assets
 
-| Key | Notes |
-| --- | --- |
-| `DATABASE_URL` | production Postgres; add `?sslmode=require` when required |
-| `AUTH_SECRET` | `openssl rand -base64 32` |
-| `LOGIN_SECRET_PATH` | `openssl rand -hex 12` — treat as a secret |
-| `OWNER_EMAIL` / `OWNER_PASSWORD` | first owner account; password ≥ 10 chars |
-| `RECEPTION_EMAIL` / `RECEPTION_PASSWORD` | created with forced password change |
-| `STAFF_EMAIL` / `STAFF_PASSWORD` | created with forced password change |
-| `UPLOAD_DIR` | persistent volume path (e.g. `/var/lib/vision-erp/uploads`) |
-| `PUBLIC_BASE_URL` | canonical https origin (SEO/hreflang/sitemap) |
-| `CRON_SECRET` | ≥ 16 chars to enable `POST /api/jobs/messages` |
+The CSS/JS are **committed** under `public/build/`, so the host needs no
+Node.js — just upload the directory. The compiled assets are part of the
+repository; a CSS change is a separate piece of work (the build tooling is
+not part of this repository).
 
-Everything is validated at boot (`src/env.ts`) — the app refuses to start on a
-bad/missing value and never logs the values.
-
-## 2. Build & migrate
+## Updating later
 
 ```bash
-npm ci
-npx prisma generate
-npm run db:deploy      # prisma migrate deploy (applies committed migrations)
-npm run db:seed        # idempotent: settings, staff, users, tags, demo data
-npm run build
-npm start              # or a process manager (systemd/pm2) on :3000
+# on the host
+php artisan migrate --force     # only when there are new migrations
+php artisan optimize:clear
 ```
-
-> `npm run db:seed` also inserts demo patients/sales/HR/appointments. On a
-> clean production database run it once to create the owner + settings; remove
-> or guard the demo sections if you do not want sample data.
-
-## 3. Reverse proxy
-
-Terminate TLS and forward to `127.0.0.1:3000`. Example (Caddy):
-
-```
-erp.visioneye.et {
-  reverse_proxy 127.0.0.1:3000
-  encode zstd gzip
-}
-```
-
-The app already sets CSP, `X-Frame-Options: DENY`, `nosniff`, HSTS (prod),
-Referrer-Policy and Permissions-Policy (`next.config.ts`). Do not weaken CSP.
-
-## 4. Scheduled jobs
-
-Messages no longer require a server (manual-link mode), but the daily job that
-expires/creates tasks and the optional daily summary email should run:
-
-```cron
-*/15 * * * * curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://erp.visioneye.et/api/jobs/messages
-```
-
-## 5. Health & smoke
-
-```bash
-curl -fsS http://127.0.0.1:3000/login/<LOGIN_SECRET_PATH> >/dev/null
-bash scripts/smoke.sh                       # 173 checks against a running server
-npm run security:scan                       # regenerates docs/security-review.md
-```
-
-## Upgrades
-
-```bash
-npm run backup                    # always before deploying
-git pull
-npm ci
-npm run db:deploy                 # new migrations
-npm run build
-# restart the service
-```
-
-`prisma migrate deploy` is forward-only; never edit applied migrations.
-
-## Rollback
-
-Restore the pre-deploy dump (`npm run restore -- <file>`), check out the
-previous release and `npm run build`, restart. Keep the last known-good release
-directory on disk for instant switch-back.

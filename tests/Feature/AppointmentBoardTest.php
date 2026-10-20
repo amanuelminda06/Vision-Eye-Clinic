@@ -385,15 +385,23 @@ class AppointmentBoardTest extends TestCase
         $today = ClinicTime::clinicDateKey(now(), self::TZ);
         $other = ClinicTime::dateKeyAdd($today, 3);
 
-        $todayAppointment = $this->createAppointment(['dateKey' => $today]);
-        $otherAppointment = $this->createAppointment(['dateKey' => $other]);
+        // Explicit names: the faker can repeat a name inside one test, which
+        // would make the "not on this page" assertion flaky.
+        $todayAppointment = $this->createAppointment([
+            'dateKey' => $today,
+            'patient_id' => $this->createPatient(['full_name' => 'Today Patient'])->id,
+        ]);
+        $otherAppointment = $this->createAppointment([
+            'dateKey' => $other,
+            'patient_id' => $this->createPatient(['full_name' => 'Other Day Patient'])->id,
+        ]);
 
         $body = $this->actingAs($owner->fresh())
             ->get('/appointments?view=day&day='.$today)
             ->getContent();
 
-        $this->assertStringContainsString($todayAppointment->patient->full_name, $body);
-        $this->assertStringNotContainsString($otherAppointment->patient->full_name, $body);
+        $this->assertStringContainsString('Today Patient', $body);
+        $this->assertStringNotContainsString('Other Day Patient', $body);
     }
 
     public function test_an_unknown_view_falls_back_to_the_list(): void

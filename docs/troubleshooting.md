@@ -15,11 +15,11 @@ lists each bad/missing key. Fix `.env` and restart. Common causes:
 
 ## `DATABASE_URL` / connection errors
 
-- Local dev: run `npm run db:up` (embedded Postgres on `:5433`). `ECONNREFUSED`
+- Local dev: check the DB credentials in `.env` (`php artisan migrate:status`). `Connection refused`
   means it is not running.
 - Production: verify host/port/credentials and `?sslmode=require` if the server
   requires TLS. Check the database is reachable from the app host.
-- After a schema change: `npm run db:deploy`.
+- After a schema change: `php artisan migrate --force`.
 
 ## "This page does not exist" on login
 
@@ -70,7 +70,7 @@ needed to create them); open them in Excel, Calc or Google Sheets.
 
 `pg_dump not found` means the PostgreSQL client tools are not installed (the
 embedded dev database does not include them). Install `postgresql-client`
-matching the server major version or run the dump in a Postgres container. See
+matching the server major version or run the dump in a MySQL container. See
 `docs/backup-restore.md`.
 
 ## Slow lists / timeouts
@@ -88,5 +88,5 @@ volume in production.
 ## Getting help
 
 Provide: role, URL, on-screen message, timestamp, and the relevant `/audit`
-rows. For code-level issues, run `npm run typecheck && npm run lint && npm test`
+rows. For code-level issues, run `php artisan test` and `./vendor/bin/pint --test`
 and include the output.

@@ -1,8 +1,18 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Console\Commands\RunMessageJobs;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+|--------------------------------------------------------------------------
+| Scheduled work
+|--------------------------------------------------------------------------
+|
+| The Plesk cron calls `php artisan schedule:run` every five minutes
+| (a cron entry like: "every 5 minutes, cd /var/www/vision, php artisan
+| schedule:run"). The scheduled command expires the message tasks whose send
+| window has passed.
+|
+*/
+
+Schedule::command(RunMessageJobs::class)->everyFiveMinutes()->withoutOverlapping();

@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\MessageTask;
 use App\Support\Audit;
-use App\Support\ClinicTime;
 use App\Support\Messaging\MsgQueries;
 use App\Support\Patients\Csv;
 use App\Support\Settings;
 use App\Support\Xlsx;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -84,7 +83,8 @@ class MessageApiController extends Controller
      * POST /api/jobs/messages — the cron entry.
      *
      * Guarded by the `CRON_SECRET` bearer token (the Plesk cron calls it with
-     * a header, never from the browser).
+     * a header, never from the browser). The scheduled command
+     * (`php artisan schedule:run` → `messages:run-jobs`) does the same work.
      */
     public function jobs(Request $request): JsonResponse
     {
@@ -100,13 +100,9 @@ class MessageApiController extends Controller
             return response()->json(['ok' => false, 'error' => 'forbidden'], 403);
         }
 
-        $expired = MessageTask::query()
-            ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '<', ClinicTime::nowUtc())
-            ->update(['status' => MessageTask::STATUS_EXPIRED]);
+        $expired = Artisan::call('messages:run-jobs');
 
-        return response()->json(['ok' => true, 'expired' => $expired])
+        return response()->json(['ok' => true, 'output' => trim(Artisan::output())])
             ->header('Cache-Control', 'no-store');
     }
 

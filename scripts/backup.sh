@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 #
-# Back up the ERP database with pg_dump (custom format).
+# Back up the clinic database with mysqldump (gzip-compressed SQL).
 #
 #   scripts/backup.sh [output-dir]
 #
-# Requires the PostgreSQL client tools (`pg_dump`) matching the server major
-# version. The embedded dev database does NOT ship pg_dump — use a real
-# PostgreSQL install (or `docker run postgres:18 pg_dump`) for backups.
-# Retention: keeps the 14 newest dumps and deletes older ones.
+# Requires the MySQL client tools (`mysqldump`). Retention keeps the newest
+# dumps and prunes the older ones.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -20,28 +18,46 @@ if [ -f .env ]; then
   set +a
 fi
 
-: "${DATABASE_URL:?DATABASE_URL is not set (add it to .env or export it)}"
+: "${DB_DATABASE:?DB_DATABASE is not set (add it to .env or export it)}"
+: "${DB_USERNAME:?DB_USERNAME is not set (add it to .env or export it)}"
+
+DB_HOST="${DB_HOST:-127.0.0.1}"
+DB_PORT="${DB_PORT:-3306}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+
 OUT_DIR="${1:-$ROOT/backups}"
 RETENTION="${BACKUP_RETENTION:-14}"
 mkdir -p "$OUT_DIR"
 
-if ! command -v pg_dump >/dev/null 2>&1; then
-  echo "✗ pg_dump not found on PATH."
-  echo "  Install the PostgreSQL client tools (e.g. 'apt-get install postgresql-client')"
-  echo "  or run the dump inside a container that has them."
+if ! command -v mysqldump >/dev/null 2>&1; then
+  echo "✗ mysqldump not found on PATH."
+  echo "  Install the MySQL client tools (e.g. 'apt-get install mysql-client')."
   exit 1
 fi
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-FILE="$OUT_DIR/vision_erp-$STAMP.dump"
+FILE="$OUT_DIR/vision_eye_clinic-$STAMP.sql.gz"
 
-echo "• dumping to $FILE"
-pg_dump --format=custom --no-owner --no-privileges --dbname="$DATABASE_URL" --file="$FILE"
+echo "• dumping $DB_DATABASE to $FILE"
+
+MYSQL_PWD="$DB_PASSWORD" mysqldump \
+  --host="$DB_HOST" \
+  --port="$DB_PORT" \
+  --user="$DB_USERNAME" \
+  --single-transaction \
+  --quick \
+  --routines \
+  --triggers \
+  --events \
+  --default-character-set=utf8mb4 \
+  --set-gtid-purged=OFF \
+  "$DB_DATABASE" | gzip -9 > "$FILE"
+
 echo "✓ backup written: $FILE ($(du -h "$FILE" | cut -f1))"
 
 # Retention: newest N dumps kept.
 if [ "$RETENTION" -gt 0 ]; then
-  mapfile -t OLD < <(ls -1t "$OUT_DIR"/vision_erp-*.dump 2>/dev/null | tail -n +$((RETENTION + 1)))
+  mapfile -t OLD < <(ls -1t "$OUT_DIR"/vision_eye_clinic-*.sql.gz 2>/dev/null | tail -n +$((RETENTION + 1)))
   for f in "${OLD[@]:-}"; do
     [ -n "$f" ] && rm -f "$f" && echo "  pruned old backup: $f"
   done

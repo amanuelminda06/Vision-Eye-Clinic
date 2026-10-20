@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 #
-# Restore the ERP database from a pg_dump custom-format file.
+# Restore the clinic database from a mysqldump SQL file.
 #
-#   scripts/restore.sh <dump-file>        # restores into DATABASE_URL
-#   FORCE=1 scripts/restore.sh <dump>
+#   scripts/restore.sh <dump-file>        # restores into DB_DATABASE
+#   FORCE=1 scripts/restore.sh <dump>     # drops the existing tables first
 #
-# The target database must already exist and be empty (or use FORCE=1 to drop
-# and recreate the public schema first). Requires `pg_restore` (see backup.sh).
+# The target database must already exist. Requires `mysql` (see backup.sh).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -19,24 +18,37 @@ if [ -f .env ]; then
   set +a
 fi
 
-: "${DATABASE_URL:?DATABASE_URL is not set (add it to .env or export it)}"
+: "${DB_DATABASE:?DB_DATABASE is not set (add it to .env or export it)}"
+: "${DB_USERNAME:?DB_USERNAME is not set (add it to .env or export it)}"
+
+DB_HOST="${DB_HOST:-127.0.0.1}"
+DB_PORT="${DB_PORT:-3306}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+
 DUMP="${1:?usage: scripts/restore.sh <dump-file>}"
 [ -f "$DUMP" ] || { echo "✗ dump not found: $DUMP"; exit 1; }
 
-if ! command -v pg_restore >/dev/null 2>&1; then
-  echo "✗ pg_restore not found on PATH (install postgresql-client)."
+if ! command -v mysql >/dev/null 2>&1; then
+  echo "✗ mysql not found on PATH (install mysql-client)."
   exit 1
 fi
 
 if [ "${FORCE:-0}" = "1" ]; then
-  if ! command -v psql >/dev/null 2>&1; then
-    echo "✗ FORCE=1 needs psql to drop the schema."
-    exit 1
-  fi
-  echo "• FORCE=1: dropping and recreating the public schema"
-  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;'
+  echo "• FORCE=1: dropping the existing tables"
+  TABLES="$(MYSQL_PWD="$DB_PASSWORD" mysql --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USERNAME" \
+    --batch --skip-column-names -e "SELECT table_name FROM information_schema.tables WHERE table_schema='$DB_DATABASE';" || true)"
+  for t in $TABLES; do
+    MYSQL_PWD="$DB_PASSWORD" mysql --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USERNAME" \
+      "$DB_DATABASE" -e "SET FOREIGN_KEY_CHECKS=0; DROP TABLE IF EXISTS \`$t\`; SET FOREIGN_KEY_CHECKS=1;"
+  done
 fi
 
-echo "• restoring $DUMP → $DATABASE_URL"
-pg_restore --no-owner --no-privileges --clean --if-exists --dbname="$DATABASE_URL" "$DUMP"
-echo "✓ restore complete. Run migrations to confirm: npm run db:deploy"
+echo "• restoring $DUMP → $DB_DATABASE"
+gzip -dc "$DUMP" | MYSQL_PWD="$DB_PASSWORD" mysql \
+  --host="$DB_HOST" \
+  --port="$DB_PORT" \
+  --user="$DB_USERNAME" \
+  --default-character-set=utf8mb4 \
+  "$DB_DATABASE"
+
+echo "✓ restore complete. Verify with: php artisan migrate:status"
