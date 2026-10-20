@@ -32,37 +32,37 @@ class DashboardNavTest extends TestCase
     {
         $response = $this->actingAs($this->createUser(['role' => 'OWNER']))->get('/dashboard');
 
-        $response->assertSee('/revenue', false);
-        $response->assertSee('/settings', false);
-        $response->assertSee('/audit', false);
-        $response->assertSee('/staff', false);
-        $response->assertSee('/dashboard/feedback', false);
+        $response->assertSee('href="/revenue"', false);
+        $response->assertSee('href="/settings"', false);
+        $response->assertSee('href="/audit"', false);
+        $response->assertSee('href="/staff"', false);
+        $response->assertSee('href="/dashboard/feedback"', false);
     }
 
     public function test_a_receptionist_sees_the_front_desk_entries_but_not_owner_ones(): void
     {
         $response = $this->actingAs($this->createUser(['role' => 'RECEPTION']))->get('/dashboard');
 
-        $response->assertSee('/patients', false);
-        $response->assertSee('/sales', false);
-        $response->assertSee('/appointments', false);
-        $response->assertSee('/messages', false);
+        $response->assertSee('href="/patients"', false);
+        $response->assertSee('href="/sales"', false);
+        $response->assertSee('href="/appointments"', false);
+        $response->assertSee('href="/messages"', false);
 
-        $response->assertDontSee('/revenue', false);
-        $response->assertDontSee('/settings', false);
-        $response->assertDontSee('/audit', false);
-        $response->assertDontSee('/dashboard/feedback', false);
+        $response->assertDontSee('href="/revenue"', false);
+        $response->assertDontSee('href="/settings"', false);
+        $response->assertDontSee('href="/audit"', false);
+        $response->assertDontSee('href="/dashboard/feedback"', false);
     }
 
     public function test_a_staff_member_sees_only_the_schedule_and_leave_links(): void
     {
         $response = $this->actingAs($this->createUser(['role' => 'STAFF']))->get('/dashboard');
 
-        $response->assertSee('/schedule', false);
-        $response->assertSee('/leave', false);
-        $response->assertDontSee('/patients', false);
-        $response->assertDontSee('/sales', false);
-        $response->assertDontSee('/messages', false);
+        $response->assertSee('href="/schedule"', false);
+        $response->assertSee('href="/leave"', false);
+        $response->assertDontSee('href="/patients"', false);
+        $response->assertDontSee('href="/sales"', false);
+        $response->assertDontSee('href="/messages"', false);
     }
 
     public function test_the_dashboard_shows_the_users_name_and_role_label(): void

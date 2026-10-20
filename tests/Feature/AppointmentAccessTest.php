@@ -72,8 +72,8 @@ class AppointmentAccessTest extends TestCase
         $response = $this->actingAs($staff)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertDontSee('/appointments', false);
-        $response->assertDontSee('/follow-ups', false);
+        $response->assertDontSee('href="/appointments"', false);
+        $response->assertDontSee('href="/follow-ups"', false);
     }
 
     public function test_the_navigation_shows_the_boards_to_reception(): void
@@ -83,7 +83,7 @@ class AppointmentAccessTest extends TestCase
         $response = $this->actingAs($reception)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSee('/appointments', false);
-        $response->assertSee('/follow-ups', false);
+        $response->assertSee('href="/appointments"', false);
+        $response->assertSee('href="/follow-ups"', false);
     }
 }

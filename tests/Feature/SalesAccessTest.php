@@ -159,9 +159,9 @@ class SalesAccessTest extends TestCase
         $response = $this->actingAs($staff)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertDontSee('/sales', false);
-        $response->assertDontSee('/revenue', false);
-        $response->assertDontSee('/dashboard/services', false);
+        $response->assertDontSee('href="/sales"', false);
+        $response->assertDontSee('href="/revenue"', false);
+        $response->assertDontSee('href="/dashboard/services"', false);
     }
 
     public function test_the_owner_nav_shows_the_money_surfaces(): void
@@ -171,9 +171,9 @@ class SalesAccessTest extends TestCase
         $response = $this->actingAs($owner)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSee('/sales', false);
-        $response->assertSee('/revenue', false);
-        $response->assertSee('/dashboard/services', false);
+        $response->assertSee('href="/sales"', false);
+        $response->assertSee('href="/revenue"', false);
+        $response->assertSee('href="/dashboard/services"', false);
     }
 
     public function test_the_reception_nav_hides_revenue_but_shows_sales(): void
@@ -183,8 +183,8 @@ class SalesAccessTest extends TestCase
         $response = $this->actingAs($reception)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSee('/sales', false);
-        $response->assertDontSee('/revenue', false);
+        $response->assertSee('href="/sales"', false);
+        $response->assertDontSee('href="/revenue"', false);
     }
 
     public function test_a_missing_sale_is_a_404_for_the_owner(): void

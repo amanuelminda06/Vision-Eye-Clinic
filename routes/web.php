@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AppointmentExportController;
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\DailySummaryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FollowUpController;
@@ -30,9 +32,12 @@ use App\Http\Controllers\SaleVoidController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShiftTemplateController;
 use App\Http\Controllers\SiteContentController;
+use App\Http\Controllers\StaffController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -227,6 +232,31 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function ()
     Route::get('/dashboard/feedback', [SiteContentController::class, 'feedback'])->name('site.feedback');
     Route::post('/dashboard/feedback/{id}/toggle', [SiteContentController::class, 'toggleFeedback'])->name('site.feedback.toggle');
     Route::post('/dashboard/feedback/{id}/delete', [SiteContentController::class, 'destroyFeedback'])->name('site.feedback.destroy');
+
+    // Users, staff, settings, audit and the daily summary.
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/new', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{id}', [UserController::class, 'edit'])->name('users.edit');
+    Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::post('/users/{id}/status', [UserController::class, 'setStatus'])->name('users.status');
+    Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset');
+    Route::post('/users/{id}/set-password', [UserController::class, 'setPassword'])->name('users.set-password');
+
+    Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::get('/staff/new', [StaffController::class, 'create'])->name('staff.create');
+    Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
+    Route::get('/staff/{id}', [StaffController::class, 'edit'])->name('staff.edit');
+    Route::post('/staff/{id}', [StaffController::class, 'update'])->name('staff.update');
+    Route::post('/staff/{id}/status', [StaffController::class, 'setStatus'])->name('staff.status');
+
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store');
+
+    Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('/audit/export', [AuditController::class, 'export'])->name('audit.export');
+
+    Route::get('/dashboard/daily', [DailySummaryController::class, 'index'])->name('dashboard.daily');
 });
 
 /*

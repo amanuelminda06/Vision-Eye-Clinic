@@ -107,10 +107,10 @@ class HrAccessTest extends TestCase
         $response = $this->actingAs($owner)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSee('/schedule', false);
-        $response->assertSee('/leave', false);
-        $response->assertSee('/leave/inbox', false);
-        $response->assertSee('/leave/calendar', false);
+        $response->assertSee('href="/schedule"', false);
+        $response->assertSee('href="/leave"', false);
+        $response->assertSee('href="/leave/inbox"', false);
+        $response->assertSee('href="/leave/calendar"', false);
     }
 
     public function test_the_staff_nav_hides_the_inbox_and_the_calendar(): void
@@ -120,9 +120,9 @@ class HrAccessTest extends TestCase
         $response = $this->actingAs($staff)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSee('/schedule', false);
-        $response->assertSee('/leave', false);
-        $response->assertDontSee('/leave/inbox', false);
-        $response->assertDontSee('/leave/calendar', false);
+        $response->assertSee('href="/schedule"', false);
+        $response->assertSee('href="/leave"', false);
+        $response->assertDontSee('href="/leave/inbox"', false);
+        $response->assertDontSee('href="/leave/calendar"', false);
     }
 }
