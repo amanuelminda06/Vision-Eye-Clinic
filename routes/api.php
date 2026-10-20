@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MessageApiController;
 use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\PublicDoctorsController;
 use Illuminate\Support\Facades\Route;
@@ -19,3 +20,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/public/doctors', PublicDoctorsController::class)->name('public.doctors');
 
 Route::post('/public/requests', PublicBookingController::class)->name('public.requests');
+
+// The message badge — session only (no role check, like the legacy).
+Route::get('/messages/count', [MessageApiController::class, 'count'])
+    ->middleware('auth')
+    ->name('messages.count');
+
+// The cron entry for the message jobs (bearer CRON_SECRET).
+Route::post('/jobs/messages', [MessageApiController::class, 'jobs'])->name('jobs.messages');

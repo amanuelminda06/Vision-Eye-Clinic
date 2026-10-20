@@ -5,6 +5,7 @@ use App\Http\Controllers\AppointmentExportController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FollowUpController;
@@ -13,6 +14,11 @@ use App\Http\Controllers\LeaveCalendarController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LeaveDecisionController;
 use App\Http\Controllers\LeaveExportController;
+use App\Http\Controllers\MessageApiController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MessageLibraryController;
+use App\Http\Controllers\MessageReportController;
+use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientExportController;
 use App\Http\Controllers\PatientImportController;
@@ -153,6 +159,48 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
     Route::get('/follow-ups/new', [FollowUpController::class, 'create'])->name('followups.create');
     Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('followups.store');
     Route::post('/follow-ups/{id}/status', [FollowUpController::class, 'setStatus'])->name('followups.status');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Messaging (slice 6) — manual send only
+|--------------------------------------------------------------------------
+|
+| The app never transmits anything: it prepares `sms:` links the operator
+| opens on the clinic phone. The badge count and the export live in the
+| session-free API group (the badge needs a session, the export needs the
+| message role).
+|
+*/
+Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(function () {
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::post('/messages/{id}/open', [MessageController::class, 'open'])->name('messages.open');
+    Route::post('/messages/{id}/sent', [MessageController::class, 'sent'])->name('messages.sent');
+    Route::post('/messages/{id}/postpone', [MessageController::class, 'postpone'])->name('messages.postpone');
+    Route::post('/messages/{id}/skip', [MessageController::class, 'skip'])->name('messages.skip');
+    Route::post('/messages/{id}/edit', [MessageController::class, 'edit'])->name('messages.edit');
+
+    Route::get('/messages/drafts', [MessageLibraryController::class, 'drafts'])->name('messages.drafts');
+    Route::post('/messages/drafts', [MessageLibraryController::class, 'storeDraft'])->name('messages.drafts.store');
+    Route::post('/messages/drafts/{id}/delete', [MessageLibraryController::class, 'destroyDraft'])->name('messages.drafts.destroy');
+
+    Route::get('/messages/library', [MessageLibraryController::class, 'index'])->name('messages.library');
+    Route::post('/messages/library', [MessageLibraryController::class, 'store'])->name('messages.library.store');
+    Route::post('/messages/library/{id}/toggle', [MessageLibraryController::class, 'toggle'])->name('messages.library.toggle');
+
+    Route::get('/messages/campaigns', [CampaignController::class, 'index'])->name('messages.campaigns');
+    Route::get('/messages/campaigns/new', [CampaignController::class, 'create'])->name('messages.campaigns.new');
+    Route::post('/messages/campaigns', [CampaignController::class, 'store'])->name('messages.campaigns.store');
+    Route::get('/messages/campaigns/{id}', [CampaignController::class, 'show'])->name('messages.campaigns.show');
+    Route::post('/messages/campaigns/{id}/batches/{batchId}', [CampaignController::class, 'batch'])->name('messages.campaigns.batch');
+});
+
+// Template editing, reports and the export: OWNER only.
+Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function () {
+    Route::get('/messages/templates', [MessageTemplateController::class, 'index'])->name('messages.templates');
+    Route::post('/messages/templates', [MessageTemplateController::class, 'store'])->name('messages.templates.store');
+    Route::get('/messages/reports', [MessageReportController::class, 'index'])->name('messages.reports');
+    Route::get('/messages/export', [MessageApiController::class, 'export'])->name('messages.export');
 });
 
 /*

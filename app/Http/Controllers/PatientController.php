@@ -9,6 +9,7 @@ use App\Models\Tag;
 use App\Support\Appointments\ApptQueries;
 use App\Support\Audit;
 use App\Support\Messaging\MessageTasks;
+use App\Support\Messaging\MsgQueries;
 use App\Support\Patients\PatientImport;
 use App\Support\Patients\PatientQueries;
 use App\Support\Patients\PatientTabs;
@@ -175,6 +176,7 @@ class PatientController extends Controller
         $sickRows = SickLeaveQueries::listForPatient($patient->id);
         $patientSales = SaleQueries::listPatientSales($patient->id);
         $patientAppointments = ApptQueries::listPatientAppointments($patient->id);
+        $patientMessages = MsgQueries::listPatientMessages($patient->id);
         $editId = (string) $request->query('edit', '');
         $editing = $editId !== '' ? $sickRows->firstWhere('id', $editId) : null;
 
