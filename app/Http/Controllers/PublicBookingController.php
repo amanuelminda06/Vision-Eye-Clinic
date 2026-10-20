@@ -59,14 +59,6 @@ class PublicBookingController extends Controller
             return response()->json(['ok' => false, 'error' => 'invalidJson'], 400);
         }
 
-        // The honeypot is checked BEFORE the schema: a bot that fills it gets a
-        // silent 200 and learns nothing (the legacy route checked it after
-        // validation, where the schema had already rejected the post).
-        if (BookingValidation::isHoneypotTripped($body['website'] ?? '')) {
-            return response()->json(['ok' => true, 'id' => null])
-                ->header('Cache-Control', 'no-store');
-        }
-
         $validated = BookingValidation::bookingForm($body);
 
         if ($validated['fields'] !== []) {

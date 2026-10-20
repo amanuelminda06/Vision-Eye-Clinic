@@ -9,7 +9,6 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FollowUpController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaveCalendarController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LeaveDecisionController;
@@ -23,6 +22,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientExportController;
 use App\Http\Controllers\PatientImportController;
 use App\Http\Controllers\PatientSickLeaveController;
+use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleExportController;
@@ -31,6 +31,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ShiftTemplateController;
+use App\Http\Controllers\SiteContentController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,7 +45,25 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+/*
+|--------------------------------------------------------------------------
+| Public website (slice 7) — no session, no patient data, no prices
+|--------------------------------------------------------------------------
+|
+| The public set is exactly `/`, `/about`, `/services`, `/doctors`, `/book`,
+| `/contact`, `/faq` and `/privacy` (plus the sitemap and robots files).
+|
+*/
+Route::get('/', [PublicSiteController::class, 'home'])->name('site.home');
+Route::get('/about', [PublicSiteController::class, 'about'])->name('site.about');
+Route::get('/services', [PublicSiteController::class, 'services'])->name('site.services');
+Route::get('/doctors', [PublicSiteController::class, 'doctors'])->name('site.doctors');
+Route::get('/book', [PublicSiteController::class, 'book'])->name('site.book');
+Route::get('/contact', [PublicSiteController::class, 'contact'])->name('site.contact');
+Route::get('/faq', [PublicSiteController::class, 'faq'])->name('site.faq');
+Route::get('/privacy', [PublicSiteController::class, 'privacy'])->name('site.privacy');
+Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])->name('site.sitemap');
+Route::get('/robots.txt', [PublicSiteController::class, 'robots'])->name('site.robots');
 
 // Secret-path login. Wrong secret → real 404 (scanners learn nothing).
 Route::get('/login/{secret}', [LoginController::class, 'show'])->name('login');
@@ -201,6 +220,13 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function ()
     Route::post('/messages/templates', [MessageTemplateController::class, 'store'])->name('messages.templates.store');
     Route::get('/messages/reports', [MessageReportController::class, 'index'])->name('messages.reports');
     Route::get('/messages/export', [MessageApiController::class, 'export'])->name('messages.export');
+
+    // The website CMS + the feedback moderation.
+    Route::get('/dashboard/content', [SiteContentController::class, 'index'])->name('site.content');
+    Route::post('/dashboard/content', [SiteContentController::class, 'store'])->name('site.content.store');
+    Route::get('/dashboard/feedback', [SiteContentController::class, 'feedback'])->name('site.feedback');
+    Route::post('/dashboard/feedback/{id}/toggle', [SiteContentController::class, 'toggleFeedback'])->name('site.feedback.toggle');
+    Route::post('/dashboard/feedback/{id}/delete', [SiteContentController::class, 'destroyFeedback'])->name('site.feedback.destroy');
 });
 
 /*

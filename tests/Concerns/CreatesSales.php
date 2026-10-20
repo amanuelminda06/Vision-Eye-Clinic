@@ -15,6 +15,12 @@ trait CreatesSales
 {
     protected function createService(array $overrides = []): Service
     {
+        // `name` and `name_en` are kept in sync on every real write (the
+        // legacy invariant), so the fixture does the same.
+        if (isset($overrides['name']) && ! isset($overrides['name_en'])) {
+            $overrides['name_en'] = $overrides['name'];
+        }
+
         return Service::factory()->create($overrides);
     }
 

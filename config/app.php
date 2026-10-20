@@ -54,6 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /** The public site's absolute base URL (used for canonicals and the sitemap). */
+    'public_base_url' => env('PUBLIC_BASE_URL', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

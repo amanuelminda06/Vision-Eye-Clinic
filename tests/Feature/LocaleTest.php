@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Support\PublicSite\Content;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use Tests\TestCase;
@@ -48,7 +49,13 @@ class LocaleTest extends TestCase
 
     public function test_amharic_copy_is_rendered_through_the_catalog(): void
     {
-        $this->get('/?lang=am')->assertSee(__('app.name', [], 'am'));
+        // The public catalog renders the Amharic clinic name (site.clinicNameAm)
+        // and the Amharic hero headline.
+        $response = $this->get('/?lang=am');
+
+        $response->assertOk();
+        $response->assertSee(__('site.clinicNameAm', [], 'am'));
+        $response->assertSee(Content::DEFAULT_CONTENT['hero_title']['am']);
     }
 
     public function test_the_locale_cookie_is_set_for_a_valid_language(): void

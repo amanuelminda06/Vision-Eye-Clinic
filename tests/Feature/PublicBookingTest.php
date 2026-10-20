@@ -213,16 +213,18 @@ class PublicBookingTest extends TestCase
         $response->assertJsonPath('fields.preferredDate', 'pastSlot');
     }
 
-    public function test_a_filled_honeypot_is_silently_dropped(): void
+    public function test_a_filled_honeypot_is_rejected_as_spam(): void
     {
         $this->createDoctor();
 
+        // The booking schema runs BEFORE the honeypot drop, so a filled
+        // honeypot is a 422 (spec §3.4/§11.2) — the silent-drop branch only
+        // exists on the feedback route.
         $response = $this->postJson('/api/public/requests', $this->payload(['website' => 'http://spam.example']));
 
-        $response->assertOk();
-        $response->assertJsonPath('ok', true);
-        $response->assertJsonPath('id', null);
-        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        $response->assertStatus(422);
+        $response->assertJsonPath('error', 'validationError');
+        $response->assertJsonPath('fields.website', 'spam');
 
         $this->assertSame(0, Appointment::query()->count());
         $this->assertSame(0, Patient::query()->count());

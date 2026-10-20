@@ -3,6 +3,8 @@
 use App\Http\Controllers\MessageApiController;
 use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\PublicDoctorsController;
+use App\Http\Controllers\PublicFeedbackController;
+use App\Http\Controllers\PublicImageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +22,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/public/doctors', PublicDoctorsController::class)->name('public.doctors');
 
 Route::post('/public/requests', PublicBookingController::class)->name('public.requests');
+
+Route::post('/public/feedback', PublicFeedbackController::class)->name('public.feedback');
+
+// The two narrow public image routes (uploaded blobs are never exposed
+// directly — only through these, gated by the publication flags).
+Route::get('/public/doctors/{id}/photo', [PublicImageController::class, 'doctorPhoto'])
+    ->name('public.doctors.photo');
+
+Route::get('/public/services/{id}/image', [PublicImageController::class, 'serviceImage'])
+    ->name('public.services.image');
 
 // The message badge — session only (no role check, like the legacy).
 Route::get('/messages/count', [MessageApiController::class, 'count'])
