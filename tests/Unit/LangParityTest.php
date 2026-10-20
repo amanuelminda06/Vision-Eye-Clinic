@@ -109,8 +109,8 @@ class LangParityTest extends TestCase
         sort($enKeys);
         sort($amKeys);
         $this->assertSame($enKeys, $amKeys);
-        $this->assertCount(1200, $en);
-        $this->assertCount(1200, $am);
+        $this->assertCount(1237, $en);
+        $this->assertCount(1237, $am);
     }
 
     public function test_every_leaf_is_a_non_empty_string_in_both_locales(): void
@@ -137,7 +137,7 @@ class LangParityTest extends TestCase
         sort($phpNamespaces);
 
         $this->assertSame($jsonNamespaces, $phpNamespaces);
-        $this->assertCount(25, $phpNamespaces);
+        $this->assertCount(26, $phpNamespaces);
     }
 
     public function test_placeholders_use_legacy_curly_brace_style(): void

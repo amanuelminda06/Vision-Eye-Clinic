@@ -14,6 +14,9 @@
         $messageCount = in_array($currentRole, [\App\Support\Roles::OWNER, \App\Support\Roles::RECEPTION], true)
             ? \App\Support\MessageBadge::count()
             : 0;
+        $requestCount = in_array($currentRole, [\App\Support\Roles::OWNER, \App\Support\Roles::RECEPTION], true)
+            ? \App\Support\RequestBadge::count()
+            : 0;
         $navModules = \App\Support\Nav::visibleFor($currentRole);
         $roleLabelKey = 'common.role'.ucfirst(strtolower($currentRole));
     @endphp
@@ -65,7 +68,7 @@
     <div class="flex">
         {{-- Sidebar (w-56, sticky under header) --}}
         <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-56 shrink-0 overflow-y-auto border-r border-brand-200 bg-white p-3 md:block">
-            @include('partials.nav', ['modules' => $navModules, 'messageCount' => $messageCount])
+            @include('partials.nav', ['modules' => $navModules, 'messageCount' => $messageCount, 'requestCount' => $requestCount])
         </aside>
 
         <main class="min-w-0 flex-1 p-4 md:p-6">
@@ -83,7 +86,7 @@
     <div id="nav-drawer" class="fixed inset-0 z-40 hidden md:hidden" data-open="false">
         <div class="absolute inset-0 bg-slate-900/40" data-drawer-close aria-label="{{ __('common.close') }}"></div>
         <nav class="absolute left-0 top-0 h-full w-64 overflow-y-auto bg-white p-3 shadow-xl" aria-label="{{ __('nav.menu') }}">
-            @include('partials.nav', ['modules' => $navModules, 'messageCount' => $messageCount])
+            @include('partials.nav', ['modules' => $navModules, 'messageCount' => $messageCount, 'requestCount' => $requestCount])
             <form method="POST" action="{{ route('logout') }}" class="mt-4">
                 @csrf
                 <button type="submit" class="btn-danger w-full">{{ __('common.signOut') }}</button>

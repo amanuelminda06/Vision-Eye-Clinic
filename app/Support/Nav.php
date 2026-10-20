@@ -42,6 +42,7 @@ final class Nav
                     ['labelKey' => 'nav.revenue', 'href' => '/revenue', 'roles' => self::ROLE_OWNER, 'badge' => null],
                     ['labelKey' => 'nav.appointments', 'href' => '/appointments', 'roles' => self::ROLE_OR, 'badge' => null],
                     ['labelKey' => 'nav.followUps', 'href' => '/follow-ups', 'roles' => self::ROLE_OR, 'badge' => null],
+                    ['labelKey' => 'nav.requests', 'href' => '/requests', 'roles' => self::ROLE_OR, 'badge' => 'requests'],
                 ],
             ],
             [

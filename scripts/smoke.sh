@@ -98,6 +98,28 @@ contains "robots.txt blocks /api" "/api/" "$WORK/robots.txt"
 get "$BASE/sitemap.xml" "$WORK/sitemap.xml"
 contains "sitemap lists /services" "/services" "$WORK/sitemap.xml"
 
+# ── Amharic pages ───────────────────────────────────────────────────────────
+# Every public page must render in Amharic (?lang=am sets the locale cookie).
+am_page() { # am_page <path> <amharic-title>
+  local path="$1" needle="$2"
+  local out="$WORK/am$(printf '%s' "$path" | tr '/' '_').html"
+  local status
+
+  status="$(curl -s -o "$out" -w '%{http_code}' "$BASE$path?lang=am")"
+
+  check "amharic $path → 200" 200 "$status"
+  contains "amharic $path renders in Amharic" "$needle" "$out"
+}
+
+am_page "/" "የቪዥን የዓይን ክሊኒክ"
+am_page "/about" "ስለ እኛ"
+am_page "/services" "የዓይን ህክምና አገልግሎቶች"
+am_page "/doctors" "የዓይን ሐኪሞቻችን"
+am_page "/book" "ቀጠሮ ይያዙ"
+am_page "/contact" "ያግኙን"
+am_page "/faq" "በተደጋጋሚ የሚጠየቁ ጥያቄዎች"
+am_page "/privacy" "የግላኊነት ፖሊሲ"
+
 # ── Login hygiene ───────────────────────────────────────────────────────────
 check "/login (no secret) → 404" 404 "$(code "$BASE/login")"
 check "/login/<wrong secret> → 404" 404 "$(code "$BASE/login/not-the-secret")"
@@ -112,7 +134,7 @@ absent "doctors feed leaks no phone" "phoneE164" "$WORK/doctors.json"
 JAR="$WORK/owner.jar"
 login "$JAR" "$OWNER_EMAIL" "$OWNER_PASSWORD"
 
-for path in /dashboard /patients /sales /appointments /follow-ups /schedule /leave /leave/inbox /messages /users /staff /settings /audit /revenue /dashboard/daily /dashboard/services /dashboard/content /dashboard/feedback; do
+for path in /dashboard /patients /sales /appointments /follow-ups /requests /schedule /leave /leave/inbox /messages /users /staff /settings /audit /revenue /dashboard/daily /dashboard/services /dashboard/content /dashboard/feedback; do
   check "owner $path → 200" 200 "$(code "$BASE$path" "$JAR")"
 done
 
@@ -137,6 +159,12 @@ contains "settings renders" "Settings" "$WORK/settings.html"
 
 get "$BASE/audit" "$WORK/audit.html" "$JAR"
 contains "audit viewer renders" "Audit" "$WORK/audit.html"
+
+# The ERP is bilingual too.
+get "$BASE/dashboard?lang=am" "$WORK/dashboard-am.html" "$JAR"
+contains "amharic ERP dashboard renders" "ዳሽቦርድ" "$WORK/dashboard-am.html"
+contains "amharic ERP sidebar shows the requests" "የቀጠሮ ጥያቄዎች" "$WORK/dashboard-am.html"
+
 
 # ── Exports ─────────────────────────────────────────────────────────────────
 get "$BASE/patients/export?format=csv" "$WORK/patients.csv" "$JAR"

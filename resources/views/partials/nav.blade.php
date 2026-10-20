@@ -10,12 +10,12 @@
                     <span class="transition-transform group-open:rotate-90" aria-hidden="true">›</span>
                 </summary>
                 <div class="mt-1 space-y-0.5">
-                    @include('partials.nav-items', ['items' => $module['items'], 'messageCount' => $messageCount])
+                    @include('partials.nav-items', ['items' => $module['items'], 'messageCount' => $messageCount, 'requestCount' => $requestCount])
                 </div>
             </details>
         @else
             <div class="space-y-0.5">
-                @include('partials.nav-items', ['items' => $module['items'], 'messageCount' => $messageCount])
+                @include('partials.nav-items', ['items' => $module['items'], 'messageCount' => $messageCount, 'requestCount' => $requestCount])
             </div>
         @endif
     </div>

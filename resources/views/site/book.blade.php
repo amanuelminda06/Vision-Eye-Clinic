@@ -162,10 +162,8 @@ window.bookingSuccessBodyGeneric = {!! Js::from(__('site.book.successBodyGeneric
             if (result.status === 200 && result.body.ok) {
                 form.classList.add('hidden');
                 success.classList.remove('hidden');
-                var appt = result.body.appointment || {};
-                successBody.textContent = appt.date
-                    ? window.bookingSuccessBody.replace('{date}', appt.date).replace('{time}', appt.time).replace('{doctor}', appt.doctor)
-                    : window.bookingSuccessBodyGeneric;
+                // A request is filed, not confirmed — the front desk calls back.
+                successBody.textContent = window.bookingSuccessBody || window.bookingSuccessBodyGeneric;
                 return;
             }
 

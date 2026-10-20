@@ -45,7 +45,7 @@ class NavTest extends TestCase
         $this->assertContains('/audit', $hrefs);
         $this->assertContains('/patients', $hrefs);
         $this->assertContains('/messages', $hrefs);
-        $this->assertCount(19, $hrefs);
+        $this->assertCount(20, $hrefs);
     }
 
     public function test_reception_sees_frontdesk_sections_but_not_owner_only_ones(): void

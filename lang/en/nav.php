@@ -19,6 +19,7 @@ return [
     'leaveInbox' => 'Leave approvals',
     'leaveCalendar' => 'Leave calendar',
     'appointments' => 'Appointments',
+    'requests' => 'Appointment requests',
     'followUps' => 'Follow-ups',
     'messages' => 'Messages',
     'websiteContent' => 'Website content',

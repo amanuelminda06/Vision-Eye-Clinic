@@ -25,6 +25,7 @@ use App\Http\Controllers\PatientExportController;
 use App\Http\Controllers\PatientImportController;
 use App\Http\Controllers\PatientSickLeaveController;
 use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\RequestController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleExportController;
@@ -197,6 +198,12 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
     Route::get('/follow-ups/new', [FollowUpController::class, 'create'])->name('followups.create');
     Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('followups.store');
     Route::post('/follow-ups/{id}/status', [FollowUpController::class, 'setStatus'])->name('followups.status');
+
+    // The website request queue: a public booking is a request, never an
+    // appointment, until somebody here converts it.
+    Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
+    Route::post('/requests/{id}/convert', [RequestController::class, 'convert'])->name('requests.convert');
+    Route::post('/requests/{id}/status', [RequestController::class, 'setStatus'])->name('requests.status');
 });
 
 /*

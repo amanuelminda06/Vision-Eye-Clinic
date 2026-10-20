@@ -19,6 +19,7 @@ return [
     'leaveInbox' => 'የፍቃድ ማጽደቂያ',
     'leaveCalendar' => 'የፍቃድ ቀን መቁጠሪያ',
     'appointments' => 'ቀጠሮዎች',
+    'requests' => 'የቀጠሮ ጥያቄዎች',
     'followUps' => 'ተከታታይ ክትትል',
     'messages' => 'መልእክቶች',
     'websiteContent' => 'የድህረ ገጽ ይዘት',
