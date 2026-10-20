@@ -78,9 +78,48 @@ directory a web request may reach.
 
 ---
 
+### Option P — the Plesk Git + Laravel deployment task (what this repo is set up for)
+
+Plesk's **Laravel** application type clones the repository itself and runs
+Composer for you. Two things must be right, or the task fails exactly like
+it does with the wrong branch:
+
+| Setting | Where | Value |
+| --- | --- | --- |
+| Repository URL | Domains → your-domain → **Git** | `https://github.com/amanuelminda06/Vision-Eye-Clinic.git` |
+| **Branch** | Domains → your-domain → **Git** | **`laravel`** — the Laravel rebuild. The `main` branch still holds the legacy Next.js code and has **no `composer.json`**, so the task reports *"composer.json is invalid"*. |
+| Document root | Domains → your-domain → **Document Root** | `<domain-root>/public` — never the project root |
+| PHP version | Domains → your-domain → **PHP Settings** | **8.3 or newer** (the `composer.json` requires `^8.3`) |
+| PHP extensions | Domains → your-domain → **PHP Settings** | `pdo_mysql`, `mbstring`, `bcmath`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo` |
+
+Then **Deploy** again. The task clones the branch, runs `composer install`
+(`composer.lock` is committed, so the host runs exactly the tested dependency
+set) and configures the Laravel app.
+
+After the task succeeds, finish by hand — it does not do these:
+
+```bash
+cd /httpdocs                       # or whatever your document root is
+cp .env.example .env
+php artisan key:generate
+chmod 640 .env
+# edit .env (section 5), then:
+php artisan migrate --force
+php artisan db:seed --force
+chown -R <plesk-ftp-user>:<plesk-ftp-user> storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+php artisan optimize:clear
+```
+
+> If the task still clones the wrong branch, set **laravel** as the default
+> branch in GitHub (Settings → Branches → Default branch) — or ask the
+> hosting administrator to change the branch in the Git settings above.
+
+---
+
 ## 4. Install the dependencies
 
-Two options — pick one.
+Two options — pick one (skipped when you use the Plesk Git task above).
 
 ### Option A — install on the host (needs Composer + SSH/terminal)
 
@@ -152,7 +191,7 @@ php artisan db:seed --force
 
 The production seed creates **only**:
 
-- the 17 clinic settings,
+- the 19 clinic settings,
 - one doctor staff row (`Dr. Abebe Kebede`),
 - the **six real services** (General Eye Care, Eye Examination for Glasses,
   Glasses Making and Sales, Special Eye Exam…, Children's Eye Exam, Minor Eye
@@ -327,7 +366,7 @@ Work top to bottom. Everything in **Critical** must pass.
 - [ ] The cron job (`php artisan schedule:run`) is scheduled and `schedule:list`
       shows the entry.
 - [ ] `scripts/smoke.sh` passes.
-- [ ] `php artisan test` is green on the same commit (940 tests).
+- [ ] `php artisan test` is green on the same commit (1051 tests).
 
 ### Important
 
