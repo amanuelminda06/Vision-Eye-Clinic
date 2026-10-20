@@ -240,6 +240,27 @@ class ShellAdminTest extends TestCase
         ]);
     }
 
+    public function test_the_settings_form_renders_with_the_working_hours(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        // The working_hours value is an array — the form must render it without
+        // passing an array to the escaping helper.
+        Setting::create([
+            'key' => 'working_hours',
+            'value' => [
+                'mon' => ['open' => '08:00', 'close' => '17:00', 'closed' => false],
+                'sun' => ['open' => '08:00', 'close' => '12:00', 'closed' => true],
+            ],
+        ]);
+
+        $response = $this->actingAs($owner)->get('/settings');
+
+        $response->assertOk();
+        $response->assertSee('name="working_hours[mon][open]"', false);
+        $response->assertSee('name="working_hours[sun][closed]"', false);
+    }
+
     public function test_an_invalid_setting_is_refused(): void
     {
         $owner = $this->createUser(['role' => Roles::OWNER]);

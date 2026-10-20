@@ -107,7 +107,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'consultation',
             'price' => '300.00',
             'displayOrder' => 1,
-            'imageUrl' => '/services/general-eye-care.png',
+            'imageUrl' => '/images/services/general-eye-care.png',
         ],
         [
             'nameEn' => 'Eye Examination for Glasses (Modern Equipment)',
@@ -115,7 +115,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'diagnostics',
             'price' => '500.00',
             'displayOrder' => 2,
-            'imageUrl' => '/services/eye-examination-glasses.png',
+            'imageUrl' => '/images/services/eye-examination-glasses.png',
         ],
         [
             'nameEn' => 'Glasses Making and Sales',
@@ -123,7 +123,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'optical',
             'price' => '1500.00',
             'displayOrder' => 3,
-            'imageUrl' => '/services/glasses-making-sales.png',
+            'imageUrl' => '/images/services/glasses-making-sales.png',
         ],
         [
             'nameEn' => 'Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients',
@@ -131,7 +131,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'specialist',
             'price' => '400.00',
             'displayOrder' => 4,
-            'imageUrl' => '/services/specialist-diabetes-bp.png',
+            'imageUrl' => '/images/services/specialist-diabetes-bp.png',
             'receiptLabelEn' => 'Specialist eye check-up',
             'receiptLabelAm' => 'ልዩ የዓይን ክትትል',
         ],
@@ -141,7 +141,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'specialist',
             'price' => '400.00',
             'displayOrder' => 5,
-            'imageUrl' => '/services/children-eye-exam.png',
+            'imageUrl' => '/images/services/children-eye-exam.png',
         ],
         [
             'nameEn' => 'Minor Eye Surgery',
@@ -149,7 +149,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'surgery',
             'price' => '5000.00',
             'displayOrder' => 6,
-            'imageUrl' => '/services/minor-eye-surgery.png',
+            'imageUrl' => '/images/services/minor-eye-surgery.png',
         ],
     ];
 

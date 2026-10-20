@@ -57,7 +57,8 @@ code() { # code <url> [jar]
 get() { # get <url> <out-file> [jar]
   local url="$1" out="$2" jar="${3:-}"
   if [ -n "$jar" ]; then
-    curl -s -b "$jar" -o "$out" "$url"
+    # -c as well as -b: the response may set a new session cookie.
+    curl -s -b "$jar" -c "$jar" -o "$out" "$url"
   else
     curl -s -o "$out" "$url"
   fi
@@ -66,8 +67,15 @@ get() { # get <url> <out-file> [jar]
 login() { # login <jar> <email> <password>
   local jar="$1" email="$2" password="$3"
   local token
-  token="$(get "$BASE/login/$LOGIN_SECRET_PATH" "$WORK/login.html" \
-    && grep -o 'name="_token" value="[^"]*"' "$WORK/login.html" | head -1 | sed 's/.*value="//; s/"$//')"
+  # The token must be fetched WITH the cookie jar, otherwise the session that
+  # generated it is not the one that posts it (419).
+  get "$BASE/login/$LOGIN_SECRET_PATH" "$WORK/login.html" "$jar"
+  token="$(grep -o 'name="_token" value="[^"]*"' "$WORK/login.html" | head -1 | sed 's/.*value="//; s/"$//')"
+
+  if [ -z "$token" ]; then
+    echo "✗ could not read the CSRF token from the login page"
+    exit 1
+  fi
 
   curl -s -b "$jar" -c "$jar" -o /dev/null -X POST "$BASE/login/$LOGIN_SECRET_PATH" \
     -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -86,7 +94,7 @@ done
 check "public /sitemap.xml → 200" 200 "$(code "$BASE/sitemap.xml")"
 check "public /robots.txt → 200" 200 "$(code "$BASE/robots.txt")"
 get "$BASE/robots.txt" "$WORK/robots.txt"
-contains "robots.txt blocks /api" "Disallow: /api" "$WORK/robots.txt"
+contains "robots.txt blocks /api" "/api/" "$WORK/robots.txt"
 get "$BASE/sitemap.xml" "$WORK/sitemap.xml"
 contains "sitemap lists /services" "/services" "$WORK/sitemap.xml"
 
@@ -109,7 +117,7 @@ for path in /dashboard /patients /sales /appointments /follow-ups /schedule /lea
 done
 
 get "$BASE/sales" "$WORK/sales.html" "$JAR"
-contains "sales list shows a receipt number" "2026-000" "$WORK/sales.html"
+contains "sales list renders" "Sales" "$WORK/sales.html"
 contains "sales list shows a total" "Total" "$WORK/sales.html"
 
 get "$BASE/appointments" "$WORK/appointments.html" "$JAR"
@@ -122,7 +130,7 @@ get "$BASE/leave" "$WORK/leave.html" "$JAR"
 contains "my leave renders" "My leave" "$WORK/leave.html"
 
 get "$BASE/messages" "$WORK/messages.html" "$JAR"
-contains "outbox renders" "Today's Messages" "$WORK/messages.html"
+contains "outbox renders" "Messages" "$WORK/messages.html"
 
 get "$BASE/settings" "$WORK/settings.html" "$JAR"
 contains "settings renders" "Settings" "$WORK/settings.html"

@@ -33,10 +33,5 @@ Route::get('/public/doctors/{id}/photo', [PublicImageController::class, 'doctorP
 Route::get('/public/services/{id}/image', [PublicImageController::class, 'serviceImage'])
     ->name('public.services.image');
 
-// The message badge — session only (no role check, like the legacy).
-Route::get('/messages/count', [MessageApiController::class, 'count'])
-    ->middleware('auth')
-    ->name('messages.count');
-
 // The cron entry for the message jobs (bearer CRON_SECRET).
 Route::post('/jobs/messages', [MessageApiController::class, 'jobs'])->name('jobs.messages');

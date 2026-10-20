@@ -161,6 +161,20 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function ()
 
 /*
 |--------------------------------------------------------------------------
+| Session-backed API routes
+|--------------------------------------------------------------------------
+|
+| The message badge needs the signed-in session, so it lives in the `web`
+| group (the `api` group has no session). No role check — every signed-in
+| user may poll their own badge.
+|
+*/
+Route::middleware(['auth', 'password.changed'])
+    ->get('/api/messages/count', [MessageApiController::class, 'count'])
+    ->name('messages.count');
+
+/*
+|--------------------------------------------------------------------------
 | Appointments + follow-ups (slice 5) — OWNER + RECEPTION only
 |--------------------------------------------------------------------------
 |

@@ -54,20 +54,20 @@
             <section class="card space-y-3 p-4">
                 <h2 class="text-sm font-semibold text-slate-800">{{ __('settings.workingHours') }}</h2>
 
-                @foreach (['mon' => 'dayMon', 'tue' => 'dayTue', 'wed' => 'dayWed', 'thu' => 'dayThu', 'fri' => 'dayFri', 'sat' => 'daySat', 'sun' => 'daySun'] as $day => $labelKey)
-                    @php $day = $dayHours($day); @endphp
+                @foreach (['mon' => 'dayMon', 'tue' => 'dayTue', 'wed' => 'dayWed', 'thu' => 'dayThu', 'fri' => 'dayFri', 'sat' => 'daySat', 'sun' => 'daySun'] as $dayKey => $labelKey)
+                    @php $day = $dayHours($dayKey); @endphp
                     <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-4">
                         <div>
-                            <label class="label text-xs" for="hours-{{ $day }}-open">{{ __('settings.'.$labelKey) }}</label>
+                            <label class="label text-xs" for="hours-{{ $dayKey }}-open">{{ __('settings.'.$labelKey) }}</label>
                             <div class="flex items-center gap-2">
-                                <input class="input-field w-28 text-sm" id="hours-{{ $day }}-open" name="working_hours[{{ $day }}][open]" type="time" value="{{ $day['open'] }}">
+                                <input class="input-field w-28 text-sm" id="hours-{{ $dayKey }}-open" name="working_hours[{{ $dayKey }}][open]" type="time" value="{{ $day['open'] }}">
                                 <span class="text-xs text-slate-500">{{ __('settings.close') }}</span>
-                                <input class="input-field w-28 text-sm" name="working_hours[{{ $day }}][close]" type="time" value="{{ $day['close'] }}">
+                                <input class="input-field w-28 text-sm" name="working_hours[{{ $dayKey }}][close]" type="time" value="{{ $day['close'] }}">
                             </div>
                         </div>
                         <div class="sm:col-span-3 flex items-center pb-1">
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" name="working_hours[{{ $day }}][closed]" value="true" @checked($day['closed'])>
+                                <input type="checkbox" name="working_hours[{{ $dayKey }}][closed]" value="true" @checked($day['closed'])>
                                 {{ __('settings.closed') }}
                             </label>
                         </div>

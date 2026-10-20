@@ -53,7 +53,7 @@ return [
     'displayOrder' => 'Display order',
     'displayOrderHint' => 'Lower numbers appear first on the website.',
     'imageUrl' => 'Image path',
-    'imageUrlHint' => 'Optional image shown on the website (e.g. /services/general-eye-care.png).',
+    'imageUrlHint' => 'Optional image shown on the website (e.g. /images/services/general-eye-care.png).',
     'image' => 'Image file',
     'imageHint' => 'PNG, JPEG or WebP, up to 2 MB. Replaces the image path above.',
     'toBeProvided' => 'To be provided',
