@@ -60,8 +60,20 @@ class DatabaseSeeder extends Seeder
         'patient_sick_leave_enabled' => false,
     ];
 
+    /** The account credentials the seed needs (email key, password key). */
+    private const ACCOUNT_ENV = [
+        ['OWNER_EMAIL', 'OWNER_PASSWORD'],
+        ['RECEPTION_EMAIL', 'RECEPTION_PASSWORD'],
+        ['STAFF_EMAIL', 'STAFF_PASSWORD'],
+    ];
+
     public function run(): void
     {
+        // Validate the account credentials BEFORE anything is written: a
+        // half-seeded database (settings and a doctor, but no services) is
+        // worse than a clean failure.
+        $this->assertAccountCredentials();
+
         $this->seedSettings();
         $doctor = $this->seedDoctor();
         $this->seedUsers($doctor);
@@ -69,6 +81,29 @@ class DatabaseSeeder extends Seeder
         $this->seedMessageTemplates();
 
         $this->command?->info('Seeded settings, staff, services, message templates and accounts (no demo data).');
+    }
+
+    /**
+     * Fails fast when the three account credentials are missing or invalid.
+     *
+     * Same checks and the same messages as the user creation itself — only
+     * earlier, so a bad .env leaves NOTHING half-seeded. The values are never
+     * echoed, only the NAME of the offending key.
+     */
+    private function assertAccountCredentials(): void
+    {
+        foreach (self::ACCOUNT_ENV as [$emailKey, $passwordKey]) {
+            $email = mb_strtolower(trim((string) env($emailKey)));
+            $password = (string) env($passwordKey);
+
+            if (! preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) {
+                throw new \RuntimeException("{$emailKey} must be a valid email address.");
+            }
+
+            if (strlen($password) < 6) {
+                throw new \RuntimeException("{$passwordKey} must be at least 6 characters.");
+            }
+        }
     }
 
     /** Settings only ever create missing keys — admin edits are never overwritten. */

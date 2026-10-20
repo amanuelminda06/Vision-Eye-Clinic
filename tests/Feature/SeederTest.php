@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\MessageTemplate;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Staff;
@@ -215,6 +216,41 @@ class SeederTest extends TestCase
     public function test_a_too_short_seed_password_fails_fast(): void
     {
         $this->assertSeederRejectsInvalidEnv('STAFF_PASSWORD', 'short', 'STAFF_PASSWORD must be at least 6 characters.');
+    }
+
+    public function test_a_bad_env_leaves_nothing_half_seeded(): void
+    {
+        $hadServer = array_key_exists('OWNER_PASSWORD', $_SERVER);
+        $hadEnv = array_key_exists('OWNER_PASSWORD', $_ENV);
+        $prevServer = $_SERVER['OWNER_PASSWORD'] ?? null;
+        $prevEnv = $_ENV['OWNER_PASSWORD'] ?? null;
+
+        $_SERVER['OWNER_PASSWORD'] = '';
+        $_ENV['OWNER_PASSWORD'] = '';
+
+        try {
+            (new DatabaseSeeder)->run();
+            $this->fail('The seeder must reject the empty password.');
+        } catch (\RuntimeException) {
+            // The credentials are checked BEFORE anything is written.
+            $this->assertSame(0, Setting::count());
+            $this->assertSame(0, Staff::count());
+            $this->assertSame(0, Service::count());
+            $this->assertSame(0, User::count());
+            $this->assertSame(0, MessageTemplate::count());
+        } finally {
+            if ($hadServer) {
+                $_SERVER['OWNER_PASSWORD'] = $prevServer;
+            } else {
+                unset($_SERVER['OWNER_PASSWORD']);
+            }
+
+            if ($hadEnv) {
+                $_ENV['OWNER_PASSWORD'] = $prevEnv;
+            } else {
+                unset($_ENV['OWNER_PASSWORD']);
+            }
+        }
     }
 
     /**
