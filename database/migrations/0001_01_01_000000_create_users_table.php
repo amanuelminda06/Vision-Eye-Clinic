@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -103,11 +104,25 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->string('key')->unique();               // path-traversal-safe key
             $table->string('mime_type');
-            $table->addColumn('mediumblob', 'data');       // <= 2 MB uploads
             $table->dateTimeTz('created_at')->nullable()->useCurrent();
 
             $table->index('created_at');
         });
+
+        // The blob must hold a photo (the validation caps them at 1 MiB, the
+        // round trip is tested with 3 MB).
+        //
+        // Laravel has NO `mediumblob` column type: `addColumn('mediumblob', …)`
+        // silently falls back to `blob` — 64 KB on MySQL, which is far too
+        // small (and SQLite hides the problem because its BLOB has no limit).
+        // So the column is added with the exact type per driver.
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `stored_files` ADD COLUMN `data` MEDIUMBLOB NOT NULL');
+        } else {
+            Schema::table('stored_files', function (Blueprint $table) {
+                $table->binary('data');
+            });
+        }
     }
 
     public function down(): void

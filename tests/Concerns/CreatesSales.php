@@ -7,6 +7,7 @@ namespace Tests\Concerns;
 use App\Models\Sale;
 use App\Models\SaleLine;
 use App\Models\Service;
+use App\Support\Money;
 
 /**
  * Builds service/sale fixtures for feature tests.
@@ -28,13 +29,18 @@ trait CreatesSales
     {
         $sale = Sale::factory()->create($overrides);
 
+        $lineTotals = [];
+
         foreach ($lines as $line) {
             $service = $line['service'];
             $qty = (int) ($line['qty'] ?? 1);
             $unit = isset($line['unitPrice'])
-                ? (float) $line['unitPrice']
-                : (float) $service->current_price;
-            $lineTotal = round($unit * $qty, 2);
+                ? (string) $line['unitPrice']
+                : (string) $service->current_price;
+
+            // Money, never float arithmetic: MySQL returns a DECIMAL sum as a
+            // STRING and SQLite as a float, so the helpers must accept both.
+            $lineTotal = Money::multiplyMoney($unit, $qty);
 
             SaleLine::create([
                 'sale_id' => $sale->id,
@@ -44,14 +50,13 @@ trait CreatesSales
                 'unit_price' => $unit,
                 'line_total' => $lineTotal,
             ]);
+
+            $lineTotals[] = ['unitPrice' => $unit, 'quantity' => $qty];
         }
 
         if ($lines !== []) {
             $sale->forceFill([
-                'total' => round(
-                    SaleLine::query()->where('sale_id', $sale->id)->sum('line_total'),
-                    2,
-                ),
+                'total' => Money::sumLineTotals($lineTotals),
             ])->save();
         }
 

@@ -112,7 +112,13 @@ return new class extends Migration
             $table->ulid('campaign_batch_id')->nullable();
             $table->dateTimeTz('created_at')->nullable()->useCurrent();
 
-            $table->unique(['source_type', 'source_id', 'template_key', 'patient_id']);
+            // The idempotency tuple. The name is explicit: Laravel's default
+            // ("message_tasks_source_type_source_id_template_key_patient_id_unique")
+            // is 66 characters and MySQL's identifier limit is 64.
+            $table->unique(
+                ['source_type', 'source_id', 'template_key', 'patient_id'],
+                'msg_task_idempotency_unique',
+            );
             $table->index(['status', 'due_at']);
             $table->index(['patient_id', 'created_at']);
             $table->index('campaign_id');
