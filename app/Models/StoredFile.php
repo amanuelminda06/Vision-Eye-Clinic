@@ -21,11 +21,4 @@ class StoredFile extends Model
     protected $fillable = ['key', 'mime_type', 'data'];
 
     protected $hidden = ['data'];
-
-    protected function casts(): array
-    {
-        return [
-            'data' => 'binary',
-        ];
-    }
 }

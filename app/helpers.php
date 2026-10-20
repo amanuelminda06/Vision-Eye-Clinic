@@ -34,6 +34,38 @@ if (! function_exists('__t')) {
     }
 }
 
+if (! function_exists('field_error')) {
+    /**
+     * Translate a stored error KEY for display.
+     *
+     * Legacy split the two sources explicitly: field-level issues live under
+     * `validation.*` (rendered by PatientForm's `tv()` helper) while global
+     * action failures live under `common.*` (rendered by ActionError). Our
+     * controllers store the bare key in the error bag, so this resolves the
+     * validation catalog first and falls back to `common.*` for the shared
+     * global keys (noFile, phoneTaken, unknownError, …). Unknown keys render
+     * as-is rather than printing a namespace prefix.
+     */
+    function field_error(?string $key): string
+    {
+        if ($key === null || $key === '') {
+            return '';
+        }
+
+        $validation = "validation.{$key}";
+        if (trans()->has($validation)) {
+            return __($validation);
+        }
+
+        $common = "common.{$key}";
+        if (trans()->has($common)) {
+            return __($common);
+        }
+
+        return $key;
+    }
+}
+
 if (! function_exists('login_path')) {
     /** The ONLY login URL: /login/<LOGIN_SECRET_PATH> (legacy loginPath). */
     function login_path(): string
