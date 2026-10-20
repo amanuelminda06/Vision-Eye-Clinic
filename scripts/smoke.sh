@@ -100,25 +100,48 @@ contains "sitemap lists /services" "/services" "$WORK/sitemap.xml"
 
 # ── Amharic pages ───────────────────────────────────────────────────────────
 # Every public page must render in Amharic (?lang=am sets the locale cookie).
-am_page() { # am_page <path> <amharic-title>
-  local path="$1" needle="$2"
-  local out="$WORK/am$(printf '%s' "$path" | tr '/' '_').html"
-  local status
+#
+# The expected strings are read from lang/am/*.php so a translation change
+# never breaks the check (and no Ethiopic literal has to be typed by hand).
+am_string() { # am_string <dotted.key>
+  php -r '
+    $parts = explode(".", $argv[1]);
+    $data = require "lang/am/".$parts[0].".php";
+    $value = $data;
+    foreach (array_slice($parts, 1) as $part) {
+      $value = is_array($value) ? ($value[$part] ?? null) : null;
+    }
+    echo is_string($value) ? $value : "";
+  ' -- "$1" 2>/dev/null
+}
+
+am_page() { # am_page <path> <lang-key>
+  local path="$1" key="$2"
+  local needle out status
+
+  needle="$(am_string "$key")"
+  out="$WORK/am$(printf '%s' "$path" | tr '/' '_').html"
 
   status="$(curl -s -o "$out" -w '%{http_code}' "$BASE$path?lang=am")"
 
   check "amharic $path → 200" 200 "$status"
+
+  if [ -z "$needle" ]; then
+    FAIL=$((FAIL+1)); echo "✗ amharic $path renders in Amharic (the key $key is unknown)"
+    return
+  fi
+
   contains "amharic $path renders in Amharic" "$needle" "$out"
 }
 
-am_page "/" "የቪዥን የዓይን ክሊኒክ"
-am_page "/about" "ስለ እኛ"
-am_page "/services" "የዓይን ህክምና አገልግሎቶች"
-am_page "/doctors" "የዓይን ሐኪሞቻችን"
-am_page "/book" "ቀጠሮ ይያዙ"
-am_page "/contact" "ያግኙን"
-am_page "/faq" "በተደጋጋሚ የሚጠየቁ ጥያቄዎች"
-am_page "/privacy" "የግላኊነት ፖሊሲ"
+am_page "/" "site.meta.homeTitle"
+am_page "/about" "site.meta.aboutTitle"
+am_page "/services" "site.meta.servicesTitle"
+am_page "/doctors" "site.meta.doctorsTitle"
+am_page "/book" "site.meta.bookTitle"
+am_page "/contact" "site.meta.contactTitle"
+am_page "/faq" "site.meta.faqTitle"
+am_page "/privacy" "site.meta.privacyTitle"
 
 # ── Login hygiene ───────────────────────────────────────────────────────────
 check "/login (no secret) → 404" 404 "$(code "$BASE/login")"
@@ -162,8 +185,8 @@ contains "audit viewer renders" "Audit" "$WORK/audit.html"
 
 # The ERP is bilingual too.
 get "$BASE/dashboard?lang=am" "$WORK/dashboard-am.html" "$JAR"
-contains "amharic ERP dashboard renders" "ዳሽቦርድ" "$WORK/dashboard-am.html"
-contains "amharic ERP sidebar shows the requests" "የቀጠሮ ጥያቄዎች" "$WORK/dashboard-am.html"
+contains "amharic ERP dashboard renders" "$(am_string nav.dashboard)" "$WORK/dashboard-am.html"
+contains "amharic ERP sidebar shows the requests" "$(am_string nav.requests)" "$WORK/dashboard-am.html"
 
 
 # ── Exports ─────────────────────────────────────────────────────────────────

@@ -240,7 +240,13 @@ BASE=https://clinic.example.com bash scripts/smoke.sh
 ```
 
 The script logs in through the secret path and checks the ERP screens, the
-public pages, the exports and the API contracts. Expect a clean run.
+public pages, the exports and the API contracts. Expect a clean run
+(69 checks).
+
+It also checks that **every public page renders in Amharic** (`?lang=am`) —
+the expected strings are read from `lang/am/*.php`, so a translation change
+never breaks the check. Run it from the repository root (the script reads the
+lang files and needs the `php` CLI).
 
 Manual spot-checks:
 
