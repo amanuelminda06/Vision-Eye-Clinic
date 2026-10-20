@@ -95,6 +95,33 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
 
 /*
 |--------------------------------------------------------------------------
+| Sales — OWNER-only surfaces (revenue, void inbox, service catalogue)
+|--------------------------------------------------------------------------
+|
+| This group is registered BEFORE the OWNER+RECEPTION group so that
+| `/sales/voids` is not shadowed by `/sales/{id}`. RECEPTION and STAFF hitting
+| these routes are redirected to /403 (wrong role on a GET).
+|
+*/
+Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function () {
+    Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
+
+    Route::get('/sales/voids', [SaleVoidController::class, 'index'])->name('sales.voids');
+    Route::post('/sales/{id}/void', [SaleVoidController::class, 'void'])->name('sales.void');
+    Route::post('/sales/{id}/void-approve', [SaleVoidController::class, 'approve'])->name('sales.void-approve');
+    Route::post('/sales/{id}/void-reject', [SaleVoidController::class, 'reject'])->name('sales.void-reject');
+
+    // Service catalogue (prices) is OWNER-only.
+    Route::get('/dashboard/services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/dashboard/services/new', [ServiceController::class, 'create'])->name('services.create');
+    Route::post('/dashboard/services', [ServiceController::class, 'store'])->name('services.store');
+    Route::get('/dashboard/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+    Route::post('/dashboard/services/{id}', [ServiceController::class, 'update'])->name('services.update');
+    Route::post('/dashboard/services/{id}/status', [ServiceController::class, 'setActive'])->name('services.status');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Sales (slice 3) — OWNER + RECEPTION only, server-side gated
 |--------------------------------------------------------------------------
 |
@@ -111,27 +138,8 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
     Route::get('/sales/new', [SaleController::class, 'create'])->name('sales.create');
     Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
 
-    // Void inbox is OWNER-only (see the group below); the request route lives
-    // here so RECEPTION can file one.
+    // Filing a void request is allowed for RECEPTION too (the OWNER reviews it).
     Route::post('/sales/{id}/void-request', [SaleVoidController::class, 'request'])->name('sales.void-request');
 
     Route::get('/sales/{id}', [SaleController::class, 'show'])->name('sales.show');
-});
-
-// Revenue + direct voids/approvals: OWNER only.
-Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function () {
-    Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
-
-    Route::get('/sales/voids', [SaleVoidController::class, 'index'])->name('sales.voids');
-    Route::post('/sales/{id}/void', [SaleVoidController::class, 'void'])->name('sales.void');
-    Route::post('/sales/{id}/void-approve', [SaleVoidController::class, 'approve'])->name('sales.void-approve');
-    Route::post('/sales/{id}/void-reject', [SaleVoidController::class, 'reject'])->name('sales.void-reject');
-
-    // Service catalogue (prices) is OWNER-only.
-    Route::get('/dashboard/services', [ServiceController::class, 'index'])->name('services.index');
-    Route::get('/dashboard/services/new', [ServiceController::class, 'create'])->name('services.create');
-    Route::post('/dashboard/services', [ServiceController::class, 'store'])->name('services.store');
-    Route::get('/dashboard/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
-    Route::post('/dashboard/services/{id}', [ServiceController::class, 'update'])->name('services.update');
-    Route::post('/dashboard/services/{id}/status', [ServiceController::class, 'setActive'])->name('services.status');
 });

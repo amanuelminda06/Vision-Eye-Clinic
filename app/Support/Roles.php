@@ -116,6 +116,80 @@ final class Roles
     }
 
     // -----------------------------------------------------------------------
+    // HR predicates (src/modules/hr/roles.ts)
+    // -----------------------------------------------------------------------
+
+    /** @var list<string> HR_MANAGE_ROLES — creating/editing shifts and templates. */
+    public const HR_MANAGE_ROLES = [self::OWNER];
+
+    /** @var list<string> HR_LEAVE_ROLES — requesting leave. */
+    public const HR_LEAVE_ROLES = [self::OWNER, self::RECEPTION, self::STAFF];
+
+    /** @var list<string> HR_OWNER_ROLES — deciding leave. */
+    public const HR_OWNER_ROLES = [self::OWNER];
+
+    /** @var list<string> HR_TEAM_LEAVE_ROLES — team leave calendar. */
+    public const HR_TEAM_LEAVE_ROLES = [self::OWNER, self::RECEPTION];
+
+    /** @var list<string> HR_VIEW_ROLES — viewing the schedule / own leave. */
+    public const HR_VIEW_ROLES = [self::OWNER, self::RECEPTION, self::STAFF];
+
+    /** Only the OWNER manages the schedule. */
+    public static function canManageSchedule(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
+
+    /** OWNER + RECEPTION see the whole team schedule; STAFF only themselves. */
+    public static function canViewTeamSchedule(?string $role): bool
+    {
+        return $role === self::OWNER || $role === self::RECEPTION;
+    }
+
+    /** OWNER + RECEPTION see the team leave calendar; STAFF only their own. */
+    public static function canViewTeamLeave(?string $role): bool
+    {
+        return $role === self::OWNER || $role === self::RECEPTION;
+    }
+
+    /** Only the OWNER approves or rejects a leave request. */
+    public static function canDecideLeave(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
+
+    /** Only the OWNER enters leave on behalf of another staff member. */
+    public static function canRequestForOthers(?string $role): bool
+    {
+        return $role === self::OWNER;
+    }
+
+    /**
+     * Segregation of duties: nobody may decide their own leave.
+     */
+    public static function isSelfApproval(?string $actorStaffId, string $requestStaffId): bool
+    {
+        return $actorStaffId !== null && $actorStaffId !== '' && $actorStaffId === $requestStaffId;
+    }
+
+    /**
+     * Cancellation: the requester may cancel their own still-pending request;
+     * once approved (or for anyone else's request) only the OWNER may cancel.
+     */
+    public static function canCancelLeave(?string $role, bool $isSelf, string $status): bool
+    {
+        if ($status === 'CANCELLED' || $status === 'REJECTED') {
+            return false;
+        }
+
+        if ($role === self::OWNER) {
+            return true;
+        }
+
+        return $isSelf && $status === 'REQUESTED';
+    }
+
+    // -----------------------------------------------------------------------
     // Sales predicates (src/modules/sales/roles.ts + src/modules/services/roles.ts)
     // -----------------------------------------------------------------------
 

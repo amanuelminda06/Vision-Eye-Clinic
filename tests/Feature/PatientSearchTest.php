@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Patient;
+use App\Models\Sale;
+use App\Models\SaleLine;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesPatients;
@@ -134,14 +137,29 @@ class PatientSearchTest extends TestCase
         $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
     }
 
-    public function test_sales_and_appointments_stay_empty_for_now(): void
+    public function test_the_sales_group_matches_a_receipt_number(): void
     {
-        $this->createPatient(['full_name' => 'Almaz Tesfaye']);
+        $owner = $this->owner();
+        $service = Service::factory()->create(['name' => 'Eye Consultation', 'name_en' => 'Eye Consultation']);
+        $sale = Sale::factory()->create([
+            'created_by' => $owner->id,
+            'receipt_number' => '2026-004242',
+        ]);
+        SaleLine::create([
+            'sale_id' => $sale->id,
+            'service_id' => $service->id,
+            'service_name_snapshot' => $service->name,
+            'qty' => 1,
+            'unit_price' => '300.00',
+            'line_total' => '300.00',
+        ]);
 
-        $this->actingAs($this->owner())
-            ->getJson('/api/search?q=Almaz')
+        $this->actingAs($owner->fresh())
+            ->getJson('/api/search?q=004242')
             ->assertOk()
-            ->assertJsonPath('sales', [])
+            ->assertJsonPath('sales.0.title', '2026-004242')
+            ->assertJsonPath('sales.0.href', "/sales/{$sale->id}")
+            // Appointments stay empty until their slice lands.
             ->assertJsonPath('appointments', []);
     }
 

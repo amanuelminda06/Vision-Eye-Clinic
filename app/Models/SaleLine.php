@@ -16,6 +16,9 @@ class SaleLine extends Model
 
     protected $table = 'sale_lines';
 
+    /** The Prisma model has no createdAt/updatedAt on sale lines. */
+    public $timestamps = false;
+
     protected $fillable = [
         'sale_id',
         'service_id',

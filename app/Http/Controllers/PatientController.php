@@ -16,6 +16,7 @@ use App\Support\Patients\SickLeaveQueries;
 use App\Support\Patients\TagColors;
 use App\Support\Phone;
 use App\Support\Roles;
+use App\Support\Sales\SaleQueries;
 use App\Support\Settings;
 use App\Support\Storage;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -171,6 +172,7 @@ class PatientController extends Controller
         $payload = PatientTabs::load($tab, $patient->id);
 
         $sickRows = SickLeaveQueries::listForPatient($patient->id);
+        $patientSales = SaleQueries::listPatientSales($patient->id);
         $editId = (string) $request->query('edit', '');
         $editing = $editId !== '' ? $sickRows->firstWhere('id', $editId) : null;
 
@@ -180,6 +182,7 @@ class PatientController extends Controller
             'payload' => $payload,
             'allTags' => PatientQueries::listAllTags(),
             'sickRows' => $sickRows,
+            'patientSales' => $patientSales,
             'editing' => $editing,
             'timezone' => Settings::timezone(),
         ]);

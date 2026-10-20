@@ -137,6 +137,11 @@
                         'timezone' => $timezone,
                         'today' => $today,
                     ])
+                @elseif ($tab === 'sales')
+                    @include('patients.partials.sales', [
+                        'sales' => $patientSales,
+                        'timezone' => $timezone,
+                    ])
                 @else
                     <div class="card p-5 text-sm text-slate-500">{{ __('patients.tabEmpty') }}</div>
                 @endif

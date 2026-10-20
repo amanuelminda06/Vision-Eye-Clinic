@@ -7,13 +7,13 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use App\Support\Audit;
 use App\Support\Money;
-use App\Support\Roles;
 use App\Support\Services\Categories;
 use App\Support\Services\ServiceQueries;
 use App\Support\Services\ServiceValidation;
 use App\Support\Storage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -257,7 +257,7 @@ class ServiceController extends Controller
             abort(422);
         }
 
-        $key = 'service-'.(string) \Illuminate\Support\Str::ulid().'.'.$ext;
+        $key = 'service-'.(string) Str::ulid().'.'.$ext;
         Storage::put($key, (string) file_get_contents($file->getRealPath()));
 
         return '/uploads/'.$key;

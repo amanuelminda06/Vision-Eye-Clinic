@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Support\Audit;
 use App\Support\ClinicTime;
 use App\Support\Patients\Csv;
-use App\Support\Roles;
 use App\Support\Sales\Constants;
 use App\Support\Sales\SaleQueries;
 use App\Support\Settings;
@@ -40,16 +39,16 @@ class SaleExportController extends Controller
         $rows = SaleQueries::listSalesForExport($filters, $tz);
 
         $format = (string) $request->query('format', 'csv') === 'xlsx' ? 'xlsx' : 'csv';
-        $stem = 'sales-'.$todayKey;
+        $filename = 'sales-'.gmdate('Y-m-d').'.csv';
 
         Audit::write('sale', 'export', 'EXPORTED', null, array_merge(
-            array_filter($filters, fn ($value): bool => $value !== '' && $value !== 0 && $value !== null && $value !== 1),
+            $filters,
             ['format' => $format],
         ), ['id' => $actor->id, 'name' => $actor->name]);
 
         $tableRows = array_map(fn (array $row): array => [
             $row['receiptNumber'],
-            $row['saleDate']->format('c'),
+            $row['saleDate']?->toIso8601String() ?? '',
             $row['patient']['fullName'] ?? '',
             $row['doctor']['fullName'] ?? '',
             $row['paymentMethod'],
@@ -61,25 +60,33 @@ class SaleExportController extends Controller
 
         if ($format === 'xlsx') {
             $bytes = Xlsx::toXlsx([[
-                'name' => 'Sales',
+                'name' => 'sales',
                 'headers' => self::COLUMNS,
                 'rows' => $tableRows,
             ]]);
 
-            return response($bytes, 200, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="'.$stem.'.xlsx"',
-                'Cache-Control' => 'no-store',
-            ]);
+            return response($bytes, 200, self::downloadHeaders(
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                preg_replace('/\.csv$/', '.xlsx', $filename),
+            ));
         }
 
-        $csv = Csv::toCsv(self::COLUMNS, $tableRows);
+        return response(Csv::toCsv(self::COLUMNS, $tableRows), 200, self::downloadHeaders(
+            'text/csv; charset=utf-8',
+            $filename,
+        ));
+    }
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="'.$stem.'.csv"',
+    /**
+     * @return array<string, string>
+     */
+    private static function downloadHeaders(string $contentType, string $filename): array
+    {
+        return [
+            'Content-Type' => $contentType,
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'Cache-Control' => 'no-store',
-        ]);
+        ];
     }
 
     /**

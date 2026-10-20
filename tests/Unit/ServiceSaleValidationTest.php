@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use App\Support\Sales\Constants;
 use App\Support\Sales\SaleValidation;
 use App\Support\Services\ServiceValidation;
 use PHPUnit\Framework\TestCase;
@@ -170,7 +171,7 @@ class ServiceSaleValidationTest extends TestCase
     public function test_more_lines_than_the_cap_are_rejected(): void
     {
         $values = $this->validSale();
-        $values['lines'] = array_fill(0, \App\Support\Sales\Constants::MAX_SALE_LINES + 1, ['serviceId' => 's', 'qty' => 1]);
+        $values['lines'] = array_fill(0, Constants::MAX_SALE_LINES + 1, ['serviceId' => 's', 'qty' => 1]);
 
         $this->assertSame('tooManyLines', SaleValidation::saleForm($values)['fields']['lines']);
     }
