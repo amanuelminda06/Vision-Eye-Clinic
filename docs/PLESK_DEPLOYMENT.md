@@ -118,6 +118,12 @@ Then **Deploy** again. The task clones the branch, runs `composer install`
 (`composer.lock` is committed, so the host runs exactly the tested dependency
 set) and configures the Laravel app.
 
+The Composer step runs `artisan package:discover`, which boots the app
+**before the `.env` exists** — so the app must tolerate a missing
+`LOGIN_SECRET_PATH` there. It does: an empty value is only refused when the
+app is SERVING in production (see `App\Support\LoginSecret`). A malformed
+value is refused everywhere.
+
 After the task succeeds, finish by hand — it does not do these:
 
 ```bash

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\LoginSecret;
 use Illuminate\Database\Schema\Grammars\MySqlGrammar;
 use Illuminate\Database\Schema\Grammars\SQLiteGrammar;
 use Illuminate\Support\ServiceProvider;
@@ -29,20 +30,14 @@ class AppServiceProvider extends ServiceProvider
         MySqlGrammar::macro('typeMediumblob', fn (): string => 'mediumblob');
         SQLiteGrammar::macro('typeMediumblob', fn (): string => 'blob');
 
-        $secret = (string) config('auth.login_secret_path');
-        $valid = $secret !== ''
-            && strlen($secret) >= 8
-            && preg_match('/^[A-Za-z0-9_-]+$/', $secret) === 1;
-
-        if (! $valid) {
-            // Empty outside production only disables login (every /login path
-            // 404s); a malformed value is always a hard error, and an empty
-            // value in production is a hard error too.
-            if ($secret !== '' || app()->environment('production')) {
-                throw new \RuntimeException(
-                    'LOGIN_SECRET_PATH must be set to at least 8 characters matching [A-Za-z0-9_-].'
-                );
-            }
-        }
+        // The rule lives in App\Support\LoginSecret: a malformed value is
+        // always refused, an empty one only when the app is SERVING in
+        // production — the install and the console commands run before the
+        // .env exists and must not be blocked by it.
+        LoginSecret::assertUsable(
+            config('auth.login_secret_path'),
+            ! $this->app->runningInConsole(),
+            $this->app->environment('production'),
+        );
     }
 }
