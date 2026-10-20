@@ -6,6 +6,10 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LeaveCalendarController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\LeaveDecisionController;
+use App\Http\Controllers\LeaveExportController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientExportController;
 use App\Http\Controllers\PatientImportController;
@@ -14,8 +18,10 @@ use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleExportController;
 use App\Http\Controllers\SaleVoidController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ShiftTemplateController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -118,6 +124,46 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function ()
     Route::get('/dashboard/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::post('/dashboard/services/{id}', [ServiceController::class, 'update'])->name('services.update');
     Route::post('/dashboard/services/{id}/status', [ServiceController::class, 'setActive'])->name('services.status');
+});
+
+/*
+|--------------------------------------------------------------------------
+| HR (slice 4) — schedule, leave requests, inbox, calendar, export
+|--------------------------------------------------------------------------
+|
+| /schedule and /leave are open to every role (STAFF sees only its own rows
+| on the schedule). The team calendar is OWNER + RECEPTION, the inbox and every
+| shift/template mutation is OWNER-only.
+|
+*/
+Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION,STAFF'])->group(function () {
+    Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
+    Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
+    Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::post('/leave/{id}/cancel', [LeaveController::class, 'cancel'])->name('leave.cancel');
+    Route::get('/leave/export', LeaveExportController::class)->name('leave.export');
+});
+
+// The team leave calendar: OWNER + RECEPTION.
+Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(function () {
+    Route::get('/leave/calendar', [LeaveCalendarController::class, 'index'])->name('leave.calendar');
+});
+
+// The approval inbox and every shift/template mutation: OWNER only.
+Route::middleware(['auth', 'password.changed', 'role:OWNER'])->group(function () {
+    Route::get('/leave/inbox', [LeaveDecisionController::class, 'index'])->name('leave.inbox');
+    Route::post('/leave/{id}/approve', [LeaveDecisionController::class, 'approve'])->name('leave.approve');
+    Route::post('/leave/{id}/reject', [LeaveDecisionController::class, 'reject'])->name('leave.reject');
+
+    Route::post('/schedule/shifts', [ScheduleController::class, 'store'])->name('schedule.shifts.store');
+    Route::post('/schedule/shifts/{id}', [ScheduleController::class, 'update'])->name('schedule.shifts.update');
+    Route::post('/schedule/shifts/{id}/delete', [ScheduleController::class, 'destroy'])->name('schedule.shifts.destroy');
+
+    Route::post('/schedule/templates', [ShiftTemplateController::class, 'store'])->name('schedule.templates.store');
+    Route::post('/schedule/templates/{id}/delete', [ShiftTemplateController::class, 'destroy'])->name('schedule.templates.destroy');
+    Route::post('/schedule/templates/preview', [ShiftTemplateController::class, 'preview'])->name('schedule.templates.preview');
+    Route::post('/schedule/templates/apply', [ShiftTemplateController::class, 'apply'])->name('schedule.templates.apply');
+    Route::post('/schedule/templates/copy-last-week', [ShiftTemplateController::class, 'copyLastWeek'])->name('schedule.templates.copy');
 });
 
 /*
