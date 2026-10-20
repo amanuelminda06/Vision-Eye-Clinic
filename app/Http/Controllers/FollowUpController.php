@@ -10,6 +10,7 @@ use App\Support\Appointments\ApptValidation;
 use App\Support\Appointments\Logic;
 use App\Support\Audit;
 use App\Support\ClinicTime;
+use App\Support\Messaging\TaskGenerator;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -111,6 +112,9 @@ class FollowUpController extends Controller
             'createdFromAppointmentId' => $values['appointmentId'],
         ], ['id' => $actor->id, 'name' => $actor->name]);
 
+        // Prepare the follow-up reminder.
+        TaskGenerator::onFollowUpChanged($followUp->id);
+
         return back();
     }
 
@@ -144,6 +148,9 @@ class FollowUpController extends Controller
             ['status' => $values['status']],
             ['id' => $actor->id, 'name' => $actor->name],
         );
+
+        // Closing a follow-up cancels its pending reminder.
+        TaskGenerator::onFollowUpChanged($id);
 
         return back();
     }

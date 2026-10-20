@@ -6,12 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Support\Audit;
 use App\Support\Messaging\MsgQueries;
+use App\Support\Messaging\TaskGenerator;
 use App\Support\Patients\Csv;
 use App\Support\Settings;
 use App\Support\Xlsx;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -100,9 +100,9 @@ class MessageApiController extends Controller
             return response()->json(['ok' => false, 'error' => 'forbidden'], 403);
         }
 
-        $expired = Artisan::call('messages:run-jobs');
+        $summary = TaskGenerator::runMessageJobs();
 
-        return response()->json(['ok' => true, 'output' => trim(Artisan::output())])
+        return response()->json(['ok' => true, 'summary' => $summary])
             ->header('Cache-Control', 'no-store');
     }
 

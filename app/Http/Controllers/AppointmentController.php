@@ -16,6 +16,7 @@ use App\Support\Appointments\Logic;
 use App\Support\Audit;
 use App\Support\ClinicTime;
 use App\Support\Hr\Shifts;
+use App\Support\Messaging\TaskGenerator;
 use App\Support\Phone;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
@@ -207,6 +208,9 @@ class AppointmentController extends Controller
             'warnings' => $warnings,
         ], ['id' => $actor->id, 'name' => $actor->name]);
 
+        // Prepare the reminder / same-day / confirmation messages.
+        TaskGenerator::onAppointmentChanged($appointment->id);
+
         return back()->with('warnings', $warnings);
     }
 
@@ -266,6 +270,9 @@ class AppointmentController extends Controller
             'endsAt' => $before->ends_at?->format('Y-m-d\TH:i:s.v\Z'),
         ];
 
+        // Captured BEFORE the write: the reschedule hook needs the old instant.
+        $previousStartsAt = $before->starts_at;
+
         $before->forceFill([
             'patient_id' => $patientId,
             'doctor_id' => $doctor->id,
@@ -282,6 +289,9 @@ class AppointmentController extends Controller
             'startsAt' => $instants['startsAt']->format('Y-m-d\TH:i:s.v\Z'),
             'endsAt' => $instants['endsAt']->format('Y-m-d\TH:i:s.v\Z'),
         ], ['id' => $actor->id, 'name' => $actor->name]);
+
+        // A reschedule cancels the old reminders and prepares a versioned one.
+        TaskGenerator::onAppointmentChanged($id, $previousStartsAt);
 
         if ($clashes !== [] && $values['overrideDoubleBooking']) {
             Audit::write('Appointment', $id, 'APPOINTMENT_DOUBLE_BOOKED', null, [
@@ -338,6 +348,10 @@ class AppointmentController extends Controller
             ['status' => $to, 'cancelReason' => $to === Appointment::STATUS_CANCELLED ? $values['cancelReason'] : $appointment->cancel_reason],
             ['id' => $actor->id, 'name' => $actor->name],
         );
+
+        // A completion, a no-show or a cancellation cancels the pending
+        // reminders and prepares the matching message.
+        TaskGenerator::onAppointmentChanged($id);
 
         return back();
     }

@@ -415,7 +415,7 @@ class MessagingTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('ok', true);
-        $this->assertStringContainsString('Expired 1 message task', (string) $response->json('output'));
+        $this->assertSame(1, $response->json('summary.expired'));
 
         $this->assertSame(1, MessageTask::query()->where('status', MessageTask::STATUS_EXPIRED)->count());
     }

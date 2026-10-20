@@ -36,11 +36,15 @@ class MessageController extends Controller
     {
         $actor = $request->user();
         $tz = Settings::timezone();
+        $now = ClinicTime::nowUtc();
 
         $platform = Provider::detectPlatform($request->userAgent());
+        $groups = MsgQueries::listOutbox($now, $tz);
+        $counts = MsgQueries::countDueToday($now, $tz);
 
         return response()->view('messages.index', [
-            'rows' => MsgQueries::listDueTasks(null, $tz),
+            'groups' => $groups,
+            'counts' => $counts,
             'platform' => $platform,
             'canEditTemplates' => MsgRoles::canEditTemplates($actor->role),
             'canManageLibrary' => MsgRoles::canManageLibrary($actor->role),

@@ -18,6 +18,7 @@ use App\Models\SaleLine;
 use App\Models\Staff;
 use App\Support\ClinicTime;
 use App\Support\Settings;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -43,6 +44,120 @@ final class MsgQueries
     }
 
     /**
+     * The outbox groups (the legacy `listOutbox`).
+     *
+     * - `dueNow`     — open and due at or before now.
+     * - `laterToday` — open and due later today.
+     * - `overdue`    — open but due before the clinic day started.
+     * - `doneToday`  — sent or skipped today.
+     * - `blocked`    — the patient could not be messaged.
+     *
+     * @return array{dueNow: list<array<string, mixed>>, laterToday: list<array<string, mixed>>, overdue: list<array<string, mixed>>, doneToday: list<array<string, mixed>>, blocked: list<array<string, mixed>>}
+     */
+    public static function listOutbox(?\DateTimeInterface $now = null, ?string $timeZone = null): array
+    {
+        $now ??= ClinicTime::nowUtc();
+        $timeZone ??= Settings::timezone();
+
+        $todayKey = ClinicTime::clinicDateKey($now, $timeZone);
+        $dayStart = ClinicTime::combineDateAndTime($todayKey, '00:00', $timeZone);
+        $dayEnd = ClinicTime::endOfDay($now, $timeZone);
+
+        $rows = MessageTask::query()
+            ->with(['patient:id,full_name,phone_e164', 'campaign:id,title'])
+            ->where(function (Builder $inner) use ($dayEnd, $dayStart): void {
+                $inner->where(function (Builder $open) use ($dayEnd): void {
+                    $open->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
+                        ->where('due_at', '<', $dayEnd);
+                })->orWhere('status', MessageTask::STATUS_BLOCKED)
+                    ->orWhere(function (Builder $done) use ($dayStart, $dayEnd): void {
+                        $done->whereIn('status', [MessageTask::STATUS_SENT, MessageTask::STATUS_SKIPPED])
+                            ->where('handled_at', '>=', $dayStart)
+                            ->where('handled_at', '<', $dayEnd);
+                    });
+            })
+            ->orderBy('due_at')
+            ->take(500)
+            ->get();
+
+        $groups = [
+            'dueNow' => [],
+            'laterToday' => [],
+            'overdue' => [],
+            'doneToday' => [],
+            'blocked' => [],
+        ];
+
+        foreach ($rows as $row) {
+            $serialized = self::serializeTask($row);
+
+            if ((string) $row->status === MessageTask::STATUS_BLOCKED) {
+                $groups['blocked'][] = $serialized;
+
+                continue;
+            }
+
+            if (in_array((string) $row->status, [MessageTask::STATUS_SENT, MessageTask::STATUS_SKIPPED], true)) {
+                $groups['doneToday'][] = $serialized;
+
+                continue;
+            }
+
+            $dueAt = $row->due_at?->getTimestamp() ?? 0;
+
+            if ($dueAt < $dayStart->getTimestamp()) {
+                $groups['overdue'][] = $serialized;
+            } elseif ($dueAt <= $now->getTimestamp()) {
+                $groups['dueNow'][] = $serialized;
+            } else {
+                $groups['laterToday'][] = $serialized;
+            }
+        }
+
+        return $groups;
+    }
+
+    /**
+     * PENDING/OPENED tasks that are due now or overdue — the sidebar badge.
+     */
+    public static function countDueTasks(?\DateTimeInterface $now = null): int
+    {
+        $now ??= ClinicTime::nowUtc();
+
+        return MessageTask::query()
+            ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
+            ->where('due_at', '<=', $now)
+            ->count();
+    }
+
+    /**
+     * The dashboard banner numbers: due today and overdue.
+     *
+     * @return array{dueToday: int, overdue: int}
+     */
+    public static function countDueToday(?\DateTimeInterface $now = null, ?string $timeZone = null): array
+    {
+        $now ??= ClinicTime::nowUtc();
+        $timeZone ??= Settings::timezone();
+
+        $todayKey = ClinicTime::clinicDateKey($now, $timeZone);
+        $dayStart = ClinicTime::combineDateAndTime($todayKey, '00:00', $timeZone);
+        $dayEnd = ClinicTime::endOfDay($now, $timeZone);
+
+        return [
+            'dueToday' => MessageTask::query()
+                ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
+                ->where('due_at', '>=', $dayStart)
+                ->where('due_at', '<', $dayEnd)
+                ->count(),
+            'overdue' => MessageTask::query()
+                ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
+                ->where('due_at', '<', $dayStart)
+                ->count(),
+        ];
+    }
+
+    /**
      * The outbox: tasks due today (or still open), newest first.
      *
      * @return list<array<string, mixed>>
@@ -64,21 +179,6 @@ final class MsgQueries
             ->get();
 
         return $rows->map(fn (MessageTask $task): array => self::serializeTask($task))->all();
-    }
-
-    /**
-     * The number of tasks waiting to be sent (the sidebar badge).
-     */
-    public static function countDueTasks(?string $timeZone = null): int
-    {
-        $timeZone ??= Settings::timezone();
-        $todayKey = ClinicTime::clinicDateKey(ClinicTime::nowUtc(), $timeZone);
-        $to = ClinicTime::combineDateAndTime(ClinicTime::dateKeyAdd($todayKey, 1), '00:00', $timeZone);
-
-        return MessageTask::query()
-            ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED, MessageTask::STATUS_BLOCKED])
-            ->where('due_at', '<', $to)
-            ->count();
     }
 
     /**

@@ -4,32 +4,36 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\MessageTask;
-use App\Support\ClinicTime;
+use App\Support\Messaging\TaskGenerator;
 use Illuminate\Console\Command;
 
 /**
- * The message job: expires the tasks whose window has passed.
+ * The message job: expires the overdue tasks and prepares the automatic
+ * messages (reminders, same-day, birthday, thank-you, follow-up, recall).
  *
- * Run by the scheduler (`php artisan schedule:run`) every five minutes. The
- * HTTP endpoint `POST /api/jobs/messages` calls the same command so the
- * behaviour is identical whichever trigger the host uses.
+ * Run by the scheduler (`php artisan schedule:run`) every five minutes. It is
+ * idempotent: the unique tuple (source_type, source_id, template_key,
+ * patient_id) means a repeated run never duplicates a task.
  */
 class RunMessageJobs extends Command
 {
     protected $signature = 'messages:run-jobs';
 
-    protected $description = 'Expire the message tasks whose send window has passed';
+    protected $description = 'Expire the overdue message tasks and prepare the automatic messages';
 
     public function handle(): int
     {
-        $expired = MessageTask::query()
-            ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '<', ClinicTime::nowUtc())
-            ->update(['status' => MessageTask::STATUS_EXPIRED]);
+        $summary = TaskGenerator::runMessageJobs();
 
-        $this->info("Expired {$expired} message task(s).");
+        $this->info(sprintf(
+            'expired: %d · same-day: %d · birthdays: %d · thank-you: %d · follow-ups: %d · recalls: %d',
+            $summary['expired'],
+            $summary['sameDay'],
+            $summary['birthdays'],
+            $summary['thankYous'],
+            $summary['followUps'],
+            $summary['recalls'],
+        ));
 
         return self::SUCCESS;
     }

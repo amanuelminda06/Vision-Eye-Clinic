@@ -8,8 +8,8 @@ use App\Models\Patient;
 use App\Models\Tag;
 use App\Support\Appointments\ApptQueries;
 use App\Support\Audit;
-use App\Support\Messaging\MessageTasks;
 use App\Support\Messaging\MsgQueries;
+use App\Support\Messaging\TaskGenerator;
 use App\Support\Patients\PatientImport;
 use App\Support\Patients\PatientQueries;
 use App\Support\Patients\PatientTabs;
@@ -391,7 +391,11 @@ class PatientController extends Controller
         ])->save();
 
         if ($stop) {
+            // Opting out cancels every pending message.
             $this->cancelPendingForPatient($id);
+        } else {
+            // Consent given again: prepare the welcome message.
+            TaskGenerator::onPatientConsentGiven($id);
         }
 
         $actor = $request->user();
@@ -528,21 +532,16 @@ class PatientController extends Controller
     }
 
     /**
-     * Cancel every open message task for the patient (messaging module lands in
-     * slice 6; until then this is a no-op).
+     * Cancel every open message task for the patient (the opt-out flow).
      */
     private function cancelPendingForPatient(string $patientId): void
     {
-        if (! class_exists(MessageTasks::class)) {
-            return;
-        }
-
-        MessageTasks::cancelPendingForPatient($patientId);
+        TaskGenerator::cancelPendingForPatient($patientId);
     }
 
     /** Legacy `formatPhoneDisplay` used by views for the pre-filled phone input. */
-    public static function displayPhone(?string $e164): string
+    public static function displayPhone(?string $e64): string
     {
-        return Phone::display($e164) ?? '';
+        return Phone::display($e64) ?? '';
     }
 }
