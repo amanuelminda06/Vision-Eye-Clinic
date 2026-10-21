@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\DatabaseConfig;
 use App\Support\LoginSecret;
 use Illuminate\Database\Schema\Grammars\MySqlGrammar;
 use Illuminate\Database\Schema\Grammars\SQLiteGrammar;
@@ -38,6 +39,16 @@ class AppServiceProvider extends ServiceProvider
             config('auth.login_secret_path'),
             ! $this->app->runningInConsole(),
             $this->app->environment('production'),
+        );
+
+        // The database credentials: empty ones are refused while the app is
+        // SERVING, so the operator sees "DB_USERNAME and DB_PASSWORD are
+        // empty" instead of a PDO "Access denied for user ''" in the log.
+        DatabaseConfig::assertUsable(
+            config('database.default'),
+            config('database.connections.'.config('database.default').'.username'),
+            config('database.connections.'.config('database.default').'.password'),
+            ! $this->app->runningInConsole(),
         );
     }
 }
