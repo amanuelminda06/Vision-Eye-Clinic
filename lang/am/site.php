@@ -148,7 +148,7 @@ return [
         'callTitle' => 'ይደውሉልን',
         'visitTitle' => 'ክሊኒኩን ይጎብኙ',
         'messageTitle' => 'ይጻፉልን',
-        'mapTitle' => 'ካርታ',
+        'mapTitle' => 'እንደር ያግኙን',
         'pending' => 'ዝርዝሩ በቅርቡ ይመጣል።',
     ],
     'feedback' => [

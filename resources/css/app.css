@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -245,5 +246,24 @@ body {
     .reveal {
         opacity: 1;
         transform: none;
+    }
+}
+
+/* ── Leaflet ─────────────────────────────────────────────────────────────
+   The map must not trap the page on a phone: a ONE finger swipe scrolls the
+   page, the map is panned and zoomed with TWO fingers. Leaflet sets
+   `touch-action: none` on the container, so it is overridden here. */
+.leaflet-container {
+    background: #f1f5f9;
+    font: inherit;
+}
+
+.leaflet-container a {
+    color: #9a3412;
+}
+
+@media (pointer: coarse) {
+    .leaflet-container {
+        touch-action: pan-y !important;
     }
 }

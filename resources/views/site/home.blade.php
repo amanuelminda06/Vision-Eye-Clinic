@@ -24,6 +24,12 @@
                         <a href="{{ $tel }}" class="btn-secondary">{{ __('site.callNow') }}</a>
                     @endif
                 </div>
+
+                @if ($hero = public_asset_url('/images/hero.jpg'))
+                    <img src="{{ $hero }}" alt="" width="1200" height="630" loading="lazy" decoding="async"
+                         class="mt-6 w-full rounded-2xl border border-brand-100 object-cover"
+                         data-fallback="hide">
+                @endif
             </div>
 
             <div class="card p-5">

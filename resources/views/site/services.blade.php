@@ -22,7 +22,9 @@
                             <article class="card overflow-hidden p-0">
                                 @php $image = \App\Support\PublicSite\Format::publicServiceImageUrl($service['id'], $service['imageUrl']); @endphp
                                 @if ($image)
-                                    <img src="{{ $image }}" alt="" class="h-40 w-full object-cover">
+                                    <img src="{{ $image }}" alt="" class="h-40 w-full object-cover"
+                                         data-fallback="placeholder"
+                                         data-fallback-text="{{ mb_strtoupper(mb_substr(app()->getLocale() === 'am' ? ($service['nameAm'] ?: $service['nameEn']) : ($service['nameEn'] ?: $service['name']), 0, 1)) }}">
                                 @endif
                                 <div class="space-y-2 p-4">
                                     <h3 class="text-base font-semibold text-slate-900">

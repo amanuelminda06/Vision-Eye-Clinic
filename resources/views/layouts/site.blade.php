@@ -26,11 +26,20 @@
     <meta property="og:url" content="{{ $seo['openGraph']['url'] ?? $base }}">
     <meta property="og:locale" content="en_ET">
     <meta property="og:locale:alternate" content="am_ET">
-    <meta property="og:image" content="{{ $base }}/opengraph-image">
+    {{-- The hero image is 1200x630 — the Open Graph size. --}}
+    <meta property="og:image" content="{{ $base }}{{ public_asset_url('/images/hero.jpg') ?? '/images/hero.jpg' }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $seo['twitter']['title'] ?? '' }}">
     <meta name="twitter:description" content="{{ $seo['twitter']['description'] ?? '' }}">
+
+    {{-- Icons: a real favicon.ico plus the modern PNG sizes. --}}
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -54,9 +63,14 @@
 
     <header class="sticky top-0 z-30 border-b border-brand-200 bg-white">
         <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-            <a href="/" class="flex flex-col leading-tight">
-                <span class="text-base font-semibold text-brand-800">{{ $clinicName }}</span>
-                <span class="text-xs text-slate-500">{{ __('site.clinicNameAm') }}</span>
+            <a href="/" class="flex items-center gap-3">
+                @if ($logo = public_asset_url('/images/logo.png'))
+                    <img src="{{ $logo }}" alt="" width="120" height="62" class="h-9 w-auto" data-fallback="hide">
+                @endif
+                <span class="flex flex-col leading-tight">
+                    <span class="text-base font-semibold text-brand-800">{{ $clinicName }}</span>
+                    <span class="text-xs text-slate-500">{{ __('site.clinicNameAm') }}</span>
+                </span>
             </a>
 
             <nav class="ml-auto hidden items-center gap-1 md:flex" aria-label="{{ __('site.menuLabel') }}">

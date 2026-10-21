@@ -148,7 +148,7 @@ return [
         'callTitle' => 'Call us',
         'visitTitle' => 'Visit the clinic',
         'messageTitle' => 'Message us',
-        'mapTitle' => 'Map',
+        'mapTitle' => 'Find us',
         'pending' => 'Details coming soon.',
     ],
     'feedback' => [

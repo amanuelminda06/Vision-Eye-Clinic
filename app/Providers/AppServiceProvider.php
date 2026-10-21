@@ -6,6 +6,7 @@ use App\Support\DatabaseConfig;
 use App\Support\LoginSecret;
 use Illuminate\Database\Schema\Grammars\MySqlGrammar;
 use Illuminate\Database\Schema\Grammars\SQLiteGrammar;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +31,13 @@ class AppServiceProvider extends ServiceProvider
         // plain BLOB affinity on SQLite — neither grammar defines the type.
         MySqlGrammar::macro('typeMediumblob', fn (): string => 'mediumblob');
         SQLiteGrammar::macro('typeMediumblob', fn (): string => 'blob');
+
+        // Behind the Plesk proxy the scheme must be right, whatever the
+        // X-Forwarded-Proto header says — a wrong scheme produces http://
+        // asset URLs (mixed content) on an HTTPS site.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
 
         // The rule lives in App\Support\LoginSecret: a malformed value is
         // always refused, an empty one only when the app is SERVING in

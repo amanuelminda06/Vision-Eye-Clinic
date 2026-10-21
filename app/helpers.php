@@ -94,3 +94,35 @@ if (! function_exists('format_money')) {
         return Money::formatMoney($amount, $currency);
     }
 }
+
+if (! function_exists('public_asset_exists')) {
+    /**
+     * True when a file under public/ is really there.
+     *
+     * The public templates must never render a broken image box: an asset
+     * that is not in the repository (or that a deployment did not carry over)
+     * falls back to a placeholder or the person's initials instead.
+     */
+    function public_asset_exists(string $path): bool
+    {
+        $path = ltrim(trim($path), '/');
+
+        if ($path === '' || str_contains($path, '..')) {
+            return false;
+        }
+
+        return is_file(public_path($path));
+    }
+}
+
+if (! function_exists('public_asset_url')) {
+    /**
+     * The URL of a public asset, or null when the file is missing.
+     */
+    function public_asset_url(string $path): ?string
+    {
+        $path = '/'.ltrim(trim($path), '/');
+
+        return public_asset_exists($path) ? $path : null;
+    }
+}

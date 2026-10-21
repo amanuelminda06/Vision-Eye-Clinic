@@ -15,6 +15,16 @@
             $backup = Content::pick($locale, $content['contact_phone_backup']);
             $mapUrl = Content::pick($locale, $content['contact_map_url']);
             $telHref = Format::telHref($phone);
+
+            // The map position comes from the CMS; the Google Maps link is
+            // the fallback when the map cannot be loaded.
+            $mapLat = (float) Content::pick($locale, $content['map_lat']);
+            $mapLng = (float) Content::pick($locale, $content['map_lng']);
+            $mapZoom = (int) Content::pick($locale, $content['map_zoom']);
+
+            $googleMapsUrl = $mapUrl !== ''
+                ? $mapUrl
+                : 'https://www.google.com/maps/search/?api=1&query='.urlencode($address !== '' ? $address : $mapLat.','.$mapLng);
         @endphp
 
         <div class="mt-8 grid gap-5 sm:grid-cols-3">
@@ -62,6 +72,37 @@
                 </ul>
             </div>
         </div>
+
+        {{-- The map: OpenStreetMap tiles, no API key, no third-party script. --}}
+        <section class="mt-10">
+            @if ($mapLat !== 0.0 || $mapLng !== 0.0)
+                <h2 class="text-lg font-semibold text-slate-900">{{ __('site.contact.mapTitle') }}</h2>
+
+                <div id="site-map"
+                     class="mt-3 h-64 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+                     data-lat="{{ $mapLat }}"
+                     data-lng="{{ $mapLng }}"
+                     data-zoom="{{ $mapZoom > 0 ? $mapZoom : 15 }}"
+                     role="application"
+                     aria-label="{{ __('site.contact.mapTitle') }}"></div>
+            @endif
+
+            {{-- The address and the link are ALWAYS there: they are the
+                 fallback when the map cannot be loaded. --}}
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p class="text-sm text-slate-600">
+                    @if ($address !== '')
+                        {{ $address }}
+                    @else
+                        {{ __('site.contact.pending') }}
+                    @endif
+                </p>
+
+                <a href="{{ $googleMapsUrl }}" target="_blank" rel="noopener noreferrer" class="btn-secondary text-sm">
+                    {{ __('site.openInMaps') }}
+                </a>
+            </div>
+        </section>
 
         {{-- Feedback form --}}
         <section class="card mt-10 p-5">

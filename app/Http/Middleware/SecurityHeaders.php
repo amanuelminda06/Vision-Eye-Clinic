@@ -29,7 +29,11 @@ class SecurityHeaders
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'".($isDev ? " 'unsafe-eval'" : ''),
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob: https://tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com",
+            // The map uses ONE tile host: https://tile.openstreetmap.org
+            // (no a/b/c subdomains). The Google Maps hosts are NOT needed —
+            // the "Open in Google Maps" link is a plain navigation, not an
+            // embed — and every extra host is a hole in the policy.
+            "img-src 'self' data: blob: https://tile.openstreetmap.org",
             "font-src 'self' data:",
             "connect-src 'self'".($isDev ? ' ws: wss:' : ''),
             "object-src 'none'",

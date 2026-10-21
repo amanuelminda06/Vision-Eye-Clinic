@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrustProxies;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global: security headers (next.config.ts) + locale cookie (?lang=).
         $middleware->append(SecurityHeaders::class);
         $middleware->append(SetLocale::class);
+
+        // The reverse proxy in front of Apache (Plesk): the scheme and the
+        // client IP arrive in the X-Forwarded-* headers.
+        $middleware->prepend(TrustProxies::class);
 
         // The locale cookie is written plaintext by SetLocale (a global middleware,
         // so it runs after the web group's encrypt phase) and must read back

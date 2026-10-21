@@ -298,14 +298,33 @@ chmod 640 .env
 
 ## 8. Front-end assets
 
-The CSS/JS are **committed** under `public/build/` — upload the directory with
-the rest of the app. The host needs **no Node.js** and no build step.
+The CSS/JS are **committed** under `public/build/` — the directory travels
+with the repository. The host needs **no Node.js** and no build step.
+
+The build toolchain is back in the repository (`package.json`,
+`vite.config.js`, Tailwind v4 + Vite + Leaflet). Rebuild the assets locally
+and commit the result whenever a view, the CSS or the JS changes:
+
+```bash
+npm install
+npm run build
+git add public/build package-lock.json
+git commit -m "build: refresh the compiled assets"
+```
+
+`npm run build` writes a NEW file name for every entry (the name is hashed),
+so the old files must be removed from the repository in the same commit —
+`git add -A public/build` does that.
 
 After any front-end change (and after the first deploy):
 
 ```bash
 php artisan optimize:clear
 ```
+
+> The compiled CSS must be rebuilt whenever a **new utility class** appears in
+> a view: Tailwind only emits the classes it finds in the source. A stale
+> bundle is what makes a page look "partly broken".
 
 ---
 
@@ -342,7 +361,63 @@ php artisan schedule:list
 
 ---
 
-## 11. Post-deploy smoke test
+## 11. After EVERY Git deployment
+
+> **A Plesk Git deployment never DELETES a file that was removed from the
+> repository.** It only adds and overwrites. Every file the old Next.js app
+> left behind (the folders `public/services` and `public/doctors`, `next.svg`,
+> `vercel.svg`, `file.svg`, `globe.svg`, `window.svg`, `index.html`) therefore
+> **stays on the server** — and a folder in `public/` SHADOWS a Laravel route:
+> Apache answers `/services` from `public/services` before the framework ever
+> runs, and the page breaks with no PHP error at all.
+
+So after every deployment, run this (it is safe to run every time):
+
+```bash
+cd /var/www/vision          # or /httpdocs on Plesk
+
+php artisan public:clean-legacy   # remove the known legacy leftovers
+php artisan public:check          # fail if public/ is still broken
+php artisan optimize:clear
+php artisan migrate --force
+php artisan storage:link
+```
+
+`public:clean-legacy` deletes **only** the hard-coded list of known legacy
+entries and never touches anything else. Add `--dry-run` to see what it
+would remove first. `public:check` exits non-zero when
+
+- an entry in `public/` shadows a registered route,
+- a referenced asset is missing,
+- the built assets the Vite manifest promises are missing,
+- `favicon.ico` is missing or empty.
+
+Then **check these pages in the browser** (they are the ones a stale file can
+break):
+
+| URL | What to look for |
+| --- | --- |
+| `/` | the hero image, the CSS (brand colours), the logo |
+| `/services` | the six services — NOT a 404 from `public/services` |
+| `/doctors` | the doctors — NOT a 404 from `public/doctors` |
+| `/contact` | the map, the address, the "Open in Google Maps" link |
+| `/login/<LOGIN_SECRET_PATH>` | the login form |
+
+### Running the commands automatically
+
+Plesk → **Websites & Domains → your-domain → Git → "Additional deployment
+actions"** (the hook that runs after the pull). Set it to something like:
+
+```bash
+cd /var/www/vision && php artisan public:clean-legacy && php artisan public:check && php artisan optimize:clear && php artisan migrate --force && php artisan storage:link
+```
+
+(`public:check` exits non-zero when something is wrong, so the deployment is
+marked as failed instead of silently serving a broken page.)
+
+---
+
+## 12. Post-deploy smoke test
 
 ```bash
 # Locally or on the host (the host must reach the site):
@@ -373,7 +448,7 @@ Manual spot-checks:
 
 ---
 
-## 12. Backups
+## 13. Backups
 
 **What to back up**
 
@@ -412,7 +487,7 @@ check the row counts.
 
 ---
 
-## 13. Go-live checklist
+## 14. Go-live checklist
 
 Work top to bottom. Everything in **Critical** must pass.
 
@@ -438,6 +513,10 @@ Work top to bottom. Everything in **Critical** must pass.
       shows the entry.
 - [ ] `scripts/preflight.sh` passes (0 failed) — it checks the `.env`, the
       database, the migrations, the seed, the permissions and the scheduler.
+- [ ] `php artisan public:clean-legacy` and `php artisan public:check` pass
+      (no legacy leftovers, no route shadowing, no missing asset).
+- [ ] The home, services, doctors, contact and login pages were opened in the
+      browser after the deployment.
 - [ ] `scripts/smoke.sh` passes.
 - [ ] `php artisan test` is green on the same commit (1051 tests).
 
@@ -466,7 +545,7 @@ Work top to bottom. Everything in **Critical** must pass.
 
 ---
 
-## 14. Updating the app later
+## 15. Updating the app later
 
 ```bash
 # Locally
@@ -489,7 +568,7 @@ uploaded a new `.env` value, run `php artisan config:clear` (included in
 
 ---
 
-## 15. Troubleshooting
+## 16. Troubleshooting
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
@@ -502,5 +581,11 @@ uploaded a new `.env` value, run `php artisan config:clear` (included in
 | Totals look wrong | `bcmath` missing | Enable `bcmath` in the Plesk PHP settings |
 | Cron does not run | Wrong PHP binary path | Use the Plesk versioned binary (e.g. `/opt/plesk/php/8.3/bin/php`) |
 | Uploads 404 | `STORAGE_DRIVER=db` but the `stored_files` table is empty | Run `php artisan migrate --force` |
+| `/services` or `/doctors` 404 or 500, but the same URL works locally | A leftover folder in `public/` **shadows the route** — Apache serves it before Laravel runs | `php artisan public:clean-legacy` (a Plesk deployment never deletes the files the old app left) |
+| The page loads but looks unstyled / the hero image is missing | The compiled assets in `public/build/` are stale (Tailwind only emits the classes it finds) or missing | `npm install && npm run build`, commit `public/build/`, redeploy; `php artisan optimize:clear` |
+| The map is blank | The tile images are blocked, or the map is not initialised | Check the CSP allows `https://tile.openstreetmap.org`; check `public/build/assets/app-*.js` is not empty |
+| A bare `500` with NOTHING in the Laravel log | The `.env` cannot be parsed (an unquoted value with a space) — PHP dies before the framework starts | `php scripts/env-set.php <KEY>`, or quote the value: `DB_PASSWORD='my secret'` |
+| The site is on HTTPS but the CSS/JS URLs are `http://` | The proxy headers are not trusted | Set `TRUSTED_PROXIES` in the `.env`; the scheme is forced in production |
+| `favicon.ico` is empty / the tab shows a broken icon | The file was never committed | `php artisan public:check` reports it; the icon is in `public/favicon.ico` |
 
 More: `docs/troubleshooting.md`.

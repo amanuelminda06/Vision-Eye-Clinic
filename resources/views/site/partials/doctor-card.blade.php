@@ -19,7 +19,10 @@
 <article class="card p-4">
     <div class="flex items-center gap-3">
         @if ($photo)
-            <img src="{{ $photo }}" alt="{{ __t('site.doctors.photoAlt', ['name' => $doctor['name']]) }}" class="h-16 w-16 shrink-0 rounded-full object-cover">
+            <img src="{{ $photo }}" alt="{{ __t('site.doctors.photoAlt', ['name' => $doctor['name']]) }}"
+                 class="h-16 w-16 shrink-0 rounded-full object-cover"
+                 data-fallback="initials"
+                 data-fallback-text="{{ mb_strtoupper(mb_substr($doctor['name'], 0, 1)) }}">
         @else
             <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-semibold text-brand-700" aria-hidden="true">
                 {{ mb_strtoupper(mb_substr($doctor['name'], 0, 1)) }}
