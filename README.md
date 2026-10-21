@@ -62,6 +62,7 @@ sign-in.
 | `php scripts/convert-messages.php` | Regenerates `lang/` from `messages/*.json`. |
 | `bash scripts/preflight.sh` | The host-side pre-flight check: PHP, `.env`, the database, the migrations, the seed, the permissions, the scheduler. |
 | `php scripts/env-set.php <KEY>` | Writes a value into the `.env` with a hidden prompt and the quoting Dotenv needs (a password with a space or `#` breaks the file otherwise). |
+| `php scripts/diagnose-env.php` | Prints the state of every `.env` key (set / empty / missing — never a value) and whether Dotenv can parse the file. |
 | `bash scripts/smoke.sh` | The production smoke test against a running site. |
 | `php scripts/php-version-check.php 8.3` | Parses every PHP file **and every compiled Blade template** against the PHP 8.3 grammar. |
 | `bash scripts/backup.sh` | A gzip-compressed `mysqldump` of the database. |

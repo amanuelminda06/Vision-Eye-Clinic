@@ -157,6 +157,13 @@ It never prints the value and never puts it in the shell history. The
 equivalent for the other keys is to quote them by hand in the `.env`:
 `DB_PASSWORD='my secret'`.
 
+To see the state of the `.env` without printing a single value (which key is
+missing, which is empty, and whether Dotenv can even parse the file):
+
+```bash
+cd /httpdocs && php scripts/diagnose-env.php
+```
+
 Then run the pre-flight check — it reports EVERYTHING that is still missing
 or wrong, in one go, and never prints a secret:
 
