@@ -139,6 +139,24 @@ chmod -R 775 storage bootstrap/cache
 php artisan optimize:clear
 ```
 
+**Write the secrets with `scripts/env-set.php`, never with `sed`.** A MySQL
+password from Plesk can contain a space, a `#` or a `$`. Pasted raw into the
+`.env` an unquoted space makes **Dotenv throw while it is still loading the
+file** — the app then dies *before* Laravel starts and the web server shows a
+bare `500 Internal Server Error` with nothing in the Laravel log. The helper
+reads the value from a hidden prompt and quotes it correctly:
+
+```bash
+cd /httpdocs
+php scripts/env-set.php DB_PASSWORD      # hidden prompt, quoted safely
+php scripts/env-set.php LOGIN_SECRET_PATH
+php scripts/env-set.php OWNER_PASSWORD
+```
+
+It never prints the value and never puts it in the shell history. The
+equivalent for the other keys is to quote them by hand in the `.env`:
+`DB_PASSWORD='my secret'`.
+
 Then run the pre-flight check — it reports EVERYTHING that is still missing
 or wrong, in one go, and never prints a secret:
 
@@ -216,6 +234,12 @@ Edit `.env` and set at least:
 
 Everything else keeps its default. The full list with comments is in
 `.env.example`.
+
+> **Quote any value that contains a space, a `#` or a `$`** — e.g.
+> `DB_PASSWORD='my secret'`. An unquoted space makes Dotenv fail while it is
+> still reading the file, and the site then returns a bare `500` with nothing
+> in the Laravel log. `php scripts/env-set.php <KEY>` does it for you (hidden
+> prompt, correct quoting).
 
 > **Never commit `.env`.** It is already in `.gitignore`.
 

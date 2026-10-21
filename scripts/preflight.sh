@@ -100,6 +100,44 @@ else
     bad "APP_KEY is missing — run: php artisan key:generate"
   fi
 
+  # A value that Dotenv cannot read (an unquoted password with a space) makes
+  # the app die BEFORE Laravel starts — the web server shows a bare 500.
+  if [ -n "$PHP_BIN" ]; then
+    if ! ENV_PARSE_ERROR="$("$PHP_BIN" -r '
+      require "vendor/autoload.php";
+      $dir = sys_get_temp_dir()."/envcheck".uniqid();
+      mkdir($dir);
+      copy(".env", $dir."/.env");
+      try {
+        Dotenv\Dotenv::createImmutable($dir)->safeLoad();
+      } catch (Throwable $e) {
+        echo $e->getMessage();
+        exit(1);
+      } finally {
+        @unlink($dir."/.env");
+        @rmdir($dir);
+      }
+    ' 2>&1)"; then
+      bad "the .env cannot be parsed — the site will die with a bare 500:"
+      echo "$ENV_PARSE_ERROR" | head -3 | sed 's/^/      /'
+      echo "      Fix it with: php scripts/env-set.php <KEY>  (it quotes the value safely)"
+    else
+      ok "the .env parses"
+    fi
+
+    # An unquoted value with a space makes Dotenv fail outright.
+    while IFS= read -r line; do
+      key="${line%%=*}"
+      value="${line#*=}"
+      if [[ "$value" == "'"* || "$value" == '"'* ]]; then
+        continue
+      fi
+      if [[ "$value" == *" "* ]]; then
+        warn "$key has an unquoted space — Dotenv cannot read it. Use: php scripts/env-set.php $key"
+      fi
+    done < <(grep -E '^[A-Z0-9_]+=' .env 2>/dev/null)
+  fi
+
   # The secret login path: report the LENGTH only, never the value.
   SECRET="$(env_value LOGIN_SECRET_PATH)"
   if [ -z "$SECRET" ]; then
