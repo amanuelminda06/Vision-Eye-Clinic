@@ -60,6 +60,7 @@ sign-in.
 | `php artisan schedule:run` | The scheduler — expires the message tasks. |
 | `php artisan messages:run-jobs` | The same job, run by hand. |
 | `php scripts/convert-messages.php` | Regenerates `lang/` from `messages/*.json`. |
+| `bash scripts/preflight.sh` | The host-side pre-flight check: PHP, `.env`, the database, the migrations, the seed, the permissions, the scheduler. |
 | `bash scripts/smoke.sh` | The production smoke test against a running site. |
 | `php scripts/php-version-check.php 8.3` | Parses every PHP file **and every compiled Blade template** against the PHP 8.3 grammar. |
 | `bash scripts/backup.sh` | A gzip-compressed `mysqldump` of the database. |

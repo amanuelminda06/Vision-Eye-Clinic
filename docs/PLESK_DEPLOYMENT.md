@@ -139,6 +139,18 @@ chmod -R 775 storage bootstrap/cache
 php artisan optimize:clear
 ```
 
+Then run the pre-flight check — it reports EVERYTHING that is still missing
+or wrong, in one go, and never prints a secret:
+
+```bash
+cd /httpdocs && bash scripts/preflight.sh
+```
+
+It checks the PHP version and extensions, the `.env` keys (only whether they
+are set), the database connection, the migration state, the seed, the
+writable paths, the document root, the compiled assets and the scheduler.
+A clean run ends with `N passed, 0 failed` — that is the go-live signal.
+
 > If the task still clones the wrong branch, set **laravel** as the default
 > branch in GitHub (Settings → Branches → Default branch) — or ask the
 > hosting administrator to change the branch in the Git settings above.
@@ -393,6 +405,8 @@ Work top to bottom. Everything in **Critical** must pass.
 - [ ] The backup job is scheduled **and** a restore has been rehearsed.
 - [ ] The cron job (`php artisan schedule:run`) is scheduled and `schedule:list`
       shows the entry.
+- [ ] `scripts/preflight.sh` passes (0 failed) — it checks the `.env`, the
+      database, the migrations, the seed, the permissions and the scheduler.
 - [ ] `scripts/smoke.sh` passes.
 - [ ] `php artisan test` is green on the same commit (1051 tests).
 
