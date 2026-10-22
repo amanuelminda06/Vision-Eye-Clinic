@@ -41,12 +41,18 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
 
+    {{-- The `js` class marks that JavaScript is running. The scroll-reveal
+         styles only hide a card when it is set, so a blocked or failed
+         script never leaves the page blank. --}}
+    <script>document.documentElement.classList.add('js');</script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
     @php
         use App\Support\PublicSite\Content;
         use App\Support\PublicSite\Format;
+        use App\Support\PublicSite\MapEmbed;
         use App\Support\PublicSite\PublicQueries;
         use App\Support\PublicSite\Seo;
 
@@ -56,13 +62,59 @@
         $primaryPhone = Content::pick($locale, $siteContent['contact_phone_primary']);
         $telHref = Format::telHref($primaryPhone);
         $announcementVisible = $announcementVisible ?? false;
-        $currentPath = request()->path();
+
+        // The footer mini-map: the same Google Maps embed as the contact
+        // page, built from the CMS position. NULL when the CMS has no
+        // position — then no map is rendered.
+        $footerZoom = (int) Content::pick($locale, $siteContent['map_zoom']);
+        $footerMapUrl = MapEmbed::embedUrl(
+            (float) Content::pick($locale, $siteContent['map_lat']),
+            (float) Content::pick($locale, $siteContent['map_lng']),
+            $footerZoom > 0 ? $footerZoom : MapEmbed::DEFAULT_ZOOM,
+        );
+
+        // `Request::path()` has NO leading slash ("about") while the nav
+        // links DO ("/about") — so the "is this the current page?" test
+        // never matched and only the home link ever looked selected.
+        // Normalise once, here.
+        $currentPath = '/'.ltrim(request()->path(), '/');
+
+        // The navigation is rendered twice — the bar on wide screens and the
+        // panel on narrow ones — so the list and the "is this the current
+        // page?" test live here, once.
+        $navItems = [
+            '/' => 'navHome',
+            '/about' => 'navAbout',
+            '/services' => 'navServices',
+            '/doctors' => 'navDoctors',
+            '/contact' => 'navContact',
+            '/faq' => 'navFaq',
+        ];
+
+        // Pages that open with a full-bleed hero photograph (the home page)
+        // float the header OVER the picture: the header is fixed, transparent
+        // and frosted at the top of the page, and turns solid once the page
+        // is scrolled. Every other page gets the solid header and a body
+        // that starts below it.
+        $headerOverlay = $headerOverlay ?? false;
     @endphp
 
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">{{ __('site.skipToContent') }}</a>
 
-    <header class="sticky top-0 z-30 border-b border-brand-200 bg-white">
-        <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-4">
+    {{-- The nav bar is a light-grey PILL: `rounded-full` on a fixed `h-16`
+         turns both ends into semicircles. The header's vertical PADDING (not a
+         margin on the pill) gives the pill room to breathe — a margin would
+         collapse out of the header and the pill would overlap the page. The
+         header's horizontal padding keeps the semicircles clear of the
+         viewport edge. --}}
+    <header id="site-header"
+            class="group fixed inset-x-0 top-0 z-30 px-2 py-2.5 transition-colors duration-300 sm:px-4
+                   {{ $headerOverlay ? 'bg-transparent data-[scrolled]:bg-white' : 'bg-white' }}"
+            @if ($headerOverlay) data-scrollable @endif>
+        <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 rounded-full border px-3 transition-colors duration-300 sm:gap-4 sm:px-6
+                    {{ $headerOverlay
+                        ? 'border-white/50 bg-white/70 backdrop-blur-lg group-data-[scrolled]:border-slate-200 group-data-[scrolled]:bg-slate-100 group-data-[scrolled]:backdrop-blur-none'
+                        : 'border-slate-200 bg-slate-100' }}">
             <a href="/" class="flex min-w-0 items-center gap-3">
                 @if ($logo = public_asset_url('/images/logo.png'))
                     {{-- The logo file is 271x183 (the transparent padding is
@@ -86,17 +138,14 @@
                  not fit next to the logo and the action buttons, so the
                  mobile menu is used there instead. --}}
             <nav class="ml-auto hidden items-center gap-1 lg:flex" aria-label="{{ __('site.menuLabel') }}">
-                @foreach ([
-                    '/' => 'navHome',
-                    '/about' => 'navAbout',
-                    '/services' => 'navServices',
-                    '/doctors' => 'navDoctors',
-                    '/contact' => 'navContact',
-                    '/faq' => 'navFaq',
-                ] as $href => $key)
+                @foreach ($navItems as $href => $key)
+                    @php $isCurrent = $currentPath === $href || ($href !== '/' && str_starts_with($currentPath, $href)); @endphp
+                    {{-- The SELECTED link wears a filled chip. Every button
+                         uses the same treatment, so whichever page you are on
+                         paints its own button the same way. --}}
                     <a href="{{ $href }}"
-                       class="rounded-lg px-3 py-1.5 text-sm {{ $currentPath === $href || ($href !== '/' && str_starts_with($currentPath, $href)) ? 'border-b-2 border-orange-500 font-medium text-brand-800' : 'text-slate-600 hover:text-brand-800' }}"
-                       @if ($currentPath === $href || ($href !== '/' && str_starts_with($currentPath, $href))) aria-current="page" @endif>
+                       class="rounded-lg px-3 py-1.5 text-sm transition {{ $isCurrent ? 'bg-brand-100 font-medium text-brand-800' : 'text-slate-600 hover:bg-brand-50 hover:text-brand-800' }}"
+                       @if ($isCurrent) aria-current="page" @endif>
                         {{ __('site.'.$key) }}
                     </a>
                 @endforeach
@@ -116,25 +165,26 @@
             </div>
         </div>
 
-        <div id="site-mobile-menu" class="hidden border-t border-brand-100 bg-white px-4 py-3 lg:hidden">
+        <div id="site-mobile-menu" class="hidden bg-white px-4 pb-3 lg:hidden">
             <nav class="flex flex-col gap-1" aria-label="{{ __('site.menuLabel') }}">
-                @foreach ([
-                    '/' => 'navHome',
-                    '/about' => 'navAbout',
-                    '/services' => 'navServices',
-                    '/doctors' => 'navDoctors',
-                    '/contact' => 'navContact',
-                    '/faq' => 'navFaq',
-                ] as $href => $key)
-                    <a href="{{ $href }}" class="rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-brand-50">{{ __('site.'.$key) }}</a>
+                @foreach ($navItems as $href => $key)
+                    @php $isCurrent = $currentPath === $href || ($href !== '/' && str_starts_with($currentPath, $href)); @endphp
+                    <a href="{{ $href }}"
+                       class="rounded-lg px-3 py-2 text-sm transition {{ $isCurrent ? 'bg-brand-100 font-medium text-brand-800' : 'text-slate-700 hover:bg-brand-50' }}"
+                       @if ($isCurrent) aria-current="page" @endif>
+                        {{ __('site.'.$key) }}
+                    </a>
                 @endforeach
             </nav>
         </div>
     </header>
 
-    <main id="main">
+    <main id="main" class="{{ $headerOverlay ? '' : 'pt-[var(--site-header-h)]' }}">
         @if ($announcementVisible)
-            <div id="announcements" role="region" aria-label="{{ __('site.announcementLabel') }}" class="bg-orange-500 px-4 py-2 text-center text-sm text-white">
+            {{-- On a hero page the header floats over the picture, so the
+                 announcement sits just below it instead of behind it. --}}
+            <div id="announcements" role="region" aria-label="{{ __('site.announcementLabel') }}"
+                 class="relative z-20 bg-orange-500 px-4 py-2 text-center text-sm text-white {{ $headerOverlay ? 'mt-[var(--site-header-h)]' : '' }}">
                 {{ Content::pick($locale, $siteContent['announcement_text']) }}
             </div>
         @endif
@@ -184,6 +234,18 @@
                 @if ($telHref)
                     <a href="{{ $telHref }}" class="mt-1 inline-block text-sm text-brand-700 hover:underline">{{ $primaryPhone }}</a>
                 @endif
+
+                {{-- The mini-map: a Google Maps embed (no API key). It is
+                     lazy — the footer is at the bottom of every page. --}}
+                @if ($footerMapUrl !== null)
+                    <iframe
+                        src="{{ $footerMapUrl }}"
+                        title="{{ __('site.contact.mapTitle') }}"
+                        class="mt-3 h-28 w-full rounded-xl border border-slate-200 bg-slate-50"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen></iframe>
+                @endif
             </div>
         </div>
 
@@ -204,6 +266,21 @@
                     toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
                     menu.classList.toggle('hidden', open);
                 });
+            }
+
+            // A page that opens with a hero picture floats the header over it:
+            // transparent and frosted at the top, solid once the page scrolls.
+            var header = document.getElementById('site-header');
+            if (header && header.hasAttribute('data-scrollable')) {
+                var onScroll = function () {
+                    if (window.scrollY > 8) {
+                        header.setAttribute('data-scrolled', '');
+                    } else {
+                        header.removeAttribute('data-scrolled');
+                    }
+                };
+                onScroll();
+                window.addEventListener('scroll', onScroll, { passive: true });
             }
         })();
     </script>

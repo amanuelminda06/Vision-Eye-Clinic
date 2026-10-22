@@ -25,7 +25,7 @@
                                     ? ($service['nameAm'] ?: ($service['nameEn'] ?: $service['name']))
                                     : ($service['nameEn'] ?: $service['name']);
                             @endphp
-                            <article class="card overflow-hidden p-0">
+                            <article class="card card-hover reveal overflow-hidden p-0">
                                 @if ($image)
                                     {{-- The service images are 1200x800 — the
                                          intrinsic size reserves the space. --}}

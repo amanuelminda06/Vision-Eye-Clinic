@@ -12,6 +12,11 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
 
+    {{-- The `js` class marks that JavaScript is running. The scroll-reveal
+         styles only hide a card when it is set, so a blocked or failed
+         script never leaves the page blank. --}}
+    <script>document.documentElement.classList.add('js');</script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-[var(--background)] text-[var(--foreground)]">

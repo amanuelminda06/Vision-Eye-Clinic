@@ -16,7 +16,7 @@
     $photo = Format::publicDoctorImageUrl($doctor['id'], $doctor['photoUrl']);
 @endphp
 
-<article class="card p-4">
+<article class="card card-hover reveal p-4">
     <div class="flex items-center gap-3">
         @if ($photo)
             {{-- The doctor photos are 512x512 — the intrinsic size reserves

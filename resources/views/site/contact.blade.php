@@ -8,6 +8,7 @@
         @php
             use App\Support\PublicSite\Content;
             use App\Support\PublicSite\Format;
+            use App\Support\PublicSite\MapEmbed;
 
             $locale = app()->getLocale();
             $address = Content::pick($locale, $content['contact_address']);
@@ -22,13 +23,17 @@
             $mapLng = (float) Content::pick($locale, $content['map_lng']);
             $mapZoom = (int) Content::pick($locale, $content['map_zoom']);
 
+            // The embed URL is NULL when the CMS has no position — then the
+            // map block below is not rendered at all.
+            $mapEmbedUrl = MapEmbed::embedUrl($mapLat, $mapLng, $mapZoom > 0 ? $mapZoom : MapEmbed::DEFAULT_ZOOM);
+
             $googleMapsUrl = $mapUrl !== ''
                 ? $mapUrl
                 : 'https://www.google.com/maps/search/?api=1&query='.urlencode($address !== '' ? $address : $mapLat.','.$mapLng);
         @endphp
 
         <div class="mt-8 grid gap-5 sm:grid-cols-3">
-            <div class="card p-5">
+            <div class="card card-hover reveal p-5">
                 <h2 class="text-sm font-semibold text-slate-900">{{ __('site.contact.address') }}</h2>
                 @if ($address !== '')
                     <p class="mt-2 text-sm text-slate-600">{{ $address }}</p>
@@ -40,7 +45,7 @@
                 @endif
             </div>
 
-            <div class="card p-5">
+            <div class="card card-hover reveal p-5">
                 <h2 class="text-sm font-semibold text-slate-900">{{ __('site.contact.phone') }}</h2>
                 @if ($telHref)
                     <a href="{{ $telHref }}" class="mt-2 block text-lg font-semibold text-brand-800">{{ $phone }}</a>
@@ -60,7 +65,7 @@
                 @endif
             </div>
 
-            <div class="card p-5">
+            <div class="card card-hover reveal p-5">
                 <h2 class="text-sm font-semibold text-slate-900">{{ __('site.contact.hours') }}</h2>
                 <ul class="mt-2 space-y-1 text-sm text-slate-600">
                     @foreach ($hours as $line)
@@ -73,18 +78,18 @@
             </div>
         </div>
 
-        {{-- The map: OpenStreetMap tiles, no API key, no third-party script. --}}
+        {{-- The map: a Google Maps embed (no API key, no third-party script). --}}
         <section class="mt-10">
-            @if ($mapLat !== 0.0 || $mapLng !== 0.0)
+            @if ($mapEmbedUrl !== null)
                 <h2 class="text-lg font-semibold text-slate-900">{{ __('site.contact.mapTitle') }}</h2>
 
-                <div id="site-map"
-                     class="mt-3 h-64 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
-                     data-lat="{{ $mapLat }}"
-                     data-lng="{{ $mapLng }}"
-                     data-zoom="{{ $mapZoom > 0 ? $mapZoom : 15 }}"
-                     role="application"
-                     aria-label="{{ __('site.contact.mapTitle') }}"></div>
+                <iframe
+                    src="{{ $mapEmbedUrl }}"
+                    title="{{ __('site.contact.mapTitle') }}"
+                    class="mt-3 h-64 w-full rounded-2xl border border-slate-200 bg-slate-50"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen></iframe>
             @endif
 
             {{-- The address and the link are ALWAYS there: they are the

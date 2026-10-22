@@ -42,19 +42,23 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'none'", $csp);
     }
 
-    public function test_the_map_allows_exactly_the_openstreetmap_tile_host(): void
+    public function test_the_map_allows_exactly_the_google_maps_frame_host(): void
     {
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
 
-        // The map loads its tiles from ONE host — no a/b/c subdomains.
-        $this->assertStringContainsString("img-src 'self' data: blob: https://tile.openstreetmap.org", $csp);
+        // The map is a Google Maps <iframe>: that host is the only frame the
+        // site may load.
+        $this->assertStringContainsString("frame-src 'self' https://www.google.com", $csp);
 
-        // The "Open in Google Maps" link is a plain navigation, not an embed:
-        // no Google host needs to be allowed, and every extra host is a hole.
+        // The framed document is Google's own — it sends its own CSP — so no
+        // script, image or connection host is needed for it.
         $this->assertStringNotContainsString('maps.googleapis.com', $csp);
         $this->assertStringNotContainsString('maps.gstatic.com', $csp);
 
-        // The tile host must be the ONLY external image source.
+        // The OpenStreetMap tile host is gone with the tile map: the page
+        // loads no external image at all.
+        $this->assertStringNotContainsString('tile.openstreetmap.org', $csp);
+
         preg_match('/img-src ([^;]+)/', $csp, $matches);
         $sources = array_map('trim', explode(' ', $matches[1]));
 
@@ -63,7 +67,7 @@ class SecurityHeadersTest extends TestCase
             static fn (string $source): bool => str_contains($source, '://'),
         ));
 
-        $this->assertSame(['https://tile.openstreetmap.org'], $external);
+        $this->assertSame([], $external);
     }
 
     public function test_headers_are_also_applied_to_error_responses(): void

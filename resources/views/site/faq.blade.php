@@ -10,7 +10,7 @@
         @else
             <div class="mt-8 space-y-3">
                 @foreach ($items as $item)
-                    <details class="group card p-4">
+                    <details class="group card card-hover reveal p-4">
                         <summary class="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium text-slate-900">
                             <span>{{ $item['question'] }}</span>
                             <span class="text-lg text-brand-700 transition-transform group-open:rotate-45" aria-hidden="true">+</span>

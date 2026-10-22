@@ -9,7 +9,7 @@
 
         <div class="mt-8 grid gap-5 sm:grid-cols-3">
             @for ($i = 1; $i <= 3; $i++)
-                <div class="card p-5">
+                <div class="card card-hover reveal p-5">
                     <h2 class="text-sm font-semibold text-slate-900">{{ __('site.home.why'.$i.'Title') }}</h2>
                     <p class="mt-2 text-sm text-slate-600">{{ __('site.home.why'.$i.'Text') }}</p>
                 </div>

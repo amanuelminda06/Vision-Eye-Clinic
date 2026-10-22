@@ -482,14 +482,15 @@ README checklist items relevant to this spec: 1 (`/login/wrong` + `/login` → 4
   - `default-src 'self'`
   - `script-src 'self' 'unsafe-inline'` (+ ` 'unsafe-eval'` **only when `NODE_ENV !== 'production'`**)
   - `style-src 'self' 'unsafe-inline'`
-  - `img-src 'self' data: blob: https://tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com`
+  - `img-src 'self' data: blob:`
   - `font-src 'self' data:`
   - `connect-src 'self'` (+ ` ws: wss:` **only in dev**)
+  - `frame-src 'self' https://www.google.com` (the Google Maps embed)
   - `object-src 'none'`
   - `base-uri 'self'`
   - `form-action 'self'`
   - `frame-ancestors 'none'`
-  - Prod example: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; font-src 'self' data: connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`
+  - Prod example: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: connect-src 'self'; frame-src 'self' https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`

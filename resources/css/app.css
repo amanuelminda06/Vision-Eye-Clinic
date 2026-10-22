@@ -1,8 +1,12 @@
 @import 'tailwindcss';
-@import 'leaflet/dist/leaflet.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+
+/* The compiled assets are COMMITTED under public/build/ — Tailwind would
+ * otherwise scan them and keep re-emitting the classes that only appear
+ * in the old stylesheet, so the CSS would grow with dead rules. */
+@source not '../../public';
 
 /*
  * The fonts are SELF-HOSTED.
@@ -71,6 +75,10 @@
     --brand-hover: #7c2d12;
     --brand-soft: #ffedd5;
     --brand-line: #ea580c;
+
+    /* The public header: a 64px pill + 10px of padding above and below. The
+     * hero uses it to clear the fixed header, so the two must agree. */
+    --site-header-h: 84px;
 }
 
 /*
@@ -228,11 +236,19 @@
         transition:
             box-shadow 0.2s ease,
             transform 0.2s ease,
+            translate 0.2s ease,
+            scale 0.2s ease,
             border-color 0.2s ease;
     }
+
+    /* The hover lift uses the INDEPENDENT `translate`/`scale` properties
+     * instead of `transform`: they compose with the reveal's `transform`
+     * rather than fighting it, so a card can rise into view AND lift
+     * under the pointer at the same time. */
     .card-hover:hover {
         box-shadow: 0 20px 40px -12px rgb(124 45 18 / 0.25);
-        transform: translateY(-4px) scale(1.01);
+        translate: 0 -4px;
+        scale: 1.01;
         border-color: #fdba74;
     }
 
@@ -255,15 +271,25 @@
         font-weight: 600;
     }
 
-    /* Restrained scroll-reveal (no-ops when reduced-motion is preferred). */
-    .reveal {
+    /* Restrained scroll-reveal: a card rises into place when it scrolls
+     * into view. The hidden state only applies when JavaScript runs (the
+     * layout puts the `js` class on <html>), so a script that fails or is
+     * blocked never leaves the page blank.
+     *
+     * The delay staggers the rise of a grid of cards — it is set on the
+     * rise alone, so the hover lift stays immediate. */
+    .js .reveal {
         opacity: 0;
         transform: translateY(24px) scale(0.98);
         transition:
-            opacity 0.4s ease,
-            transform 0.4s ease;
+            opacity 0.45s ease var(--reveal-delay, 0ms),
+            transform 0.45s ease var(--reveal-delay, 0ms),
+            translate 0.2s ease,
+            scale 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
     }
-    .reveal-visible {
+    .js .reveal-visible {
         opacity: 1;
         transform: none;
     }
@@ -274,6 +300,12 @@
         opacity: 1;
         transform: none;
         transition: none;
+    }
+    /* No movement at all when motion is not welcome — not even the
+     * hover lift. */
+    .card-hover:hover {
+        translate: none;
+        scale: none;
     }
 }
 
@@ -307,24 +339,5 @@
     .reveal {
         opacity: 1;
         transform: none;
-    }
-}
-
-/* ── Leaflet ─────────────────────────────────────────────────────────────
-   The map must not trap the page on a phone: a ONE finger swipe scrolls the
-   page, the map is panned and zoomed with TWO fingers. Leaflet sets
-   `touch-action: none` on the container, so it is overridden here. */
-.leaflet-container {
-    background: #f1f5f9;
-    font: inherit;
-}
-
-.leaflet-container a {
-    color: #9a3412;
-}
-
-@media (pointer: coarse) {
-    .leaflet-container {
-        touch-action: pan-y !important;
     }
 }

@@ -1,90 +1,11 @@
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
 /**
  * The public site's client-side behaviour.
  *
- * The map is the only piece that needs a library; everything else (the mobile
- * menu, the booking form, the feedback form) is a few lines of inline script
- * in the view that owns it.
+ * The map is a Google Maps <iframe> rendered by the server — no client-side
+ * map library and no third-party script. Everything else (the mobile menu,
+ * the booking form, the feedback form) is a few lines of inline script in
+ * the view that owns it.
  */
-
-// Leaflet resolves its default marker images from the CSS, which breaks under
-// a bundler — point it at the bundled assets instead.
-const defaultIcon = L.icon({
-    iconUrl: markerIcon,
-    iconRetinaUrl: markerIcon2x,
-    shadowUrl: markerShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    tooltipAnchor: [16, -28],
-    shadowSize: [41, 41],
-});
-
-L.Marker.prototype.options.icon = defaultIcon;
-
-/** True on a touch-first device (a phone or a tablet). */
-const isTouch = window.matchMedia('(pointer: coarse)').matches;
-
-/**
- * The OpenStreetMap map on the contact page.
- *
- * - One tile host only: https://tile.openstreetmap.org (no a/b/c subdomains).
- * - The scroll wheel does NOT zoom — the page keeps scrolling.
- * - On a touch device a ONE finger scrolls the page; the map is panned and
- *   zoomed with TWO fingers (Leaflet's touch-zoom handler pans around the
- *   midpoint of the two fingers).
- * - The attribution is on the tile layer, never in the page chrome.
- */
-function initMap() {
-    const element = document.getElementById('site-map');
-
-    if (!element) {
-        return;
-    }
-
-    const lat = Number.parseFloat(element.dataset.lat || '');
-    const lng = Number.parseFloat(element.dataset.lng || '');
-    const zoom = Number.parseInt(element.dataset.zoom || '15', 10);
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        return;
-    }
-
-    const map = L.map(element, {
-        center: [lat, lng],
-        zoom: Number.isFinite(zoom) ? zoom : 15,
-        // The attribution control stays ON: it renders the tile layer's
-        // "© OpenStreetMap contributors" string, which the tile provider
-        // requires. (Disabling the control would hide the attribution
-        // entirely — Leaflet only adds it to the control.)
-        attributionControl: true,
-        scrollWheelZoom: false,
-        dragging: !isTouch,
-        touchZoom: true,
-        tap: false,
-    });
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-    }).addTo(map);
-
-    L.marker([lat, lng]).addTo(map);
-
-    // The container is hidden until the layout settles; Leaflet needs a size.
-    window.setTimeout(() => map.invalidateSize(), 0);
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMap);
-} else {
-    initMap();
-}
 
 /**
  * A missing image must never leave a broken box.
@@ -148,4 +69,77 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initImageFallbacks);
 } else {
     initImageFallbacks();
+}
+
+/**
+ * Cards rise into place when they scroll into view.
+ *
+ * The hidden state lives in the CSS (`.js .reveal`), so it only applies
+ * while this script runs: a script that fails or is blocked leaves the
+ * page fully visible instead of blank.
+ *
+ * A card is RISEN while it is on the screen and RESETS when it leaves it,
+ * in either direction — so the rise plays again on every pass, instead of
+ * only the first time the card is reached.
+ */
+function initReveal() {
+    const items = Array.from(document.querySelectorAll('.reveal'));
+
+    if (items.length === 0) {
+        return;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        items.forEach((item) => item.classList.add('reveal-visible'));
+
+        return;
+    }
+
+    // A grid of cards rises one after the other.
+    const counters = new Map();
+
+    items.forEach((item) => {
+        const parent = item.parentElement;
+        const index = counters.get(parent) || 0;
+
+        counters.set(parent, index + 1);
+        item.style.setProperty('--reveal-delay', `${Math.min(index, 6) * 70}ms`);
+    });
+
+    let queued = false;
+
+    const check = () => {
+        const height = window.innerHeight;
+
+        items.forEach((item) => {
+            const rect = item.getBoundingClientRect();
+            const onScreen = rect.top < height && rect.bottom > 0;
+
+            item.classList.toggle('reveal-visible', onScreen);
+        });
+    };
+
+    function onScroll() {
+        if (queued) {
+            return;
+        }
+
+        queued = true;
+
+        window.requestAnimationFrame(() => {
+            queued = false;
+            check();
+        });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+
+    check();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReveal);
+} else {
+    initReveal();
 }

@@ -324,7 +324,7 @@ The CSS/JS are **committed** under `public/build/` — the directory travels
 with the repository. The host needs **no Node.js** and no build step.
 
 The build toolchain is back in the repository (`package.json`,
-`vite.config.js`, Tailwind v4 + Vite + Leaflet). Rebuild the assets locally
+`vite.config.js`, Tailwind v4 + Vite). Rebuild the assets locally
 and commit the result whenever a view, the CSS or the JS changes:
 
 ```bash
@@ -371,14 +371,21 @@ CSP stays at `font-src 'self' data:`.
 
 ### The map
 
-The contact page shows an OpenStreetMap map with **one** tile host,
-`https://tile.openstreetmap.org/{z}/{x}/{y}.png` (no `a/b/c` subdomains), and
-the CSP allows exactly that host in `img-src`. Leaflet's CSS and its marker
-icons are part of the committed bundle. The scroll wheel does **not** zoom
-(the page keeps scrolling), and on a touch screen a one-finger swipe scrolls
-the page while the map is panned with two fingers. The address and an
-"Open in Google Maps" link are always visible next to the map — they are the
-fallback when the tiles cannot be loaded.
+The contact page and the footer show a **Google Maps embed** — a plain
+`<iframe>` on `https://www.google.com/maps?...&output=embed`, built from the
+CMS position (`map_lat`, `map_lng`, `map_zoom` in the website-content
+editor). It needs **no API key and no billing account**: Google serves the
+framed document itself, with its own CSP. The site's CSP therefore allows
+exactly one frame source, `frame-src 'self' https://www.google.com`, and no
+external image source at all.
+
+Both maps are `loading="lazy"`, so the map is only fetched when it scrolls
+into view. The address and an "Open in Maps" link are always visible next to
+the map — they are the fallback when the map cannot be loaded.
+
+If the map frame is blank, check that the response carries
+`frame-src 'self' https://www.google.com` in its `Content-Security-Policy`
+header.
 
 ---
 
@@ -656,7 +663,7 @@ uploaded a new `.env` value, run `php artisan config:clear` (included in
 | Uploads 404 | `STORAGE_DRIVER=db` but the `stored_files` table is empty | Run `php artisan migrate --force` |
 | `/services` or `/doctors` 404 or 500, but the same URL works locally | A leftover folder in `public/` **shadows the route** — Apache serves it before Laravel runs | `php artisan public:clean-legacy` (a Plesk deployment never deletes the files the old app left) |
 | The page loads but looks unstyled / the hero image is missing | The compiled assets in `public/build/` are stale (Tailwind only emits the classes it finds) or missing | `npm install && npm run build`, commit `public/build/`, redeploy; `php artisan optimize:clear` |
-| The map is blank | The tile images are blocked, or the map is not initialised | Check the CSP allows `https://tile.openstreetmap.org`; check `public/build/assets/app-*.js` is not empty |
+| The map is blank | The Google Maps frame is blocked by the CSP | Check the response carries `frame-src 'self' https://www.google.com`; check the CMS has both `map_lat` and `map_lng` |
 | A bare `500` with NOTHING in the Laravel log | The `.env` cannot be parsed (an unquoted value with a space) — PHP dies before the framework starts | `php scripts/env-set.php <KEY>`, or quote the value: `DB_PASSWORD='my secret'` |
 | The site is on HTTPS but the CSS/JS URLs are `http://` | The proxy headers are not trusted | Set `TRUSTED_PROXIES` in the `.env`; the scheme is forced in production |
 | `favicon.ico` is empty / the tab shows a broken icon | The file was never committed | `php artisan public:check` reports it; the icon is in `public/favicon.ico` |

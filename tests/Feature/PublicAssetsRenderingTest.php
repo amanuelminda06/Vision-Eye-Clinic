@@ -66,7 +66,7 @@ class PublicAssetsRenderingTest extends TestCase
         $this->assertStringContainsString('src="'.asset('images/hero.jpg').'"', $html);
 
         // The intrinsic size is declared, so the page does not jump.
-        $this->assertStringContainsString('width="1200"', $html);
+        $this->assertStringContainsString('width="1119"', $html);
         $this->assertStringContainsString('height="630"', $html);
 
         // The hero is the LCP element: it must not be lazy.
@@ -101,13 +101,26 @@ class PublicAssetsRenderingTest extends TestCase
 
         $html = (string) $this->get('/contact')->getContent();
 
-        $this->assertStringContainsString('id="site-map"', $html);
-        $this->assertStringContainsString('data-lat="9.0192"', $html);
-        $this->assertStringContainsString('data-lng="38.7525"', $html);
-        $this->assertStringContainsString('data-zoom="16"', $html);
+        // The Google Maps embed — an <iframe>, no API key, the position and
+        // the zoom from the CMS.
+        $this->assertStringContainsString('<iframe', $html);
+        $this->assertStringContainsString('src="https://www.google.com/maps?q=9.0192,38.7525', $html);
+        $this->assertStringContainsString('z=16', $html);
+        $this->assertStringContainsString('output=embed', $html);
 
         // The fallback: a visible address and a Google Maps link.
         $this->assertStringContainsString('maps.app.goo.gl', $html);
+    }
+
+    public function test_the_footer_carries_the_same_map(): void
+    {
+        SiteContent::query()->updateOrCreate(['key' => 'map_lat'], ['value_en' => '9.0192', 'value_am' => '9.0192']);
+        SiteContent::query()->updateOrCreate(['key' => 'map_lng'], ['value_en' => '38.7525', 'value_am' => '38.7525']);
+
+        $html = (string) $this->get('/contact')->getContent();
+
+        // The footer map and the contact map: TWO embeds on the page.
+        $this->assertSame(2, substr_count($html, 'https://www.google.com/maps?q='));
     }
 
     public function test_the_contact_page_has_no_map_without_coordinates(): void
@@ -118,7 +131,7 @@ class PublicAssetsRenderingTest extends TestCase
 
         $html = (string) $this->get('/contact')->getContent();
 
-        $this->assertStringNotContainsString('id="site-map"', $html);
+        $this->assertStringNotContainsString('google.com/maps?q=', $html);
         $this->assertStringContainsString('maps.app.goo.gl', $html);
     }
 
@@ -159,13 +172,27 @@ class PublicAssetsRenderingTest extends TestCase
         $this->assertStringContainsString('data-fallback="placeholder"', $html);
     }
 
-    public function test_the_map_tile_host_is_the_only_external_image_source(): void
+    public function test_the_map_is_a_google_maps_embed_and_nothing_else(): void
     {
         $csp = (string) $this->get('/contact')->headers->get('Content-Security-Policy');
 
-        $this->assertStringContainsString('https://tile.openstreetmap.org', $csp);
-        $this->assertStringNotContainsString('maps.googleapis.com', $csp);
-        $this->assertStringNotContainsString('maps.gstatic.com', $csp);
+        // The map is an <iframe> on Google's host — that is the ONLY frame
+        // the site may load.
+        $this->assertStringContainsString("frame-src 'self' https://www.google.com", $csp);
+
+        // The OpenStreetMap tile host is gone with the tile map.
+        $this->assertStringNotContainsString('tile.openstreetmap.org', $csp);
+
+        // And the page loads no external image at all.
+        preg_match('/img-src ([^;]+)/', $csp, $matches);
+        $sources = array_map('trim', explode(' ', $matches[1]));
+
+        $external = array_values(array_filter(
+            $sources,
+            static fn (string $source): bool => str_contains($source, '://'),
+        ));
+
+        $this->assertSame([], $external);
     }
 
     public function test_the_public_asset_helpers(): void

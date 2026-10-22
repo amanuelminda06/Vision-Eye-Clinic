@@ -17,7 +17,7 @@ All strings below are exact legacy values. Currency/phone never leak; "rule N" c
 | `/services` | `GET /services` | Public service catalogue grouped by category; **no prices** | DB per request |
 | `/doctors` | `GET /doctors` | Published doctors + duty badges + today's shifts | DB per request |
 | `/book` | `GET /book` | Booking form (client JS posts to API) | DB per request (services list, clinic tz for `minDate`) |
-| `/contact` | `GET /contact` | Contact card, hours, feedback form, Leaflet map | DB per request |
+| `/contact` | `GET /contact` | Contact card, hours, feedback form, Google Maps embed | DB per request |
 | `/faq` | `GET /faq` | FAQ accordion from CMS JSON | DB per request |
 | `/privacy` | `GET /privacy` | Privacy policy body from CMS | DB per request |
 | `/opengraph-image` | `GET /opengraph-image` (or pre-rendered PNG) | 1200×630 PNG OG image, generated locally, **locale-invariant** (cacheable across locales) | See §8 |
@@ -75,9 +75,9 @@ DB table `SiteContent(key PK, valueEn, valueAm, updatedBy, updatedAt)` — one r
 | `og_title` | (Stored, editable, but OG image is currently hardcoded — see §8) | `Clear vision for every stage of life` | placeholder |
 | `og_subtitle` | (same caveat) | `Eye examinations · Glasses · Diagnostics · Specialist care` | placeholder |
 | `og_city` | (same caveat) | `Addis Ababa, Ethiopia` | placeholder |
-| `map_lat` | Map centre latitude (string) | `8.896235398615133` | same |
-| `map_lng` | Map centre longitude | `38.77100409325467` | same |
-| `map_zoom` | Map zoom (string; parsed to float; default 15 if blank) | `15` | same |
+| `map_lat` | Map latitude (string) | `8.896235398615133` | same |
+| `map_lng` | Map longitude | `38.77100409325467` | same |
+| `map_zoom` | Map zoom (string; parsed to int; clamped to 1–21, default 15 if blank) | `15` | same |
 
 ### 2.2 Merge & locale rules
 
@@ -285,8 +285,8 @@ CMS feedback list (OWNER-only screen): `listFeedback({q, website})` — `website
 13. Turnstile OFF by default (no secret ⇒ verify passes); honeypot + rate limit always active.
 14. Announcement banner obeys active flag + inclusive clinic-local date window (§3.8); banner text is `pick(locale, announcement_text)`.
 15. `isAnnouncementVisible` uses only the `en` column of the flag/window keys (single global window, not per-locale).
-16. Analytics is a **no-op** — no provider, no cookies, no third-party requests (component renders `null`).
-17. Map is client-side Leaflet only (no SSR), OSM tiles, no attribution control baked in UI besides tile layer attribution string `© OpenStreetMap contributors`; scroll-wheel zoom off; touch drag = 2 fingers. CSP `img-src` allows ONLY `self data: blob: https://tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com`; CSP also sets `default-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`; security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, HSTS `max-age=63072000; includeSubDomains` (prod).
+16. Analytics is a **no-op** — no provider, no cookies, no third-party requests (component renders `null`). The ONE exception is the Google Maps embed (§ rule 17): it is a third-party frame, so Google sees the visit. Both maps are `loading="lazy"`, so the request only happens when the map scrolls into view.
+17. Map is a **Google Maps `<iframe>`** (no API key, no third-party script): the keyless form `https://www.google.com/maps?q=<lat>,<lng>&z=<zoom>&output=embed`, built server-side by `App\Support\PublicSite\MapEmbed` from the CMS position (`map_lat`, `map_lng`, `map_zoom`); a blank position renders NO map. It appears on the **contact page** (256 px) and in the **footer** (112 px, lazy) of every public page. CSP `frame-src 'self' https://www.google.com`; CSP `img-src` has NO external source; CSP also sets `default-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`; security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, HSTS `max-age=63072000; includeSubDomains` (prod).
 18. JSON-LD is escaped (`<` → `<`) when injected; no user input goes into it beyond CMS scalars.
 19. Public pages never render staff contact details — only clinic phones from site content.
 20. Feedback becomes a public testimonial ONLY after OWNER publishes it; public testimonials expose `id,name,text,rating` only.
@@ -304,7 +304,7 @@ CMS feedback list (OWNER-only screen): `listFeedback({q, website})` — `website
 - **Header** (sticky): logo + clinic name (settings) + Amharic name `site.clinicNameAm`; nav links in order `navHome /`, `navAbout /about`, `navServices /services`, `navDoctors /doctors`, `navContact /contact`, `navFaq /faq` with `aria-current="page"` + orange underline on active (prefix match; `/` exact); locale switcher (`EN` / `አማ`, sets cookie + refresh, `aria-pressed`); "Call now" `tel:` button when phone present; `Book an appointment` button; mobile hamburger (`aria-expanded`, labels `site.menuLabel`/`site.menuClose`) revealing the same links + switcher + call + book.
 - **Skip link** first focusable: `site.skipToContent` → `#main`.
 - **Announcement banner** (top of `<main>`, id `announcements`, `role=region`, aria-label `Announcement`): single centred orange bar with `announcement_text`; hidden if blank.
-- **Footer**: About blurb `site.footerAbout` + `footer_note` (CMS) + social icons (TikTok/Instagram/Telegram from CMS URLs, `target=_blank rel=noopener noreferrer`, sr-only labels); Quick links nav (`navServices, navDoctors, bookAppointment, navContact, navFaq, footerPrivacy`); Contact block (address, phone as `tel:`); opening hours snippet (always `hoursText=null` in layout — effectively omitted); mini-map (120 px) when `map_lat`+`map_lng` set + hardcoded link `View on Google Maps` → `https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6`; bottom bar `site.footerRights` = `© {year} {clinic}. All rights reserved.`.
+- **Footer**: About blurb `site.footerAbout` + `footer_note` (CMS) + social icons (TikTok/Instagram/Telegram from CMS URLs, `target=_blank rel=noopener noreferrer`, sr-only labels); Quick links nav (`navServices, navDoctors, bookAppointment, navContact, navFaq, footerPrivacy`); Contact block (address, phone as `tel:`); opening hours snippet (always `hoursText=null` in layout — effectively omitted); mini-map (112 px, lazy) — a **Google Maps `<iframe>`** when `map_lat`+`map_lng` are set; bottom bar `site.footerRights` = `© {year} {clinic}. All rights reserved.`.
 - **JSON-LD** (every public page): `@type:'MedicalClinic'`, `name`, `url: siteBaseUrl()`, `telephone` (when set), `address:{@type:'PostalAddress', streetAddress: address, addressLocality: city, addressCountry: country}` (when address), `medicalSpecialty: specialty`, `availableService: [{@type:'MedicalProcedure', name}]` per public service (am locale uses `nameAm || name`) — `openingHours` omitted (hoursText always null).
 - **Analytics**: renders nothing.
 
@@ -333,7 +333,7 @@ fields `name`*, `phone`* (tel, hint `book.phoneHint`, placeholder `09xxxxxxxx`),
 
 ### 7.6 Contact `/contact`
 
-H1 `contact.title`, intro `contact.intro`. Three cards: **Address** (`contact.address`; fallback `contact.pending`; link `contact.directions` or hardcoded `View on Google Maps` when URL matches `/maps\.app\.goo\.gl/i`, `target=_blank rel=noopener noreferrer`); **Phone** (`contact.phone`; primary as big `tel:` link, backup line `site.phoneBackupLabel {number}`, fallback `phonePending`; WhatsApp button (`contact.whatsapp`, `wa.me` from primary phone) + Telegram button (`contact.telegram`, `t.me` from primary phone) — both `_blank`); **Opening hours** (`contact.hours`, 7 lines Mon→Sun). Then feedback card: `feedback.title`, `feedback.intro`, client `FeedbackForm` (fields `name`*, optional `email` (hint `feedback.emailHint`), optional `rating` select ''|1..5 → `feedback.ratingNone|ratingPoor|ratingFair|ratingGood|ratingVeryGood|ratingExcellent`, `message`* textarea 1000, honeypot, Turnstile, consent `feedback.consent`, submit `feedback.submit`/`feedback.submitting`; errors/success mirror booking with `feedback.*` keys; success shows `feedback.successTitle/Body` + `feedback.successAgain`). Map block: H2 `contact.map`; when lat/lng set → Leaflet (320 px, zoom from `map_zoom` or 15) + `View on Google Maps` link (hardcoded `https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6`).
+H1 `contact.title`, intro `contact.intro`. Three cards: **Address** (`contact.address`; fallback `contact.pending`; link `contact.directions` or hardcoded `View on Google Maps` when URL matches `/maps\.app\.goo\.gl/i`, `target=_blank rel=noopener noreferrer`); **Phone** (`contact.phone`; primary as big `tel:` link, backup line `site.phoneBackupLabel {number}`, fallback `phonePending`; WhatsApp button (`contact.whatsapp`, `wa.me` from primary phone) + Telegram button (`contact.telegram`, `t.me` from primary phone) — both `_blank`); **Opening hours** (`contact.hours`, 7 lines Mon→Sun). Then feedback card: `feedback.title`, `feedback.intro`, client `FeedbackForm` (fields `name`*, optional `email` (hint `feedback.emailHint`), optional `rating` select ''|1..5 → `feedback.ratingNone|ratingPoor|ratingFair|ratingGood|ratingVeryGood|ratingExcellent`, `message`* textarea 1000, honeypot, Turnstile, consent `feedback.consent`, submit `feedback.submit`/`feedback.submitting`; errors/success mirror booking with `feedback.*` keys; success shows `feedback.successTitle/Body` + `feedback.successAgain`). Map block: H2 `contact.mapTitle`; when lat/lng set → **Google Maps `<iframe>`** (256 px, lazy, no API key) with the URL built by `MapEmbed::embedUrl(lat, lng, zoom)` + `Open in Maps` link (CMS `contact_map_url`, else a Google Maps search for the address).
 
 ### 7.7 FAQ `/faq`
 
@@ -445,7 +445,7 @@ Additional feature tests to write for Laravel (behaviour pinned by this spec): P
 2. **Honeypot ordering differs between routes**: feedback drops silently (raw-body check first); booking's schema runs first so a filled honeypot returns `422 {website:'spam'}` and the silent-drop branch is unreachable. Preserved as-is (§3.4, §6.9) — flag to product if unification is wanted.
 3. **`og_*` CMS keys vs hardcoded OG image**: keys are editable/stored but the generated OG image ignores them (deliberate cacheability comment). Rebuild keeping both: store keys, render hardcoded image (or wire keys in a later pass).
 4. **WhatsApp/Telegram buttons derive from `contact_phone_primary`**, not from `social_telegram`; `social_*` URLs are footer icons only.
-5. **Two "View on Google Maps" links are hardcoded** to `https://maps.app.goo.gl/Cyye5QKD3qjUWVXA6` (footer map + contact map block); only the Address card uses CMS `contact_map_url`.
+5. **Both maps are Google Maps embeds** built from the CMS position (`map_lat`, `map_lng`, `map_zoom`) by `App\Support\PublicSite\MapEmbed` — the keyless `output=embed` form, so no API key is needed. The "Open in Maps" link uses the CMS `contact_map_url`.
 6. **Footer `hoursText` is always null** in the layout (`const hoursText = null`) — footer shows no hours today, though the prop exists.
 7. **Announcement window is global**, read from the `en` columns of `announcement_active/start/end` regardless of locale; only `announcement_text` is localized.
 8. `announcement_active` stores `am:''` — the `am` column of that key is ignored everywhere.
