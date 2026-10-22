@@ -11,6 +11,18 @@ set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+# The MySQL binaries live outside the repository. Prefer MYSQL_HOME; otherwise
+# take the first local prefix that exists. /tmp is a tmpfs on some machines and
+# far too small for a MySQL install, so the cache directory is the usual home.
+if [ -z "${MYSQL_HOME:-}" ]; then
+  for candidate in "${XDG_CACHE_HOME:-$HOME/.cache}/vision-mysql" /tmp/opencode/mysql; do
+    if [ -x "$candidate/usr/bin/mysqld" ]; then
+      MYSQL_HOME="$candidate"
+      break
+    fi
+  done
+fi
+
 export MYSQL_HOME="${MYSQL_HOME:-/tmp/opencode/mysql}"
 export PHP_INI_SCAN_DIR="${PHP_INI_SCAN_DIR:-/etc/php/8.4/cli/conf.d:$(dirname "${BASH_SOURCE[0]}")/../../../../tmp/opencode/phpext/conf.d}"
 

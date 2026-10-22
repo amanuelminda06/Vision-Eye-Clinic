@@ -9,7 +9,16 @@
 # and the data directory stays inside the prefix.
 set -uo pipefail
 
-ROOT="${MYSQL_HOME:-/tmp/opencode/mysql}"
+ROOT="${MYSQL_HOME:-}"
+if [ -z "$ROOT" ]; then
+  for candidate in "${XDG_CACHE_HOME:-$HOME/.cache}/vision-mysql" /tmp/opencode/mysql; do
+    if [ -x "$candidate/usr/bin/mysqld" ]; then
+      ROOT="$candidate"
+      break
+    fi
+  done
+fi
+ROOT="${ROOT:-/tmp/opencode/mysql}"
 DATA="${MYSQL_DATA:-$ROOT/data}"
 RUN="${MYSQL_RUN:-$ROOT/run}"
 LOG="${MYSQL_LOG:-$ROOT/mysqld.log}"
