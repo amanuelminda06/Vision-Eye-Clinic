@@ -64,7 +64,7 @@
             </div>
 
             <label class="flex items-start gap-2 text-sm">
-                <input type="checkbox" name="consent" value="true" required>
+                <input type="checkbox" name="consent" value="true" required class="mt-0.5 h-5 w-5 shrink-0 accent-brand-700">
                 <span>{{ __('site.book.consent') }}</span>
             </label>
             <p class="mt-1 text-xs text-red-600" data-error="consent" role="alert"></p>

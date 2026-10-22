@@ -73,183 +73,202 @@
     --brand-line: #ea580c;
 }
 
-body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family:
-        var(--font-sans),
-        system-ui,
-        -apple-system,
-        sans-serif;
+/*
+ * The shared primitives live in `@layer components` ON PURPOSE.
+ *
+ * Tailwind declares `@layer theme, base, components, utilities;` — so the
+ * utilities layer comes LAST and wins over components. That is what makes
+ * `class="btn-primary hidden sm:inline-flex"` behave: `hidden` (a utility)
+ * hides the button below `sm`, and `sm:inline-flex` shows it again.
+ *
+ * Unlayered CSS beats EVERY layer, so a bare `.btn-primary { display: … }`
+ * silently overrode `hidden`, `px-2`, `py-1`, `text-xs`, `w-32` and
+ * `border-red-200` on every element that also carried a `btn-*`/`card`/
+ * `input-field` class. Keeping the primitives layered restores the
+ * "utility wins" rule the templates were written against.
+ */
+@layer base {
+    body {
+        background: var(--background);
+        color: var(--foreground);
+        font-family:
+            var(--font-sans),
+            system-ui,
+            -apple-system,
+            sans-serif;
+    }
 }
 
-/* Shared primitives (plain CSS so they work without @apply). */
+@layer components {
+    /* Shared primitives (plain CSS so they work without @apply). */
 
-.label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #292524;
-    margin-bottom: 0.25rem;
+        .label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #292524;
+        margin-bottom: 0.25rem;
+    }
+
+    .input-field {
+        display: block;
+        width: 100%;
+        border-radius: 0.75rem;
+        border: 1px solid #d6d3d1;
+        background: #fff;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.95rem;
+        color: #0f172a;
+        outline: none;
+        transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+    .input-field:focus {
+        border-color: #ea580c;
+        box-shadow: 0 0 0 3px rgb(234 88 12 / 0.18);
+    }
+    .input-field:disabled {
+        background: #f5f5f4;
+        color: #78716c;
+    }
+    .input-field[aria-invalid='true'] {
+        border-color: #dc2626;
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        background: var(--brand);
+        color: #fff;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 1px 2px rgb(124 45 18 / 0.35);
+        transition:
+            background-color 0.15s ease,
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+        background: var(--brand-hover);
+        transform: translateY(-1px);
+    }
+    .btn-primary:focus-visible {
+        outline: 2px solid #ea580c;
+        outline-offset: 2px;
+    }
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        background: #fff;
+        color: #7c2d12;
+        border: 1px solid #fed7aa;
+        padding: 0.55rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease;
+    }
+    .btn-secondary:hover:not(:disabled) {
+        background: var(--brand-soft);
+        border-color: #fdba74;
+    }
+    .btn-secondary:focus-visible {
+        outline: 2px solid #ea580c;
+        outline-offset: 2px;
+    }
+    .btn-secondary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-danger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        background: #dc2626;
+        color: #fff;
+        padding: 0.55rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-danger:hover:not(:disabled) {
+        background: #b91c1c;
+    }
+    .btn-danger:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .card {
+        border-radius: 1rem;
+        background: #fff;
+        border: 1px solid #fed7aa;
+        box-shadow: 0 1px 2px rgb(124 45 18 / 0.06);
+        transition:
+            box-shadow 0.2s ease,
+            transform 0.2s ease,
+            border-color 0.2s ease;
+    }
+    .card-hover:hover {
+        box-shadow: 0 20px 40px -12px rgb(124 45 18 / 0.25);
+        transform: translateY(-4px) scale(1.01);
+        border-color: #fdba74;
+    }
+
+    .accent-line {
+        width: 2.5rem;
+        height: 3px;
+        border-radius: 9999px;
+        background: var(--brand-line);
+    }
+
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 9999px;
+        background: var(--brand-soft);
+        color: #7c2d12;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Restrained scroll-reveal (no-ops when reduced-motion is preferred). */
+    .reveal {
+        opacity: 0;
+        transform: translateY(24px) scale(0.98);
+        transition:
+            opacity 0.4s ease,
+            transform 0.4s ease;
+    }
+    .reveal-visible {
+        opacity: 1;
+        transform: none;
+    }
 }
 
-.input-field {
-    display: block;
-    width: 100%;
-    border-radius: 0.75rem;
-    border: 1px solid #d6d3d1;
-    background: #fff;
-    padding: 0.55rem 0.75rem;
-    font-size: 0.95rem;
-    color: #0f172a;
-    outline: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-.input-field:focus {
-    border-color: #ea580c;
-    box-shadow: 0 0 0 3px rgb(234 88 12 / 0.18);
-}
-.input-field:disabled {
-    background: #f5f5f4;
-    color: #78716c;
-}
-.input-field[aria-invalid='true'] {
-    border-color: #dc2626;
-}
-
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 0.75rem;
-    background: var(--brand);
-    color: #fff;
-    padding: 0.6rem 1.25rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 1px 2px rgb(124 45 18 / 0.35);
-    transition:
-        background-color 0.15s ease,
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
-}
-.btn-primary:hover:not(:disabled) {
-    background: var(--brand-hover);
-    transform: translateY(-1px);
-}
-.btn-primary:focus-visible {
-    outline: 2px solid #ea580c;
-    outline-offset: 2px;
-}
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 0.75rem;
-    background: #fff;
-    color: #7c2d12;
-    border: 1px solid #fed7aa;
-    padding: 0.55rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease;
-}
-.btn-secondary:hover:not(:disabled) {
-    background: var(--brand-soft);
-    border-color: #fdba74;
-}
-.btn-secondary:focus-visible {
-    outline: 2px solid #ea580c;
-    outline-offset: 2px;
-}
-.btn-secondary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-danger {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 0.75rem;
-    background: #dc2626;
-    color: #fff;
-    padding: 0.55rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-}
-.btn-danger:hover:not(:disabled) {
-    background: #b91c1c;
-}
-.btn-danger:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.card {
-    border-radius: 1rem;
-    background: #fff;
-    border: 1px solid #fed7aa;
-    box-shadow: 0 1px 2px rgb(124 45 18 / 0.06);
-    transition:
-        box-shadow 0.2s ease,
-        transform 0.2s ease,
-        border-color 0.2s ease;
-}
-.card-hover:hover {
-    box-shadow: 0 20px 40px -12px rgb(124 45 18 / 0.25);
-    transform: translateY(-4px) scale(1.01);
-    border-color: #fdba74;
-}
-
-.accent-line {
-    width: 2.5rem;
-    height: 3px;
-    border-radius: 9999px;
-    background: var(--brand-line);
-}
-
-.chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    border-radius: 9999px;
-    background: var(--brand-soft);
-    color: #7c2d12;
-    padding: 0.2rem 0.7rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* Restrained scroll-reveal (no-ops when reduced-motion is preferred). */
-.reveal {
-    opacity: 0;
-    transform: translateY(24px) scale(0.98);
-    transition:
-        opacity 0.4s ease,
-        transform 0.4s ease;
-}
-.reveal-visible {
-    opacity: 1;
-    transform: none;
-}
 @media (prefers-reduced-motion: reduce) {
     .reveal {
         opacity: 1;

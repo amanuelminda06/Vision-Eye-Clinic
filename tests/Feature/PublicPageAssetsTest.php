@@ -216,6 +216,159 @@ class PublicPageAssetsTest extends TestCase
         }
     }
 
+    // ── the cascade ───────────────────────────────────────────────────────────
+
+    /**
+     * The shared primitives must be LAYERED.
+     *
+     * Tailwind declares `@layer theme, base, components, utilities;`, so a
+     * utility (`.hidden`, `.px-2`, `.text-xs`) wins over a component. An
+     * UNLAYERED `.btn-secondary { display: inline-flex }` beats every layer,
+     * so `class="btn-secondary hidden sm:inline-flex"` stayed visible below
+     * `sm` and the header overflowed the viewport on a phone.
+     *
+     * @param  list<string>  $primitives
+     */
+    #[DataProvider('primitives')]
+    public function test_the_shared_primitives_are_layered(string $primitive): void
+    {
+        $source = (string) file_get_contents(resource_path('css/app.css'));
+
+        $this->assertMatchesRegularExpression(
+            '/@layer components\s*\{(?:(?!\n\}).)*?'.preg_quote($primitive, '/').'\s*\{/s',
+            $source,
+            "{$primitive} is not inside `@layer components` — an unlayered primitive beats every "
+            .'Tailwind utility, so `hidden`, `px-*`, `py-*`, `text-*` and `w-*` on that element are ignored.',
+        );
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function primitives(): array
+    {
+        return [
+            'btn-primary' => ['.btn-primary'],
+            'btn-secondary' => ['.btn-secondary'],
+            'btn-danger' => ['.btn-danger'],
+            'card' => ['.card'],
+            'chip' => ['.chip'],
+            'input-field' => ['.input-field'],
+            'label' => ['.label'],
+        ];
+    }
+
+    /**
+     * The Tailwind utilities must come AFTER the components layer.
+     *
+     * That order is what makes "utility wins over component" true. If a
+     * rebuild ever reorders the layers, `hidden` would stop hiding.
+     */
+    public function test_the_utilities_layer_comes_after_the_components_layer(): void
+    {
+        $css = '';
+
+        foreach ($this->compiledStylesheets() as $stylesheet) {
+            $css .= (string) file_get_contents($stylesheet);
+        }
+
+        $components = strpos($css, '@layer components{');
+        $utilities = strpos($css, '@layer utilities{');
+
+        $this->assertNotFalse($components, 'The compiled CSS has no `@layer components`.');
+        $this->assertNotFalse($utilities, 'The compiled CSS has no `@layer utilities`.');
+        $this->assertLessThan(
+            $utilities,
+            $components,
+            'The components layer must come before the utilities layer, so a utility overrides a component.',
+        );
+    }
+
+    // ── the header fits the viewport ─────────────────────────────────────────
+
+    /**
+     * The header must not be wider than the viewport.
+     *
+     * The desktop nav (six links) plus the action buttons did not fit at
+     * 768px, so the page scrolled sideways. The nav is now hidden below the
+     * `lg` breakpoint and the mobile menu is used there.
+     */
+    #[DataProvider('headerBreakpoints')]
+    public function test_the_header_nav_is_hidden_below_the_large_breakpoint(string $path): void
+    {
+        $html = (string) $this->get($path)->getContent();
+
+        $this->assertStringContainsString(
+            'hidden items-center gap-1 lg:flex',
+            $html,
+            "{$path}: the desktop nav must appear at `lg` (1024px), not at `md` (768px).",
+        );
+
+        // The button carries other utilities too (its 44px tap target), so
+        // assert on the class list, not on an exact attribute string.
+        $this->assertMatchesRegularExpression(
+            '/id="site-menu-toggle"[^>]*class="[^"]*(?<![a-z-])lg:hidden(?![a-z-])/',
+            $html,
+            "{$path}: the mobile menu button must be visible below the `lg` breakpoint.",
+        );
+        $this->assertMatchesRegularExpression(
+            '/id="site-menu-toggle"[^>]*class="[^"]*h-11 w-11/',
+            $html,
+            "{$path}: the mobile menu button needs a 44px tap target (WCAG 2.2 2.5.8).",
+        );
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function headerBreakpoints(): array
+    {
+        return [
+            'home' => ['/'],
+            'services' => ['/services'],
+            'doctors' => ['/doctors'],
+            'contact' => ['/contact'],
+            'book' => ['/book'],
+        ];
+    }
+
+    /**
+     * The action buttons must fit next to the logo on a phone.
+     *
+     * The "Call now" button is `hidden sm:inline-flex`, so it disappears
+     * below 640px — that is what keeps the header inside a 360px viewport.
+     */
+    public function test_the_call_button_is_hidden_on_the_smallest_phones(): void
+    {
+        $html = (string) $this->get('/')->getContent();
+
+        $this->assertStringContainsString(
+            'btn-secondary hidden sm:inline-flex',
+            $html,
+            'The "Call now" button must be hidden below the `sm` breakpoint.',
+        );
+    }
+
+    /**
+     * The wordmark must collapse on a 360px phone.
+     *
+     * Measured at 360px: logo 53px + language switcher 70px + booking button
+     * 134px + menu button 44px + gaps leaves no room for the clinic name, and
+     * the name text painted over the language switcher. The logo image
+     * (whose `alt` is the clinic name) is the brand below `sm`.
+     */
+    #[DataProvider('headerBreakpoints')]
+    public function test_the_wordmark_is_hidden_below_the_small_breakpoint(string $path): void
+    {
+        $html = (string) $this->get($path)->getContent();
+
+        $this->assertMatchesRegularExpression(
+            '/<span class="hidden flex-col leading-tight sm:flex">/',
+            $html,
+            "{$path}: the clinic wordmark must be hidden below `sm` so it cannot overlap the language switcher.",
+        );
+    }
+
     // ── the scheme ───────────────────────────────────────────────────────────
 
     public function test_the_asset_urls_are_https_on_the_production_origin(): void

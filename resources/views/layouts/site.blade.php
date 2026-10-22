@@ -62,23 +62,30 @@
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">{{ __('site.skipToContent') }}</a>
 
     <header class="sticky top-0 z-30 border-b border-brand-200 bg-white">
-        <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-            <a href="/" class="flex items-center gap-3">
+        <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-4">
+            <a href="/" class="flex min-w-0 items-center gap-3">
                 @if ($logo = public_asset_url('/images/logo.png'))
                     {{-- The logo file is 271x183 (the transparent padding is
                          cropped off) — the intrinsic size keeps the header
                          from jumping while the image loads. --}}
                     <img src="{{ $logo }}" alt="{{ $clinicName }}" width="271" height="183"
-                         class="h-9 w-auto" decoding="async"
+                         class="h-9 w-auto shrink-0" decoding="async"
                          data-fallback="hide">
                 @endif
-                <span class="flex flex-col leading-tight">
-                    <span class="text-base font-semibold text-brand-800">{{ $clinicName }}</span>
-                    <span class="text-xs text-slate-500">{{ __('site.clinicNameAm') }}</span>
+                {{-- On a 360px phone there is no room left for the wordmark
+                     once the language switcher, the booking button and the
+                     menu button are placed, so it appears from `sm` up. The
+                     logo image carries the brand; its `alt` is the name. --}}
+                <span class="hidden flex-col leading-tight sm:flex">
+                    <span class="truncate text-base font-semibold text-brand-800">{{ $clinicName }}</span>
+                    <span class="truncate text-xs text-slate-500">{{ __('site.clinicNameAm') }}</span>
                 </span>
             </a>
 
-            <nav class="ml-auto hidden items-center gap-1 md:flex" aria-label="{{ __('site.menuLabel') }}">
+            {{-- The full nav needs ~430px; below the `lg` breakpoint it does
+                 not fit next to the logo and the action buttons, so the
+                 mobile menu is used there instead. --}}
+            <nav class="ml-auto hidden items-center gap-1 lg:flex" aria-label="{{ __('site.menuLabel') }}">
                 @foreach ([
                     '/' => 'navHome',
                     '/about' => 'navAbout',
@@ -95,21 +102,21 @@
                 @endforeach
             </nav>
 
-            <div class="ml-auto flex items-center gap-2 md:ml-0">
+            <div class="ml-auto flex items-center gap-1 sm:gap-2 lg:ml-0">
                 @include('partials.locale-switcher')
 
                 @if ($telHref)
                     <a href="{{ $telHref }}" class="btn-secondary hidden sm:inline-flex">{{ __('site.callNow') }}</a>
                 @endif
-                <a href="/book" class="btn-primary">{{ __('site.bookAppointment') }}</a>
+                <a href="/book" class="btn-primary px-3 sm:px-5">{{ __('site.bookAppointment') }}</a>
 
-                <button type="button" id="site-menu-toggle" class="md:hidden" aria-expanded="false" aria-controls="site-mobile-menu" aria-label="{{ __('site.menuLabel') }}">
+                <button type="button" id="site-menu-toggle" class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-brand-800 hover:bg-brand-50 lg:hidden" aria-expanded="false" aria-controls="site-mobile-menu" aria-label="{{ __('site.menuLabel') }}">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
                 </button>
             </div>
         </div>
 
-        <div id="site-mobile-menu" class="hidden border-t border-brand-100 bg-white px-4 py-3 md:hidden">
+        <div id="site-mobile-menu" class="hidden border-t border-brand-100 bg-white px-4 py-3 lg:hidden">
             <nav class="flex flex-col gap-1" aria-label="{{ __('site.menuLabel') }}">
                 @foreach ([
                     '/' => 'navHome',
@@ -150,7 +157,7 @@
                     ] as $key => $label)
                         @php $url = Content::pick($locale, $siteContent[$key]); @endphp
                         @if ($url !== '')
-                            <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="text-xs text-brand-700 hover:underline">
+                            <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-1 py-1.5 text-xs text-brand-700 hover:underline">
                                 <span class="sr-only">{{ $label }}</span>
                                 <span aria-hidden="true">{{ $label }}</span>
                             </a>
@@ -162,12 +169,12 @@
             <div>
                 <p class="text-sm font-semibold text-slate-800">{{ __('site.footerQuickLinks') }}</p>
                 <ul class="mt-2 space-y-1 text-sm text-slate-600">
-                    <li><a href="/services" class="hover:text-brand-800">{{ __('site.navServices') }}</a></li>
-                    <li><a href="/doctors" class="hover:text-brand-800">{{ __('site.navDoctors') }}</a></li>
-                    <li><a href="/book" class="hover:text-brand-800">{{ __('site.bookAppointment') }}</a></li>
-                    <li><a href="/contact" class="hover:text-brand-800">{{ __('site.navContact') }}</a></li>
-                    <li><a href="/faq" class="hover:text-brand-800">{{ __('site.navFaq') }}</a></li>
-                    <li><a href="/privacy" class="hover:text-brand-800">{{ __('site.footerPrivacy') }}</a></li>
+                    <li><a href="/services" class="inline-block py-1 hover:text-brand-800">{{ __('site.navServices') }}</a></li>
+                    <li><a href="/doctors" class="inline-block py-1 hover:text-brand-800">{{ __('site.navDoctors') }}</a></li>
+                    <li><a href="/book" class="inline-block py-1 hover:text-brand-800">{{ __('site.bookAppointment') }}</a></li>
+                    <li><a href="/contact" class="inline-block py-1 hover:text-brand-800">{{ __('site.navContact') }}</a></li>
+                    <li><a href="/faq" class="inline-block py-1 hover:text-brand-800">{{ __('site.navFaq') }}</a></li>
+                    <li><a href="/privacy" class="inline-block py-1 hover:text-brand-800">{{ __('site.footerPrivacy') }}</a></li>
                 </ul>
             </div>
 
