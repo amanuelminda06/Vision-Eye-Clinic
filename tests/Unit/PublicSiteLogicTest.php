@@ -196,6 +196,29 @@ class PublicSiteLogicTest extends TestCase
         $this->assertStringContainsString('services/general.png', $url);
     }
 
+    public function test_the_doctor_image_url_routes_the_uploads(): void
+    {
+        $this->assertNull(Format::publicDoctorImageUrl('doc-1', null));
+        $this->assertNull(Format::publicDoctorImageUrl('doc-1', ''));
+
+        // Both prefixes are the store's own URLs, so both go through the
+        // narrow public route. The ERP writes `/uploads/…`; legacy rows still
+        // carry `/api/uploads/…`.
+        $this->assertSame(
+            '/api/public/doctors/doc-1/photo',
+            Format::publicDoctorImageUrl('doc-1', '/uploads/staff-1.png'),
+        );
+        $this->assertSame(
+            '/api/public/doctors/doc-1/photo',
+            Format::publicDoctorImageUrl('doc-1', '/api/uploads/staff-1.png'),
+        );
+
+        // A static asset is not a stored blob: it renders as a normal path.
+        $static = Format::publicDoctorImageUrl('doc-1', '/images/doctors/dr-abebe-kebede.png');
+        $this->assertNotNull($static);
+        $this->assertStringContainsString('images/doctors/dr-abebe-kebede.png', $static);
+    }
+
     public function test_the_base_url_strips_the_trailing_slash(): void
     {
         putenv('PUBLIC_BASE_URL=https://vision.example.com/');

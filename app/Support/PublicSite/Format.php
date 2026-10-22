@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\PublicSite;
 
+use App\Support\Storage;
+
 /**
  * Public display helpers, ported from src/modules/public-site/format.ts.
  */
@@ -147,8 +149,8 @@ final class Format
     /**
      * The URL an <img> can load.
      *
-     * - An uploaded blob (`/api/uploads/…`) is served by the narrow public
-     *   route — that route is the only way in.
+     * - An uploaded blob (`/uploads/…` or the legacy `/api/uploads/…`) is
+     *   served by the narrow public route — that route is the only way in.
      * - A site-relative path (`/images/services/x.png`) becomes an absolute
      *   asset() URL, so it follows APP_URL and the forced https scheme on the
      *   Plesk host (an http:// image on an https page is blocked as mixed
@@ -162,7 +164,7 @@ final class Format
             return null;
         }
 
-        if (str_starts_with($storedUrl, '/api/uploads/')) {
+        if (Storage::isStoredBlobUrl($storedUrl)) {
             return $uploadRoute;
         }
 

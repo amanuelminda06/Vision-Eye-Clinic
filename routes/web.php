@@ -88,6 +88,12 @@ Route::get('/403', [ErrorController::class, 'forbidden'])->name('forbidden');
 // App group: session first, then forced password change, then role gates.
 Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // The doctor picture inside the ERP. A staff photo is not patient data,
+    // so every signed-in role may read it — unlike the patient ID photos
+    // below, which stay behind OWNER+RECEPTION.
+    Route::get('/staff-photos/{key}', [UploadController::class, 'staffPhoto'])
+        ->where('key', '[A-Za-z0-9][A-Za-z0-9._-]*')->name('staff.photo');
 });
 
 /*

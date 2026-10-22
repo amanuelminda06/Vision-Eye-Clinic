@@ -49,6 +49,37 @@ class UploadController extends Controller
     }
 
     /**
+     * A staff photo for the signed-in ERP.
+     *
+     * The doctor picture is not patient data — every signed-in role may read
+     * it (the dashboard shows the on-duty doctors to a STAFF user too). The
+     * route serves the `staff-` keys only; a patient ID photo key never
+     * resolves here, it stays behind the OWNER+RECEPTION upload route.
+     */
+    public function staffPhoto(string $key): Response
+    {
+        if (! str_starts_with($key, Storage::STAFF_PHOTO_KEY_PREFIX)) {
+            abort(404);
+        }
+
+        try {
+            $data = Storage::get($key);
+        } catch (\InvalidArgumentException) {
+            abort(404);
+        }
+
+        if ($data === null) {
+            abort(404);
+        }
+
+        return response($data, 200, [
+            'Content-Type' => Storage::detectMime($data),
+            'Cache-Control' => 'private, max-age=300',
+            'Content-Length' => (string) strlen($data),
+        ]);
+    }
+
+    /**
      * The feature gate + the view audit for a patient ID photo.
      */
     private function guardPatientIdPhoto(Request $request, string $key): void

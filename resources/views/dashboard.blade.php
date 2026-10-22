@@ -111,8 +111,8 @@
                     @foreach ($onDuty as $doctor)
                         <li class="flex items-center justify-between gap-3 py-2">
                             <div class="flex min-w-0 items-center gap-3">
-                                @if ($doctor['photoUrl'])
-                                    <img src="{{ $doctor['photoUrl'] }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover">
+                                @if ($photo = stored_photo_url($doctor['photoUrl']))
+                                    <img src="{{ $photo }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover">
                                 @else
                                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700" aria-hidden="true">
                                         {{ mb_strtoupper(mb_substr($doctor['name'], 0, 1)) }}

@@ -31,6 +31,14 @@ class PublicImageController extends Controller
             abort(404);
         }
 
+        // A doctor's photo_url must never be a patient ID photo key — those
+        // keys are patient data and are only served through the authenticated
+        // upload route. If someone manually corrupts the column, we 404.
+        $key = Storage::keyFromUrl($staff->photo_url);
+        if ($key !== null && Storage::isPatientIdPhotoKey($key)) {
+            abort(404);
+        }
+
         return $this->serve($staff->photo_url);
     }
 
@@ -52,22 +60,32 @@ class PublicImageController extends Controller
 
     /**
      * Serves an uploaded blob through the public route.
+     *
+     * Both URL prefixes count — the Laravel route writes `/uploads/{key}`,
+     * the legacy rows still carry `/api/uploads/{key}`.
      */
     private function serve(string $imageUrl): Response
     {
-        if (! str_starts_with($imageUrl, '/api/uploads/')) {
+        $key = Storage::keyFromUrl($imageUrl);
+
+        if ($key === null) {
             abort(404);
         }
 
-        $key = substr($imageUrl, strlen('/api/uploads/'));
-        $bytes = Storage::get($key);
+        try {
+            $bytes = Storage::get($key);
+        } catch (\InvalidArgumentException) {
+            abort(404);
+        }
 
         if ($bytes === null) {
             abort(404);
         }
 
+        $detected = Storage::detectMime($bytes);
+
         return response($bytes, 200, [
-            'Content-Type' => self::contentType($key),
+            'Content-Type' => $detected === 'application/octet-stream' ? self::contentType($key) : $detected,
             'Cache-Control' => 'public, max-age=3600, stale-while-revalidate=86400',
         ]);
     }

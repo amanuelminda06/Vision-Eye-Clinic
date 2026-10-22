@@ -35,6 +35,7 @@
             <table class="w-full text-sm">
                 <thead class="border-b border-brand-100 bg-brand-50/60 text-left text-xs uppercase text-slate-500">
                     <tr>
+                        <th class="px-3 py-2">{{ __('staff.photo') }}</th>
                         <th class="px-3 py-2">{{ __('common.name') }}</th>
                         <th class="px-3 py-2">{{ __('hr.staffLabel') }}</th>
                         <th class="px-3 py-2">{{ __('appointments.service') }}</th>
@@ -45,6 +46,16 @@
                 <tbody>
                     @forelse ($rows as $row)
                         <tr class="border-b border-brand-50 last:border-0">
+                            <td class="px-3 py-2">
+                                @php($photo = stored_photo_url($row['photoUrl']))
+                                @if ($photo)
+                                    <img src="{{ $photo }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover">
+                                @else
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700" aria-hidden="true">
+                                        {{ mb_strtoupper(mb_substr($row['fullName'], 0, 1)) }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-3 py-2 font-medium text-slate-900">{{ $row['fullName'] }}</td>
                             <td class="px-3 py-2 text-xs text-slate-600">{{ $row['jobTitle'] }}</td>
                             <td class="px-3 py-2 text-xs">{{ $row['specialty'] ?? '—' }}</td>
@@ -67,7 +78,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-3 py-8 text-center text-slate-500">{{ __('common.noResults') }}</td></tr>
+                        <tr><td colspan="6" class="px-3 py-8 text-center text-slate-500">{{ __('common.noResults') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

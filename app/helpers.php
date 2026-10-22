@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Support\ClinicTime;
 use App\Support\Money;
+use App\Support\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,6 +93,47 @@ if (! function_exists('format_money')) {
     function format_money(int|float|string $amount, string $currency = 'ETB'): string
     {
         return Money::formatMoney($amount, $currency);
+    }
+}
+
+if (! function_exists('stored_photo_url')) {
+    /**
+     * The URL an <img> can load for a stored photo inside the signed-in ERP
+     * (a staff photo, a patient ID photo).
+     *
+     * An uploaded blob goes through a login-gated route, so the bytes are
+     * never exposed directly — the raw `/uploads/…` value must never be
+     * rendered as an <img src> on its own. A staff photo is read through
+     * `/staff-photos/{key}` (every signed-in role may read it); a patient ID
+     * photo through `/uploads/{key}` (OWNER+RECEPTION only). A site-relative
+     * path (`/images/doctors/x.png`) becomes an absolute asset() URL, so it
+     * follows APP_URL and the forced https scheme on the Plesk host. An
+     * absolute URL is content the clinic configured and is used unchanged.
+     */
+    function stored_photo_url(?string $photoUrl): ?string
+    {
+        if ($photoUrl === null || trim($photoUrl) === '') {
+            return null;
+        }
+
+        $key = Storage::keyFromUrl($photoUrl);
+
+        if ($key !== null) {
+            // A staff photo is served by the route every signed-in role may
+            // read; anything else (a patient ID photo) stays behind the
+            // OWNER+RECEPTION upload route.
+            if (str_starts_with($key, Storage::STAFF_PHOTO_KEY_PREFIX)) {
+                return route('staff.photo', ['key' => $key]);
+            }
+
+            return route('uploads.show', ['key' => $key]);
+        }
+
+        if (str_starts_with($photoUrl, '/')) {
+            return asset(ltrim($photoUrl, '/'));
+        }
+
+        return $photoUrl;
     }
 }
 

@@ -17,17 +17,20 @@ final class Storage
 {
     private const SAFE_KEY = '/^[A-Za-z0-9][A-Za-z0-9._-]*$/';
 
-    /** Prefix used for every patient ID photo key. */
-    public const PATIENT_ID_PHOTO_PREFIX = '/uploads/';
+    /** The URL prefix of every stored blob (`/uploads/<key>`). */
+    public const UPLOAD_URL_PREFIX = '/uploads/';
 
     /** The key prefix of a stored patient ID photo (`patient-id-<uuid>.<ext>`). */
     public const PATIENT_ID_PHOTO_KEY_PREFIX = 'patient-id-';
+
+    /** The key prefix of a stored staff photo (`staff-<uuid>.<ext>`). */
+    public const STAFF_PHOTO_KEY_PREFIX = 'staff-';
 
     /**
      * Legacy URLs pointed at `/api/uploads/{key}`; the Laravel route serves the
      * same keys from `/uploads/{key}`. Accept both so old rows keep resolving.
      */
-    private const LEGACY_URL_PREFIX = '/api/uploads/';
+    public const LEGACY_URL_PREFIX = '/api/uploads/';
 
     /** Stores bytes under a safe key and returns that key. */
     public static function put(string $key, string $data): string
@@ -85,6 +88,19 @@ final class Storage
         return str_starts_with($key, self::PATIENT_ID_PHOTO_KEY_PREFIX);
     }
 
+    /**
+     * True when the URL points at a blob in this store.
+     *
+     * Both prefixes count: the Laravel route writes `/uploads/<key>` while the
+     * legacy rows still carry `/api/uploads/<key>`. Anything else (a static
+     * site-relative path such as `/images/doctors/x.png`, an absolute URL) is
+     * NOT a stored blob and must never be served through the blob routes.
+     */
+    public static function isStoredBlobUrl(?string $url): bool
+    {
+        return self::keyFromUrl($url) !== null;
+    }
+
     /** Extract the storage key from a stored URL, or null when it is not ours. */
     public static function keyFromUrl(?string $url): ?string
     {
@@ -94,8 +110,8 @@ final class Storage
 
         $prefix = null;
 
-        if (str_starts_with($url, self::PATIENT_ID_PHOTO_PREFIX)) {
-            $prefix = self::PATIENT_ID_PHOTO_PREFIX;
+        if (str_starts_with($url, self::UPLOAD_URL_PREFIX)) {
+            $prefix = self::UPLOAD_URL_PREFIX;
         } elseif (str_starts_with($url, self::LEGACY_URL_PREFIX)) {
             $prefix = self::LEGACY_URL_PREFIX;
         }
