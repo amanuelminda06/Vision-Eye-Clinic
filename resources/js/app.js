@@ -92,8 +92,12 @@ if (document.readyState === 'loading') {
  * An <img> that carries `data-fallback` is replaced when it fails to load:
  *
  *   data-fallback="initials"  data-fallback-text="A"  -> the person's initial
- *   data-fallback="placeholder"                        -> a neutral grey block
+ *   data-fallback="placeholder"                        -> a neutral block
  *   data-fallback="hide"                              -> the element is removed
+ *
+ * The neutral block keeps the SIZE of the image it replaces (the width and
+ * height attributes and the classes), so the layout does not jump when the
+ * picture is missing.
  */
 function initImageFallbacks() {
     document.querySelectorAll('img[data-fallback]').forEach((image) => {
@@ -108,14 +112,28 @@ function initImageFallbacks() {
                     return;
                 }
 
-                const replacement = document.createElement('span');
-
-                replacement.className = mode === 'initials'
-                    ? 'flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-semibold text-brand-700'
-                    : 'flex h-40 w-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500';
+                const replacement = document.createElement(mode === 'initials' ? 'span' : 'div');
 
                 if (mode === 'initials') {
+                    replacement.className = 'flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-semibold text-brand-700';
                     replacement.setAttribute('aria-hidden', 'true');
+                } else {
+                    // The same box as the image: the classes and the
+                    // intrinsic ratio are kept, only the picture is missing.
+                    replacement.className = `flex items-center justify-center bg-slate-100 text-sm font-medium text-slate-500 ${image.getAttribute('class') || ''}`;
+
+                    const width = image.getAttribute('width');
+                    const height = image.getAttribute('height');
+
+                    if (width && height) {
+                        replacement.style.aspectRatio = `${width} / ${height}`;
+                    }
+
+                    replacement.setAttribute('role', 'img');
+
+                    if (image.alt) {
+                        replacement.setAttribute('aria-label', image.alt);
+                    }
                 }
 
                 replacement.textContent = image.dataset.fallbackText || '';

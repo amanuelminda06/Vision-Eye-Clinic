@@ -16,25 +16,53 @@ final class Seo
      *
      * Reads `app.public_base_url` (seeded from the PUBLIC_BASE_URL env var)
      * and falls back to the env var itself, so the helper also works outside
-     * a booted application.
+     * a booted application. `app.url` (APP_URL) is the next fallback.
+     *
+     * The scheme is NEVER plain http in production: a canonical URL or an
+     * og:url on http:// is mixed content on an https page, and the crawlers
+     * treat it as a different site. The fallback is https too — an http
+     * default would quietly break every absolute link the day APP_URL was
+     * forgotten.
      */
     public static function siteBaseUrl(): string
     {
-        $base = '';
+        $config = Container::getInstance()->bound('config')
+            ? Container::getInstance()->make('config')
+            : null;
 
-        if (Container::getInstance()->bound('config')) {
-            $base = (string) config('app.public_base_url', '');
-        }
+        $base = $config !== null ? (string) $config->get('app.public_base_url', '') : '';
 
         if ($base === '') {
             $base = (string) env('PUBLIC_BASE_URL', '');
         }
 
-        if ($base === '') {
-            return 'http://localhost:3000';
+        if ($base === '' && $config !== null) {
+            $base = (string) $config->get('app.url', '');
         }
 
-        return rtrim($base, '/');
+        if ($base === '') {
+            $base = 'https://localhost';
+        }
+
+        $base = rtrim($base, '/');
+
+        if (self::isProduction() && str_starts_with($base, 'http://')) {
+            $base = 'https://'.substr($base, strlen('http://'));
+        }
+
+        return $base;
+    }
+
+    /**
+     * True when the application runs in production.
+     */
+    private static function isProduction(): bool
+    {
+        $config = Container::getInstance()->bound('config')
+            ? Container::getInstance()->make('config')
+            : null;
+
+        return $config !== null && $config->get('app.env') === 'production';
     }
 
     /**

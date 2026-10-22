@@ -118,11 +118,28 @@ if (! function_exists('public_asset_exists')) {
 if (! function_exists('public_asset_url')) {
     /**
      * The URL of a public asset, or null when the file is missing.
+     *
+     * The URL is built with asset(), so it follows APP_URL and the forced
+     * https scheme: on the Plesk host (behind the nginx proxy) the pages
+     * must link to https://visioneye.clinic.et/… and never to http:// —
+     * an http:// asset on an https page is blocked as mixed content and the
+     * stylesheet, the logo or the hero image silently disappears.
+     *
+     * A missing file returns null, so the template can render a placeholder
+     * instead of a broken image box.
      */
     function public_asset_url(string $path): ?string
     {
-        $path = '/'.ltrim(trim($path), '/');
+        $path = ltrim(trim($path), '/');
 
-        return public_asset_exists($path) ? $path : null;
+        if ($path === '' || str_contains($path, '..')) {
+            return null;
+        }
+
+        if (! public_asset_exists($path)) {
+            return null;
+        }
+
+        return asset($path);
     }
 }

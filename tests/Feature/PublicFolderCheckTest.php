@@ -242,10 +242,16 @@ class PublicFolderCheckTest extends TestCase
             '/images/apple-touch-icon.png',
             '/images/logo.png',
             '/images/logo-dark.png',
-            '/images/logo.jpg',
             '/images/hero.jpg',
         ] as $asset) {
             $this->assertTrue(public_asset_exists($asset), "{$asset} is missing.");
         }
+    }
+
+    public function test_the_duplicate_logo_jpeg_is_gone(): void
+    {
+        // The logo is a transparent PNG; the JPEG copy (an opaque version of
+        // the same lockup) was removed — one logo, one place.
+        $this->assertFileDoesNotExist(public_path('images/logo.jpg'));
     }
 }

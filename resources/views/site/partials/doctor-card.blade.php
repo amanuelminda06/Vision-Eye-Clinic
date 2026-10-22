@@ -19,7 +19,11 @@
 <article class="card p-4">
     <div class="flex items-center gap-3">
         @if ($photo)
+            {{-- The doctor photos are 512x512 — the intrinsic size reserves
+                 the space; a missing photo falls back to the initials. --}}
             <img src="{{ $photo }}" alt="{{ __t('site.doctors.photoAlt', ['name' => $doctor['name']]) }}"
+                 width="512" height="512"
+                 loading="lazy" decoding="async"
                  class="h-16 w-16 shrink-0 rounded-full object-cover"
                  data-fallback="initials"
                  data-fallback-text="{{ mb_strtoupper(mb_substr($doctor['name'], 0, 1)) }}">

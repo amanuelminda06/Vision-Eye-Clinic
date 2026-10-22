@@ -26,9 +26,14 @@
                 </div>
 
                 @if ($hero = public_asset_url('/images/hero.jpg'))
-                    <img src="{{ $hero }}" alt="" width="1200" height="630" loading="lazy" decoding="async"
+                    {{-- The hero is the LCP element: it is loaded eagerly and
+                         with a high priority. A broken file falls back to a
+                         neutral block of the same shape — never a broken box. --}}
+                    <img src="{{ $hero }}" alt="{{ __('site.home.heroImageAlt') }}"
+                         width="1200" height="630"
+                         loading="eager" fetchpriority="high" decoding="async"
                          class="mt-6 w-full rounded-2xl border border-brand-100 object-cover"
-                         data-fallback="hide">
+                         data-fallback="placeholder">
                 @endif
             </div>
 
@@ -59,14 +64,26 @@
         @else
             <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($services as $service)
+                    @php
+                        $image = \App\Support\PublicSite\Format::publicServiceImageUrl($service['id'], $service['imageUrl']);
+                        $serviceName = app()->getLocale() === 'am'
+                            ? ($service['nameAm'] ?: ($service['nameEn'] ?: $service['name']))
+                            : ($service['nameEn'] ?: $service['name']);
+                    @endphp
                     <article class="card overflow-hidden p-0">
-                        @php $image = \App\Support\PublicSite\Format::publicServiceImageUrl($service['id'], $service['imageUrl']); @endphp
                         @if ($image)
-                            <img src="{{ $image }}" alt="" class="h-40 w-full object-cover">
+                            {{-- The service images are 1200x800 — the intrinsic
+                                 size reserves the space, so the card does not
+                                 jump while the picture loads. --}}
+                            <img src="{{ $image }}" alt="{{ $serviceName }}" width="1200" height="800"
+                                 loading="lazy" decoding="async"
+                                 class="h-40 w-full object-cover"
+                                 data-fallback="placeholder"
+                                 data-fallback-text="{{ mb_strtoupper(mb_substr($serviceName, 0, 1)) }}">
                         @endif
                         <div class="space-y-2 p-4">
                             <h3 class="text-base font-semibold text-slate-900">
-                                {{ app()->getLocale() === 'am' ? ($service['nameAm'] ?: ($service['nameEn'] ?: $service['name'])) : ($service['nameEn'] ?: $service['name']) }}
+                                {{ $serviceName }}
                             </h3>
                             @php $description = app()->getLocale() === 'am' ? ($service['descriptionAm'] ?: $service['descriptionEn']) : $service['descriptionEn']; @endphp
                             @if ($description)

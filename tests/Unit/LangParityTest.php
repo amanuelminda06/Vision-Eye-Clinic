@@ -109,8 +109,8 @@ class LangParityTest extends TestCase
         sort($enKeys);
         sort($amKeys);
         $this->assertSame($enKeys, $amKeys);
-        $this->assertCount(1243, $en);
-        $this->assertCount(1243, $am);
+        $this->assertCount(1244, $en);
+        $this->assertCount(1244, $am);
     }
 
     public function test_every_leaf_is_a_non_empty_string_in_both_locales(): void

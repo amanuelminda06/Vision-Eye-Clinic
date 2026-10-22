@@ -44,11 +44,26 @@ final class PublicAssets
      * that was deployed before the rebuild. Plesk never deletes files that
      * were removed from the repository, so they have to be cleaned by hand.
      *
+     * The list is EXACTLY the leftovers of the old app — the cleanup command
+     * removes these and nothing else, so a new entry must be added here
+     * deliberately.
+     *
      * @var list<string>
      */
     public const LEGACY_ENTRIES = [
+        // The static folders that shadowed the /services and /doctors routes.
         'services',
         'doctors',
+
+        // The legacy images at the root of public/ — they now live under
+        // public/images/ (the hero and the two logos).
+        'hero.jpg',
+        'hero-medical.svg',
+        'vision-logo.png',
+        'vision-logo-dark.png',
+        'vision-logo.jpg',
+
+        // The stock svg files of the Next.js starter.
         'next.svg',
         'vercel.svg',
         'file.svg',
@@ -137,6 +152,9 @@ final class PublicAssets
     /**
      * The public asset paths the templates and the seeders reference.
      *
+     * The templates use asset('images/…') and the seeders store the
+     * site-relative '/images/…' paths, so BOTH spellings are scanned.
+     *
      * @return list<string>
      */
     public static function referencedAssets(): array
@@ -153,14 +171,24 @@ final class PublicAssets
         foreach ($sources as $file) {
             $contents = (string) file_get_contents($file);
 
-            // /images/... and /favicon.ico — the static files the pages load.
-            if (preg_match_all('#(?<![\w:/])/(images/[A-Za-z0-9_\-./]+)#', $contents, $matches) > 0) {
-                foreach ($matches[1] as $match) {
+            // 'images/…' and '/images/…' — the static files the pages load.
+            // Only a QUOTED path counts, so a path in a comment or in prose
+            // is not mistaken for a reference.
+            if (preg_match_all('#([\'"])(/?images/[A-Za-z0-9_\-./]+)\1#', $contents, $matches) > 0) {
+                foreach ($matches[2] as $match) {
+                    $match = rtrim($match, '/');
+
+                    // A directory ('images/services') is not an asset.
+                    if ($match === '' || ! str_contains(basename($match), '.')) {
+                        continue;
+                    }
+
                     $found[] = '/'.ltrim($match, '/');
                 }
             }
 
-            if (str_contains($contents, '/favicon.ico')) {
+            // 'favicon.ico' — the icon every layout links.
+            if (preg_match('#([\'"])(/?favicon\.ico)\1#', $contents) === 1) {
                 $found[] = '/favicon.ico';
             }
         }

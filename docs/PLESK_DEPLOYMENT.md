@@ -222,7 +222,7 @@ Edit `.env` and set at least:
 | --- | --- | --- |
 | `APP_ENV` | `production` | |
 | `APP_DEBUG` | `false` | **Never** `true` in production. |
-| `APP_URL` | `https://clinic.example.com` | No trailing slash. |
+| `APP_URL` | `https://visioneye.clinic.et` | No trailing slash. **Must be the real public origin** — see the note below. |
 | `APP_KEY` | generated | `php artisan key:generate` |
 | `DB_CONNECTION` | `mysql` | |
 | `DB_HOST` | `127.0.0.1` | On Plesk, MySQL is usually local. |
@@ -234,10 +234,32 @@ Edit `.env` and set at least:
 | `OWNER_EMAIL` / `OWNER_PASSWORD` | real values | The seed creates this account. |
 | `RECEPTION_EMAIL` / `RECEPTION_PASSWORD` | real values | |
 | `STAFF_EMAIL` / `STAFF_PASSWORD` | real values | |
-| `PUBLIC_BASE_URL` | `https://clinic.example.com` | Used for the canonicals, the sitemap and `robots.txt`. |
+| `PUBLIC_BASE_URL` | `https://visioneye.clinic.et` | Same value as `APP_URL` — the site has ONE public origin. Used for the canonicals, the sitemap and `robots.txt`. |
 | `SESSION_SECURE_COOKIE` | `true` | Once the site is HTTPS-only. |
 | `CRON_SECRET` | `openssl rand -hex 24` | Bearer token for the message job. Leave blank to disable the endpoint. |
 | `STORAGE_DRIVER` | `db` | Uploads as database blobs (survives a disk wipe). Use `local` + `UPLOAD_DIR` for the filesystem instead. |
+
+### `APP_URL` must be the REAL origin
+
+`APP_URL` (and `PUBLIC_BASE_URL`, which is the same value) is not cosmetic.
+A wrong value breaks the site in ways that look like "the design is broken":
+
+| What breaks | How |
+| --- | --- |
+| **Every asset URL** | `asset()`, `url()` and `route()` build absolute links from `APP_URL`. With `APP_URL=http://…` the pages on the https site link to `http://…` — the browser blocks them as **mixed content**, so the stylesheet, the logo, the hero image and the fonts silently disappear and the page renders as unstyled text. |
+| **The login redirect** | The staff login (`/login/<LOGIN_SECRET_PATH>`) and the "back to the site" redirect are built from `APP_URL`. A wrong value sends the operator to a host that does not exist (`clinic.example.com`). |
+| **The canonical URL / og:url / sitemap** | Search engines treat `http://clinic.example.com/` and `https://visioneye.clinic.et/` as two different sites. |
+
+Set it once, with the scheme, without a trailing slash:
+
+```dotenv
+APP_URL=https://visioneye.clinic.et
+PUBLIC_BASE_URL=https://visioneye.clinic.et
+```
+
+Behind the Plesk nginx proxy the app trusts `X-Forwarded-Proto` (`TRUSTED_PROXIES`,
+default the loopback) and forces `https` in production — but `APP_URL` is still
+the source of truth for the absolute URLs the templates print.
 
 Everything else keeps its default. The full list with comments is in
 `.env.example`.
@@ -308,6 +330,7 @@ and commit the result whenever a view, the CSS or the JS changes:
 ```bash
 npm install
 npm run build
+git add -A public/build
 git add public/build package-lock.json
 git commit -m "build: refresh the compiled assets"
 ```
@@ -325,6 +348,37 @@ php artisan optimize:clear
 > The compiled CSS must be rebuilt whenever a **new utility class** appears in
 > a view: Tailwind only emits the classes it finds in the source. A stale
 > bundle is what makes a page look "partly broken".
+
+### The fonts are self-hosted
+
+The web fonts live in `resources/fonts/` as `woff2` files:
+
+| File | Family | Covers |
+| --- | --- | --- |
+| `instrument-sans-latin.woff2` | Instrument Sans | the Latin text (variable, 400–700) |
+| `instrument-sans-latin-ext.woff2` | Instrument Sans | the Latin extended characters |
+| `noto-sans-ethiopic.woff2` | Noto Sans Ethiopic | the Amharic text (አማርኛ) |
+
+They are `@font-face` declarations in `resources/css/app.css`, so Vite hashes
+them into `public/build/assets/` with the CSS — the browser loads them from
+**this host**. No `fonts.googleapis.com`, no third party font server, and the
+CSP stays at `font-src 'self' data:`.
+
+> **A missing font file is not a fatal error** — the browser falls back to the
+> system sans-serif — but a *stale* CSS bundle that predates the `@font-face`
+> rules shows the system font instead of the brand font on every page. Rebuild
+> and commit `public/build` whenever the fonts change.
+
+### The map
+
+The contact page shows an OpenStreetMap map with **one** tile host,
+`https://tile.openstreetmap.org/{z}/{x}/{y}.png` (no `a/b/c` subdomains), and
+the CSP allows exactly that host in `img-src`. Leaflet's CSS and its marker
+icons are part of the committed bundle. The scroll wheel does **not** zoom
+(the page keeps scrolling), and on a touch screen a one-finger swipe scrolls
+the page while the map is panned with two fingers. The address and an
+"Open in Google Maps" link are always visible next to the map — they are the
+fallback when the tiles cannot be loaded.
 
 ---
 
@@ -365,11 +419,22 @@ php artisan schedule:list
 
 > **A Plesk Git deployment never DELETES a file that was removed from the
 > repository.** It only adds and overwrites. Every file the old Next.js app
-> left behind (the folders `public/services` and `public/doctors`, `next.svg`,
-> `vercel.svg`, `file.svg`, `globe.svg`, `window.svg`, `index.html`) therefore
-> **stays on the server** — and a folder in `public/` SHADOWS a Laravel route:
-> Apache answers `/services` from `public/services` before the framework ever
-> runs, and the page breaks with no PHP error at all.
+> left behind therefore **stays on the server**:
+>
+> - the folders `public/services` and `public/doctors` — a folder in `public/`
+>   **SHADOWS a Laravel route**: Apache answers `/services` from
+>   `public/services` before the framework ever runs, and the page breaks
+>   with no PHP error at all;
+> - the stock svg files `next.svg`, `vercel.svg`, `file.svg`, `globe.svg`,
+>   `window.svg`, `index.html`;
+> - the legacy images at the root of `public/` — `hero.jpg`, `hero-medical.svg`,
+>   `vision-logo.png`, `vision-logo-dark.png`, `vision-logo.jpg` (they now
+>   live under `public/images/`).
+>
+> The same is true for the **hashed build files**: `public/build/assets/` keeps
+> every old `app-<hash>.css` / `app-<hash>.js`. They are harmless (nothing
+> links to them any more) but they pile up — delete them by hand or ignore
+> them.
 
 So after every deployment, run this (it is safe to run every time):
 
@@ -401,7 +466,12 @@ break):
 | `/services` | the six services — NOT a 404 from `public/services` |
 | `/doctors` | the doctors — NOT a 404 from `public/doctors` |
 | `/contact` | the map, the address, the "Open in Google Maps" link |
+| `/book` | the booking form |
 | `/login/<LOGIN_SECRET_PATH>` | the login form |
+
+Open the pages in a **private window** (a cached `app-<hash>.css` hides a
+broken build) and check the browser console: a missing file shows a 404 and
+the CSP shows the host it was blocked on.
 
 ### Running the commands automatically
 
@@ -415,13 +485,16 @@ cd /var/www/vision && php artisan public:clean-legacy && php artisan public:chec
 (`public:check` exits non-zero when something is wrong, so the deployment is
 marked as failed instead of silently serving a broken page.)
 
+> The hook runs as the deployment user. If it fails with a permission error on
+> `storage/`, run `chmod -R 775 storage bootstrap/cache` once (section 7).
+
 ---
 
 ## 12. Post-deploy smoke test
 
 ```bash
 # Locally or on the host (the host must reach the site):
-BASE=https://clinic.example.com bash scripts/smoke.sh
+BASE=https://visioneye.clinic.et bash scripts/smoke.sh
 ```
 
 The script logs in through the secret path and checks the ERP screens, the

@@ -50,7 +50,7 @@ cd /var/www/vision && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
 # 6. HTTPS (Plesk → SSL/TLS → Let's Encrypt → force HTTPS)
 
 # 7. Verify
-BASE=https://clinic.example.com bash scripts/smoke.sh
+BASE=https://visioneye.clinic.et bash scripts/smoke.sh
 ```
 
 ## Front-end assets

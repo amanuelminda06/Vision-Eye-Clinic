@@ -27,7 +27,7 @@
     <meta property="og:locale" content="en_ET">
     <meta property="og:locale:alternate" content="am_ET">
     {{-- The hero image is 1200x630 — the Open Graph size. --}}
-    <meta property="og:image" content="{{ $base }}{{ public_asset_url('/images/hero.jpg') ?? '/images/hero.jpg' }}">
+    <meta property="og:image" content="{{ public_asset_url('/images/hero.jpg') ?? asset('images/hero.jpg') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
@@ -36,10 +36,10 @@
     <meta name="twitter:description" content="{{ $seo['twitter']['description'] ?? '' }}">
 
     {{-- Icons: a real favicon.ico plus the modern PNG sizes. --}}
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -65,7 +65,12 @@
         <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
             <a href="/" class="flex items-center gap-3">
                 @if ($logo = public_asset_url('/images/logo.png'))
-                    <img src="{{ $logo }}" alt="" width="120" height="62" class="h-9 w-auto" data-fallback="hide">
+                    {{-- The logo file is 271x183 (the transparent padding is
+                         cropped off) — the intrinsic size keeps the header
+                         from jumping while the image loads. --}}
+                    <img src="{{ $logo }}" alt="{{ $clinicName }}" width="271" height="183"
+                         class="h-9 w-auto" decoding="async"
+                         data-fallback="hide">
                 @endif
                 <span class="flex flex-col leading-tight">
                     <span class="text-base font-semibold text-brand-800">{{ $clinicName }}</span>

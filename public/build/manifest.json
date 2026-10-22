@@ -20,7 +20,7 @@
     "src": "node_modules/leaflet/dist/images/marker-shadow.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DcQFAoYD.css",
+    "file": "assets/app-CbrbOVXT.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -28,8 +28,20 @@
       "app.css"
     ]
   },
+  "resources/fonts/instrument-sans-latin-ext.woff2": {
+    "file": "assets/instrument-sans-latin-ext-B5bTHO_g.woff2",
+    "src": "resources/fonts/instrument-sans-latin-ext.woff2"
+  },
+  "resources/fonts/instrument-sans-latin.woff2": {
+    "file": "assets/instrument-sans-latin-BbzFLZTg.woff2",
+    "src": "resources/fonts/instrument-sans-latin.woff2"
+  },
+  "resources/fonts/noto-sans-ethiopic.woff2": {
+    "file": "assets/noto-sans-ethiopic-DqhinWt5.woff2",
+    "src": "resources/fonts/noto-sans-ethiopic.woff2"
+  },
   "resources/js/app.js": {
-    "file": "assets/app-DEwViRM8.js",
+    "file": "assets/app-CQyvLgUE.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,

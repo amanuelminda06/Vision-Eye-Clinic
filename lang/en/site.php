@@ -69,6 +69,7 @@ return [
         'why3Text' => 'From children to grandparents, we look after every stage of life.',
         'ctaTitle' => 'Ready to see clearly again?',
         'ctaText' => 'Book a visit and our team will call you to confirm a time that suits you.',
+        'heroImageAlt' => 'The eye examination room at Vision Eye Clinic',
         'announcementsTitle' => 'Announcements',
         'ratingAria' => '{rating} out of {max} stars',
     ],

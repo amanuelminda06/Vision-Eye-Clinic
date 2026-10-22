@@ -19,16 +19,25 @@
 
                     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($services as $service)
+                            @php
+                                $image = \App\Support\PublicSite\Format::publicServiceImageUrl($service['id'], $service['imageUrl']);
+                                $serviceName = app()->getLocale() === 'am'
+                                    ? ($service['nameAm'] ?: ($service['nameEn'] ?: $service['name']))
+                                    : ($service['nameEn'] ?: $service['name']);
+                            @endphp
                             <article class="card overflow-hidden p-0">
-                                @php $image = \App\Support\PublicSite\Format::publicServiceImageUrl($service['id'], $service['imageUrl']); @endphp
                                 @if ($image)
-                                    <img src="{{ $image }}" alt="" class="h-40 w-full object-cover"
+                                    {{-- The service images are 1200x800 — the
+                                         intrinsic size reserves the space. --}}
+                                    <img src="{{ $image }}" alt="{{ $serviceName }}" width="1200" height="800"
+                                         loading="lazy" decoding="async"
+                                         class="h-40 w-full object-cover"
                                          data-fallback="placeholder"
-                                         data-fallback-text="{{ mb_strtoupper(mb_substr(app()->getLocale() === 'am' ? ($service['nameAm'] ?: $service['nameEn']) : ($service['nameEn'] ?: $service['name']), 0, 1)) }}">
+                                         data-fallback-text="{{ mb_strtoupper(mb_substr($serviceName, 0, 1)) }}">
                                 @endif
                                 <div class="space-y-2 p-4">
                                     <h3 class="text-base font-semibold text-slate-900">
-                                        {{ app()->getLocale() === 'am' ? ($service['nameAm'] ?: ($service['nameEn'] ?: $service['name'])) : ($service['nameEn'] ?: $service['name']) }}
+                                        {{ $serviceName }}
                                     </h3>
                                     @php $description = app()->getLocale() === 'am' ? ($service['descriptionAm'] ?: $service['descriptionEn']) : $service['descriptionEn']; @endphp
                                     @if ($description)

@@ -2,7 +2,7 @@
 #
 # Production smoke test against a running instance.
 #
-#   BASE=https://clinic.example.com bash scripts/smoke.sh
+#   BASE=https://visioneye.clinic.et bash scripts/smoke.sh
 #   LOGIN_SECRET_PATH=... OWNER_EMAIL=... OWNER_PASSWORD=... bash scripts/smoke.sh
 #
 # Every check prints ✓ or ✗; the script exits non-zero when a check failed.

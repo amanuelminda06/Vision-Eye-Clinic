@@ -135,29 +135,46 @@ final class Format
      */
     public static function publicServiceImageUrl(string $serviceId, ?string $imageUrl): ?string
     {
-        if ($imageUrl === null || $imageUrl === '') {
-            return null;
-        }
-
-        if (str_starts_with($imageUrl, '/api/uploads/')) {
-            return '/api/public/services/'.$serviceId.'/image';
-        }
-
-        return $imageUrl;
+        return self::publicImageUrl($serviceId, $imageUrl, '/api/public/services/'.$serviceId.'/image');
     }
 
     /** The same for a doctor photo. */
     public static function publicDoctorImageUrl(string $doctorId, ?string $photoUrl): ?string
     {
-        if ($photoUrl === null || $photoUrl === '') {
+        return self::publicImageUrl($doctorId, $photoUrl, '/api/public/doctors/'.$doctorId.'/photo');
+    }
+
+    /**
+     * The URL an <img> can load.
+     *
+     * - An uploaded blob (`/api/uploads/…`) is served by the narrow public
+     *   route — that route is the only way in.
+     * - A site-relative path (`/images/services/x.png`) becomes an absolute
+     *   asset() URL, so it follows APP_URL and the forced https scheme on the
+     *   Plesk host (an http:// image on an https page is blocked as mixed
+     *   content and the picture silently disappears).
+     * - An absolute URL (an externally hosted picture) is used unchanged —
+     *   it is content the clinic configured, not a link the template owns.
+     */
+    private static function publicImageUrl(string $id, ?string $storedUrl, string $uploadRoute): ?string
+    {
+        if ($storedUrl === null || $storedUrl === '') {
             return null;
         }
 
-        if (str_starts_with($photoUrl, '/api/uploads/')) {
-            return '/api/public/doctors/'.$doctorId.'/photo';
+        if (str_starts_with($storedUrl, '/api/uploads/')) {
+            return $uploadRoute;
         }
 
-        return $photoUrl;
+        if (str_starts_with($storedUrl, '/')) {
+            if (function_exists('app') && app()->bound('url')) {
+                return asset(ltrim($storedUrl, '/'));
+            }
+
+            return $storedUrl;
+        }
+
+        return $storedUrl;
     }
 
     /** The Amharic weekday short name (0 = Sunday). */

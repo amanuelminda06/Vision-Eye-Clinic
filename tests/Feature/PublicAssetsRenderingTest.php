@@ -30,10 +30,10 @@ class PublicAssetsRenderingTest extends TestCase
         foreach (['/', '/book'] as $path) {
             $html = (string) $this->get($path)->getContent();
 
-            $this->assertStringContainsString('href="/favicon.ico"', $html, $path);
-            $this->assertStringContainsString('href="/images/favicon-32.png"', $html, $path);
-            $this->assertStringContainsString('href="/images/favicon-192.png"', $html, $path);
-            $this->assertStringContainsString('href="/images/apple-touch-icon.png"', $html, $path);
+            $this->assertStringContainsString('href="'.asset('favicon.ico').'"', $html, $path);
+            $this->assertStringContainsString('href="'.asset('images/favicon-32.png').'"', $html, $path);
+            $this->assertStringContainsString('href="'.asset('images/favicon-192.png').'"', $html, $path);
+            $this->assertStringContainsString('href="'.asset('images/apple-touch-icon.png').'"', $html, $path);
         }
 
         // The ERP layout too.
@@ -44,8 +44,8 @@ class PublicAssetsRenderingTest extends TestCase
 
         $html = (string) $this->actingAs($owner)->get('/dashboard')->getContent();
 
-        $this->assertStringContainsString('href="/favicon.ico"', $html);
-        $this->assertStringContainsString('href="/images/apple-touch-icon.png"', $html);
+        $this->assertStringContainsString('href="'.asset('favicon.ico').'"', $html);
+        $this->assertStringContainsString('href="'.asset('images/apple-touch-icon.png').'"', $html);
     }
 
     public function test_the_open_graph_image_is_a_file_that_exists(): void
@@ -55,7 +55,7 @@ class PublicAssetsRenderingTest extends TestCase
         preg_match('#<meta property="og:image" content="([^"]+)"#', $html, $matches);
 
         $this->assertNotEmpty($matches, 'The home page has no og:image.');
-        $this->assertStringEndsWith('/images/hero.jpg', $matches[1]);
+        $this->assertSame(asset('images/hero.jpg'), $matches[1]);
         $this->assertTrue(public_asset_exists('/images/hero.jpg'));
     }
 
@@ -63,16 +63,33 @@ class PublicAssetsRenderingTest extends TestCase
     {
         $html = (string) $this->get('/')->getContent();
 
-        $this->assertStringContainsString('src="/images/hero.jpg"', $html);
+        $this->assertStringContainsString('src="'.asset('images/hero.jpg').'"', $html);
+
+        // The intrinsic size is declared, so the page does not jump.
+        $this->assertStringContainsString('width="1200"', $html);
+        $this->assertStringContainsString('height="630"', $html);
+
+        // The hero is the LCP element: it must not be lazy.
+        $this->assertStringContainsString('loading="eager"', $html);
+        $this->assertStringContainsString('fetchpriority="high"', $html);
+
+        // It carries an alt text.
+        $this->assertStringContainsString('alt="'.__('site.home.heroImageAlt').'"', $html);
+
         // A missing file must not leave a broken box.
-        $this->assertStringContainsString('data-fallback="hide"', $html);
+        $this->assertStringContainsString('data-fallback="placeholder"', $html);
     }
 
     public function test_the_header_shows_the_logo(): void
     {
         $html = (string) $this->get('/')->getContent();
 
-        $this->assertStringContainsString('src="/images/logo.png"', $html);
+        $this->assertStringContainsString('src="'.asset('images/logo.png').'"', $html);
+
+        // The intrinsic size and the alt text are declared.
+        $this->assertStringContainsString('width="271"', $html);
+        $this->assertStringContainsString('height="183"', $html);
+        $this->assertStringContainsString('alt="'.__('app.name').'"', $html);
     }
 
     public function test_the_contact_page_carries_the_map_with_the_cms_coordinates(): void
@@ -158,7 +175,9 @@ class PublicAssetsRenderingTest extends TestCase
         $this->assertFalse(public_asset_exists('/../.env'));
         $this->assertFalse(public_asset_exists(''));
 
-        $this->assertSame('/images/hero.jpg', public_asset_url('/images/hero.jpg'));
+        // The URL is the asset() one — absolute, and https when APP_URL is.
+        $this->assertSame(asset('images/hero.jpg'), public_asset_url('/images/hero.jpg'));
+        $this->assertSame(asset('images/hero.jpg'), public_asset_url('images/hero.jpg'));
         $this->assertNull(public_asset_url('/images/nope.jpg'));
     }
 
