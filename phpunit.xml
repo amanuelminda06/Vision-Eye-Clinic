@@ -19,6 +19,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
@@ -33,11 +34,11 @@
         <env name="PUBLIC_BASE_URL" value="http://localhost"/>
         <!-- Seed accounts for DatabaseSeeder tests (test-only values) -->
         <env name="OWNER_EMAIL" value="owner@example.test"/>
-        <env name="OWNER_PASSWORD" value="OwnerSeed123!"/>
+        <env name="OWNER_PASSWORD" value="ClinicAdminPass2024!"/>
         <env name="RECEPTION_EMAIL" value="reception@example.test"/>
-        <env name="RECEPTION_PASSWORD" value="ReceptionSeed123!"/>
+        <env name="RECEPTION_PASSWORD" value="FrontDeskPass2024!"/>
         <env name="STAFF_EMAIL" value="staff@example.test"/>
-        <env name="STAFF_PASSWORD" value="StaffSeed123!"/>
+        <env name="STAFF_PASSWORD" value="DoctorAccessPass2024!"/>
         <!-- Cheap argon2id cost for the test suite (same algorithm, small work factor) -->
         <env name="ARGON_MEMORY" value="1024"/>
         <env name="ARGON_TIME" value="1"/>

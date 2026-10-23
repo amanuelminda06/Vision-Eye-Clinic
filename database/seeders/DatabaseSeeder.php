@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\Passwords;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -100,8 +101,16 @@ class DatabaseSeeder extends Seeder
                 throw new \RuntimeException("{$emailKey} must be a valid email address.");
             }
 
-            if (strlen($password) < 6) {
-                throw new \RuntimeException("{$passwordKey} must be at least 6 characters.");
+            // Use the centralized password validation (min 10, no common passwords, no personal info)
+            $error = Passwords::passwordError($password, ['email' => $email]);
+            if ($error !== null) {
+                $message = match ($error) {
+                    'passwordTooShort' => "{$passwordKey} must be at least ".Passwords::MIN_PASSWORD_LENGTH.' characters.',
+                    'passwordCommon' => "{$passwordKey} must not be a common password.",
+                    'passwordPersonal' => "{$passwordKey} must not contain personal information.",
+                    default => "{$passwordKey} is invalid.",
+                };
+                throw new \RuntimeException($message);
             }
         }
     }
@@ -353,8 +362,16 @@ class DatabaseSeeder extends Seeder
                 throw new \RuntimeException("{$emailKey} must be a valid email address.");
             }
 
-            if (strlen($password) < 6) {
-                throw new \RuntimeException("{$passwordKey} must be at least 6 characters.");
+            // Use the centralized password validation (min 10, no common passwords, no personal info)
+            $error = Passwords::passwordError($password, ['email' => $email]);
+            if ($error !== null) {
+                $message = match ($error) {
+                    'passwordTooShort' => "{$passwordKey} must be at least ".Passwords::MIN_PASSWORD_LENGTH.' characters.',
+                    'passwordCommon' => "{$passwordKey} must not be a common password.",
+                    'passwordPersonal' => "{$passwordKey} must not contain personal information.",
+                    default => "{$passwordKey} is invalid.",
+                };
+                throw new \RuntimeException($message);
             }
 
             $user = User::firstOrNew(['email' => $email]);

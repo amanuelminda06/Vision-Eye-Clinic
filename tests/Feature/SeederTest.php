@@ -110,9 +110,9 @@ class SeederTest extends TestCase
         $reception = User::where('email', 'reception@example.test')->sole();
         $staff = User::where('email', 'staff@example.test')->sole();
 
-        $this->assertTrue(Hash::check('OwnerSeed123!', $owner->password));
-        $this->assertTrue(Hash::check('ReceptionSeed123!', $reception->password));
-        $this->assertTrue(Hash::check('StaffSeed123!', $staff->password));
+        $this->assertTrue(Hash::check('ClinicAdminPass2024!', $owner->password));
+        $this->assertTrue(Hash::check('FrontDeskPass2024!', $reception->password));
+        $this->assertTrue(Hash::check('DoctorAccessPass2024!', $staff->password));
     }
 
     public function test_the_seeded_accounts_are_active_and_not_forced_to_change_password(): void
@@ -215,7 +215,12 @@ class SeederTest extends TestCase
 
     public function test_a_too_short_seed_password_fails_fast(): void
     {
-        $this->assertSeederRejectsInvalidEnv('STAFF_PASSWORD', 'short', 'STAFF_PASSWORD must be at least 6 characters.');
+        $this->assertSeederRejectsInvalidEnv('STAFF_PASSWORD', 'short', 'STAFF_PASSWORD must be at least 10 characters.');
+    }
+
+    public function test_a_common_seed_password_fails_fast(): void
+    {
+        $this->assertSeederRejectsInvalidEnv('STAFF_PASSWORD', 'password123', 'STAFF_PASSWORD must not be a common password.');
     }
 
     public function test_a_bad_env_leaves_nothing_half_seeded(): void
@@ -257,16 +262,52 @@ class SeederTest extends TestCase
      * Run the seeder with one env value overridden and assert it throws without
      * leaking the value. env() honours $_SERVER/$_ENV (putenv alone does not),
      * so both are set and restored.
+     *
+     * The seeder validates all three accounts, so we must provide valid passwords
+     * for the other two accounts when testing one.
      */
     private function assertSeederRejectsInvalidEnv(string $key, string $value, string $expectedMessage): void
     {
-        $hadServer = array_key_exists($key, $_SERVER);
-        $hadEnv = array_key_exists($key, $_ENV);
-        $prevServer = $_SERVER[$key] ?? null;
-        $prevEnv = $_ENV[$key] ?? null;
+        // Valid passwords for the other accounts (must not contain personal info, min 10 chars, not common)
+        $validPasswords = [
+            'OWNER_PASSWORD' => 'ClinicAdminPass2024!',
+            'RECEPTION_PASSWORD' => 'FrontDeskPass2024!',
+            'STAFF_PASSWORD' => 'DoctorAccessPass2024!',
+        ];
 
-        $_SERVER[$key] = $value;
-        $_ENV[$key] = $value;
+        // All keys that the seeder reads (emails + passwords)
+        $allKeys = [
+            'OWNER_EMAIL', 'OWNER_PASSWORD',
+            'RECEPTION_EMAIL', 'RECEPTION_PASSWORD',
+            'STAFF_EMAIL', 'STAFF_PASSWORD',
+        ];
+
+        // Save original values for all keys
+        $originalServer = [];
+        $originalEnv = [];
+        $hadServer = [];
+        $hadEnv = [];
+
+        foreach ($allKeys as $k) {
+            $hadServer[$k] = array_key_exists($k, $_SERVER);
+            $hadEnv[$k] = array_key_exists($k, $_ENV);
+            $originalServer[$k] = $_SERVER[$k] ?? null;
+            $originalEnv[$k] = $_ENV[$k] ?? null;
+        }
+
+        // Set the test value for the key being tested, valid values for others
+        foreach ($allKeys as $k) {
+            if ($k === $key) {
+                $testValue = $value;
+            } elseif (isset($validPasswords[$k])) {
+                $testValue = $validPasswords[$k];
+            } else {
+                // For email keys other than the one being tested, keep original (from phpunit.xml)
+                $testValue = $originalEnv[$k] ?? $originalServer[$k] ?? '';
+            }
+            $_SERVER[$k] = $testValue;
+            $_ENV[$k] = $testValue;
+        }
 
         $threw = false;
         $message = '';
@@ -277,16 +318,19 @@ class SeederTest extends TestCase
             $threw = true;
             $message = $e->getMessage();
         } finally {
-            if ($hadServer) {
-                $_SERVER[$key] = $prevServer;
-            } else {
-                unset($_SERVER[$key]);
-            }
+            // Restore all original values
+            foreach ($allKeys as $k) {
+                if ($hadServer[$k]) {
+                    $_SERVER[$k] = $originalServer[$k];
+                } else {
+                    unset($_SERVER[$k]);
+                }
 
-            if ($hadEnv) {
-                $_ENV[$key] = $prevEnv;
-            } else {
-                unset($_ENV[$key]);
+                if ($hadEnv[$k]) {
+                    $_ENV[$k] = $originalEnv[$k];
+                } else {
+                    unset($_ENV[$k]);
+                }
             }
         }
 
