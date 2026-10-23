@@ -41,6 +41,7 @@ class SettingsController extends Controller
         'group_sms_max_recipients',
         'patient_id_photos_enabled',
         'patient_sick_leave_enabled',
+        'auto_approve_appointment_requests',
     ];
 
     /** GET /settings */

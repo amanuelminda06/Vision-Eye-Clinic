@@ -38,4 +38,6 @@ return [
     'patientIdPhotosEnabledHint' => 'Off by default. When off, the upload, the capture and every view of a stored ID photo are disabled.',
     'patientSickLeaveEnabled' => 'Patient sick leave',
     'patientSickLeaveEnabledHint' => 'Off by default. When off, the sick-leave tab and every sick-leave write are disabled.',
+    'autoApproveAppointmentRequests' => 'Auto-approve appointment requests',
+    'autoApproveAppointmentRequestsHint' => 'When ON, public bookings create confirmed appointments directly. When OFF, bookings create requests for front desk review.',
 ];

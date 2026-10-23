@@ -38,4 +38,6 @@ return [
     'patientIdPhotosEnabledHint' => 'በመጀመሪያ ጠፋፋል። ሲዘግ ከተከፈለ፣ ማስገቢያው፣ የማንሳፊያው እና የተቀመጠውን ፎቶ መመልከት ሁሉ ይዘግባሉ።',
     'patientSickLeaveEnabled' => 'የታማኒ በሽታ ፈልጋ',
     'patientSickLeaveEnabledHint' => 'በመጀመሪያ ጠፋፋል። ሲዘግ የበሽታ ትሮችና ማስገቢያዎች ሁሉ ይዘግባሉ።',
+    'autoApproveAppointmentRequests' => 'ቀጠሮ ጥያቄዎችን በአዲስ አጽድቅ',
+    'autoApproveAppointmentRequestsHint' => 'ሲተከትል የድህረ ገጽ ቀጠሮዎች ተረጋገጥ ቀጠሮዎች እንደሚፈጠሩ ያደርጋል። ሲዘግ ጥያቄዎች ለፎርት ዴስክ ይፈጠራሉ።',
 ];

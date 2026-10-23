@@ -89,10 +89,10 @@
         "websiteContent": "Website content",
         "feedback": "Feedback",
         "dailySummary": "Daily summary",
-        "pms": "Patients Management System",
-        "hrm": "Human Resource Management System",
-        "mms": "Messages Management System",
-        "cms": "Clinic Management System",
+        "pms": "PMS",
+        "hrm": "HRM",
+        "mms": "MMS",
+        "cms": "CMS",
         "expand": "Expand module",
         "collapse": "Collapse module"
     },
@@ -267,7 +267,9 @@
         "patientIdPhotosEnabled": "Patient ID photos",
         "patientIdPhotosEnabledHint": "Off by default. When off, the upload, the capture and every view of a stored ID photo are disabled.",
         "patientSickLeaveEnabled": "Patient sick leave",
-        "patientSickLeaveEnabledHint": "Off by default. When off, the sick-leave tab and every sick-leave write are disabled."
+        "patientSickLeaveEnabledHint": "Off by default. When off, the sick-leave tab and every sick-leave write are disabled.",
+        "autoApproveAppointmentRequests": "Auto-approve appointment requests",
+        "autoApproveAppointmentRequestsHint": "When ON, public bookings create confirmed appointments directly. When OFF, bookings create requests for front desk review."
     },
     "audit": {
         "title": "Audit log",

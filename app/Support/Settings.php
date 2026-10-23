@@ -69,4 +69,14 @@ final class Settings
     {
         return self::get('patient_sick_leave_enabled', false) === true;
     }
+
+    /**
+     * Auto-approve appointment requests — when ON, public bookings create
+     * confirmed appointments directly instead of filing requests for the
+     * front desk to convert.
+     */
+    public static function autoApproveAppointmentRequests(): bool
+    {
+        return self::get('auto_approve_appointment_requests', false) === true;
+    }
 }

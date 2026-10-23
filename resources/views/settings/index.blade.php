@@ -171,6 +171,14 @@
                         </label>
                         <p class="mt-1 text-xs text-slate-500">{{ __('settings.patientSickLeaveEnabledHint') }}</p>
                     </div>
+
+                    <div>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="auto_approve_appointment_requests" value="true" @checked(($values['auto_approve_appointment_requests'] ?? false) === true)>
+                            {{ __('settings.autoApproveAppointmentRequests') }}
+                        </label>
+                        <p class="mt-1 text-xs text-slate-500">{{ __('settings.autoApproveAppointmentRequestsHint') }}</p>
+                    </div>
                 </div>
             </section>
 

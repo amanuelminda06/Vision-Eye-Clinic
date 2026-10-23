@@ -8,6 +8,9 @@ use App\Models\Appointment;
 use App\Models\AppointmentRequest;
 use App\Models\AuditLog;
 use App\Models\Patient;
+use App\Models\Setting;
+use App\Models\Shift;
+use App\Models\Staff;
 use App\Support\ClinicTime;
 use App\Support\RateLimit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -274,5 +277,149 @@ class PublicBookingTest extends TestCase
 
         $this->assertSame(hash('sha256', '203.0.113.9'), (string) $request->ip_hash);
         $this->assertStringNotContainsString('203.0.113.9', (string) json_encode($request->toArray()));
+    }
+
+    public function test_auto_approve_creates_confirmed_appointment_with_doctor(): void
+    {
+        // Enable auto-approve setting
+        Setting::create([
+            'key' => 'auto_approve_appointment_requests',
+            'value' => true,
+        ]);
+
+        // Create a user to use as created_by for shifts
+        $user = $this->createUser(['role' => 'OWNER']);
+
+        // Create an active doctor with a shift covering the requested time
+        $doctor = Staff::factory()->create([
+            'full_name' => 'Dr. Auto Approve',
+            'is_doctor' => true,
+            'active' => true,
+        ]);
+
+        $tz = 'Africa/Addis_Ababa';
+        $now = ClinicTime::nowUtc();
+        $dateKey = ClinicTime::dateKeyAdd(ClinicTime::clinicDateKey($now, $tz), 3);
+        $slotStart = ClinicTime::combineDateAndTime($dateKey, '09:00', $tz);
+        $slotEnd = ClinicTime::combineDateAndTime($dateKey, '10:00', $tz);
+
+        Shift::create([
+            'staff_id' => $doctor->id,
+            'starts_at' => $slotStart,
+            'ends_at' => $slotEnd,
+            'created_by' => $user->id,
+        ]);
+
+        // Make a booking for today at 09:00 (the "any"/morning window)
+        $payload = $this->payload([
+            'preferredDate' => $dateKey,
+            'preferredTimeWindow' => 'any',
+            'phone' => '0922334455',
+        ]);
+
+        $response = $this->postJson('/api/public/requests', $payload);
+
+        $response->assertOk();
+        $response->assertJsonPath('ok', true);
+        $response->assertJsonStructure(['ok', 'id', 'appointment']);
+
+        // Should create a CONFIRMED appointment, not a request
+        $this->assertSame(0, AppointmentRequest::query()->count());
+        $this->assertSame(1, Appointment::query()->count());
+
+        $appointment = Appointment::query()->firstOrFail();
+        $this->assertSame(Appointment::STATUS_CONFIRMED, (string) $appointment->status);
+        $this->assertSame($doctor->id, $appointment->doctor_id);
+        $this->assertSame(Appointment::SOURCE_WEBSITE, (string) $appointment->created_from);
+
+        // Patient should be created
+        $this->assertSame(1, Patient::query()->count());
+        $patient = Patient::query()->firstOrFail();
+        $this->assertSame($patient->id, $appointment->patient_id);
+
+        // Response should include appointment details
+        $response->assertJsonPath('appointment.doctorName', 'Dr. Auto Approve');
+    }
+
+    public function test_auto_approve_returns_no_doctor_available_when_no_doctor_free(): void
+    {
+        // Enable auto-approve setting
+        Setting::create([
+            'key' => 'auto_approve_appointment_requests',
+            'value' => true,
+        ]);
+
+        // Create a doctor but NO shift for the requested time
+        Staff::factory()->create([
+            'full_name' => 'Dr. Busy',
+            'is_doctor' => true,
+            'active' => true,
+        ]);
+
+        $payload = $this->payload([
+            'phone' => '0933445566',
+        ]);
+
+        $response = $this->postJson('/api/public/requests', $payload);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('error', 'validationError');
+        $response->assertJsonPath('fields.preferredDate', 'noDoctorAvailable');
+
+        // Should not create appointment or request
+        $this->assertSame(0, Appointment::query()->count());
+        $this->assertSame(0, AppointmentRequest::query()->count());
+    }
+
+    public function test_auto_approve_links_existing_patient(): void
+    {
+        // Enable auto-approve setting
+        Setting::create([
+            'key' => 'auto_approve_appointment_requests',
+            'value' => true,
+        ]);
+
+        // Create a user to use as created_by for shifts
+        $user = $this->createUser(['role' => 'OWNER']);
+
+        // Create an active doctor with a shift
+        $doctor = Staff::factory()->create([
+            'full_name' => 'Dr. Link Patient',
+            'is_doctor' => true,
+            'active' => true,
+        ]);
+
+        $tz = 'Africa/Addis_Ababa';
+        $now = ClinicTime::nowUtc();
+        $dateKey = ClinicTime::dateKeyAdd(ClinicTime::clinicDateKey($now, $tz), 3);
+        $slotStart = ClinicTime::combineDateAndTime($dateKey, '09:00', $tz);
+        $slotEnd = ClinicTime::combineDateAndTime($dateKey, '10:00', $tz);
+
+        Shift::create([
+            'staff_id' => $doctor->id,
+            'starts_at' => $slotStart,
+            'ends_at' => $slotEnd,
+            'created_by' => $user->id,
+        ]);
+
+        // Create existing patient
+        $existing = Patient::factory()->create([
+            'phone_e164' => '+251944556677',
+            'full_name' => 'Existing Patient',
+        ]);
+
+        // Make a booking with same phone
+        $payload = $this->payload([
+            'phone' => '0944556677',
+            'preferredDate' => $dateKey,
+            'preferredTimeWindow' => 'any',
+        ]);
+
+        $this->postJson('/api/public/requests', $payload)->assertOk();
+
+        // Should link existing patient, not create new one
+        $this->assertSame(1, Patient::query()->count());
+        $appointment = Appointment::query()->firstOrFail();
+        $this->assertSame($existing->id, $appointment->patient_id);
     }
 }

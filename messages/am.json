@@ -89,10 +89,10 @@
         "websiteContent": "የድህረ ገጽ ይዘት",
         "feedback": "አስተያየቶች",
         "dailySummary": "የዕለቱ ማጠቃለያ",
-        "pms": "Patients Management System",
-        "hrm": "Human Resource Management System",
-        "mms": "Messages Management System",
-        "cms": "Clinic Management System",
+        "pms": "PMS",
+        "hrm": "HRM",
+        "mms": "MMS",
+        "cms": "CMS",
         "expand": "Expand module",
         "collapse": "Collapse module"
     },
@@ -267,7 +267,9 @@
         "patientIdPhotosEnabled": "የታማኒ ፎቶ",
         "patientIdPhotosEnabledHint": "በመጀመሪያ ጠፋፋል። ሲዘግ ከተከፈለ፣ ማስገቢያው፣ የማንሳፊያው እና የተቀመጠውን ፎቶ መመልከት ሁሉ ይዘግባሉ።",
         "patientSickLeaveEnabled": "የታማኒ በሽታ ፈልጋ",
-        "patientSickLeaveEnabledHint": "በመጀመሪያ ጠፋፋል። ሲዘግ የበሽታ ትሮችና ማስገቢያዎች ሁሉ ይዘግባሉ።"
+        "patientSickLeaveEnabledHint": "በመጀመሪያ ጠፋፋል። ሲዘግ የበሽታ ትሮችና ማስገቢያዎች ሁሉ ይዘግባሉ።",
+        "autoApproveAppointmentRequests": "ቀጠሮ ጥያቄዎችን በአዲስ አጽድቅ",
+        "autoApproveAppointmentRequestsHint": "ሲተከትል የድህረ ገጽ ቀጠሮዎች ተረጋገጥ ቀጠሮዎች እንደሚፈጠሩ ያደርጋል። ሲዘግ ጥያቄዎች ለፎርት ዴስክ ይፈጠራሉ።"
     },
     "audit": {
         "title": "የኦዲት መዝገብ",
