@@ -210,7 +210,7 @@ class DatabaseSeeder extends Seeder
      * the missing description is filled in. The legacy demo services are
      * deactivated, never deleted.
      *
-     * @var list<array{nameEn: string, nameAm: string, category: string, price: string, displayOrder: int, imageUrl: string, receiptLabelEn?: string, receiptLabelAm?: string}>
+     * @var list<array{nameEn: string, nameAm: string, category: string, price: string, displayOrder: int, imageUrl: string|null, receiptLabelEn?: string, receiptLabelAm?: string}>
      */
     private const SERVICES = [
         [
@@ -219,7 +219,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'consultation',
             'price' => '300.00',
             'displayOrder' => 1,
-            'imageUrl' => '/images/services/general eye care.jpg',
+            'imageUrl' => null,
         ],
         [
             'nameEn' => 'Eye Examination for Glasses (Modern Equipment)',
@@ -227,7 +227,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'diagnostics',
             'price' => '500.00',
             'displayOrder' => 2,
-            'imageUrl' => '/images/services/Eye Examination for Glasses (Modern Equipment).jpg',
+            'imageUrl' => null,
         ],
         [
             'nameEn' => 'Glasses Making and Sales',
@@ -235,7 +235,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'optical',
             'price' => '1500.00',
             'displayOrder' => 3,
-            'imageUrl' => '/images/services/Glasses Making and Sales.jpg',
+            'imageUrl' => null,
         ],
         [
             'nameEn' => 'Special Eye Exam and Follow-up for Diabetes and Blood Pressure Patients',
@@ -243,7 +243,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'specialist',
             'price' => '400.00',
             'displayOrder' => 4,
-            'imageUrl' => '/images/services/What-Is-a-Diabetic-Eye-Exam-Hero-768x504.jpg',
+            'imageUrl' => null,
             'receiptLabelEn' => 'Specialist eye check-up',
             'receiptLabelAm' => 'ልዩ የዓይን ክትትል',
         ],
@@ -253,7 +253,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'specialist',
             'price' => '400.00',
             'displayOrder' => 5,
-            'imageUrl' => '/images/services/child-glasses-eye-development-2-1536x1008.jpg',
+            'imageUrl' => null,
         ],
         [
             'nameEn' => 'Minor Eye Surgery',
@@ -261,7 +261,7 @@ class DatabaseSeeder extends Seeder
             'category' => 'surgery',
             'price' => '5000.00',
             'displayOrder' => 6,
-            'imageUrl' => '/images/services/orbital-surgery.jpg',
+            'imageUrl' => null,
         ],
     ];
 

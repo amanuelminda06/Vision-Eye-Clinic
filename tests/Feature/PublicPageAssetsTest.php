@@ -388,7 +388,11 @@ class PublicPageAssetsTest extends TestCase
         $this->assertStringContainsString('href="https://visioneye.clinic.et/favicon.ico"', $html);
 
         // Every file the page loads is on the https origin.
+        // Blob images (served via /api/public/...) are relative routes, not absolute URLs.
         foreach ($this->loadedFiles($html) as $url) {
+            if (str_starts_with($url, '/api/public/')) {
+                continue; // blob image route, served by the app
+            }
             $this->assertStringStartsWith(
                 'https://visioneye.clinic.et/',
                 $url,
@@ -457,7 +461,7 @@ class PublicPageAssetsTest extends TestCase
             'name_am' => 'አጠቃላይ የዓይን እክልከል',
             'active' => true,
             'is_public' => true,
-            'image_url' => '/images/services/general eye care.jpg',
+            'image_url' => '/uploads/service-test.jpg',
         ]);
 
         Staff::factory()->doctor()->create([
