@@ -170,7 +170,11 @@ final class Format
 
         if (str_starts_with($storedUrl, '/')) {
             if (function_exists('app') && app()->bound('url')) {
-                return asset(ltrim($storedUrl, '/'));
+                // asset() does not encode spaces in the path — encode each segment.
+                $path = ltrim($storedUrl, '/');
+                $encodedPath = implode('/', array_map('rawurlencode', explode('/', $path)));
+
+                return asset($encodedPath);
             }
 
             return $storedUrl;

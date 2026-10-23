@@ -562,7 +562,9 @@ class PublicPageAssetsTest extends TestCase
             return null;
         }
 
-        return ltrim($path, '/');
+        // Decode URL-encoded characters (spaces, parentheses, etc.) to match
+        // the actual filesystem paths.
+        return urldecode(ltrim($path, '/'));
     }
 
     /**
