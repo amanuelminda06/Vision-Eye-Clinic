@@ -457,7 +457,7 @@ class PublicPageAssetsTest extends TestCase
             'name_am' => 'አጠቃላይ የዓይን እክልከል',
             'active' => true,
             'is_public' => true,
-            'image_url' => '/images/services/general-eye-care.png',
+            'image_url' => '/images/services/general eye care.jpg',
         ]);
 
         Staff::factory()->doctor()->create([
