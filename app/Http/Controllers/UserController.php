@@ -13,6 +13,7 @@ use App\Support\Shell\ShellValidation;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -121,7 +122,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $values['name'],
                 'email' => $values['email'],
-                'password' => $password,
+                'password' => Hash::make($password),
                 'role' => $values['role'],
                 'staff_id' => $values['staffId'],
                 'active' => true,
@@ -259,7 +260,7 @@ class UserController extends Controller
         $oldMustChange = (bool) $user->must_change_password;
 
         $user->forceFill([
-            'password' => $temp,
+            'password' => Hash::make($temp),
             'must_change_password' => true,
             'failed_login_count' => 0,
             'locked_until' => null,
@@ -306,7 +307,7 @@ class UserController extends Controller
         $oldMustChange = (bool) $user->must_change_password;
 
         $user->forceFill([
-            'password' => $values['password'],
+            'password' => Hash::make($values['password']),
             'must_change_password' => $values['mustChangePassword'],
             'failed_login_count' => 0,
             'locked_until' => null,
