@@ -55,12 +55,16 @@ if (! function_exists('field_error')) {
 
         $validation = "validation.{$key}";
         if (trans()->has($validation)) {
-            return __($validation);
+            $result = __($validation);
+
+            return is_string($result) ? $result : (string) ($result[''] ?? $key);
         }
 
         $common = "common.{$key}";
         if (trans()->has($common)) {
-            return __($common);
+            $result = __($common);
+
+            return is_string($result) ? $result : (string) ($result[''] ?? $key);
         }
 
         return $key;
