@@ -382,7 +382,7 @@ final class TaskGenerator
     /**
      * Runs every automatic generation step + the expiry. Safe to repeat.
      *
-     * @return array{expired: int, sameDay: int, birthdays: int, thankYous: int, followUps: int, recalls: int}
+     * @return array{expired: int, sameDay: int, thankYous: int, followUps: int, recalls: int}
      */
     public static function runMessageJobs(?\DateTimeInterface $now = null): array
     {
@@ -392,7 +392,6 @@ final class TaskGenerator
         return [
             'expired' => self::expireTasks($now),
             'sameDay' => self::generateSameDay($now, $config),
-            'birthdays' => self::generateBirthdays($now, $config),
             'thankYous' => self::generateThankYous($now, $config),
             'followUps' => self::generateFollowUps($now, $config),
             'recalls' => self::generateRecalls($now, $config),
@@ -450,72 +449,6 @@ final class TaskGenerator
                     $context,
                 ),
                 'sourceStatus' => Appointment::STATUS_CONFIRMED,
-                'dueAt' => $schedule['dueAt'],
-                'sendBy' => $schedule['sendBy'],
-                'expiresAt' => $schedule['expiresAt'],
-            ]);
-
-            if ($result === 'created') {
-                $created++;
-            }
-        }
-
-        return $created;
-    }
-
-    /**
-     * The birthday greeting for every patient whose birthday is today.
-     *
-     * @param  array<string, mixed>  $config
-     */
-    public static function generateBirthdays(\DateTimeInterface $now, array $config): int
-    {
-        $tz = $config['timeZone'];
-        $todayKey = ClinicTime::clinicDateKey($now, $tz);
-        [, $month, $day] = array_map('intval', explode('-', $todayKey));
-
-        $patients = Patient::query()
-            ->whereNotNull('birth_date')
-            ->where('active', true)
-            ->take(1000)
-            ->get();
-
-        $bodies = MsgQueries::loadTemplateBodies();
-        $schedule = Schedule::birthdaySchedule($now, $config);
-        $created = 0;
-
-        foreach ($patients as $patient) {
-            if ($patient->birth_date === null) {
-                continue;
-            }
-
-            $birthDate = ClinicTime::startOfDay($patient->birth_date, 'UTC');
-
-            if ((int) $birthDate->format('n') !== $month || (int) $birthDate->format('j') !== $day) {
-                continue;
-            }
-
-            $payload = self::patientPayload($patient);
-            $language = Render::resolveLanguage($payload['preferredLanguage']);
-
-            $context = [
-                'patientName' => $payload['fullName'],
-                'language' => $language,
-                'clinicName' => (string) Settings::get('clinic_name', ''),
-                'reviewLink' => (string) Settings::get('review_link', ''),
-                'timeZone' => $tz,
-            ];
-
-            $result = self::createTask([
-                'patient' => $payload,
-                'templateKey' => 'BIRTHDAY',
-                'sourceType' => 'BIRTHDAY',
-                'sourceId' => $patient->id.'#'.$todayKey,
-                'language' => $language,
-                'renderedMessage' => Render::renderMessage(
-                    Render::bodyFor($bodies, 'BIRTHDAY', $language),
-                    $context,
-                ),
                 'dueAt' => $schedule['dueAt'],
                 'sendBy' => $schedule['sendBy'],
                 'expiresAt' => $schedule['expiresAt'],

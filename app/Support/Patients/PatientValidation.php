@@ -20,6 +20,10 @@ final class PatientValidation
 
     public const MAX_NOTES_CHARS = 2000;
 
+    public const MIN_AGE = 0;
+
+    public const MAX_AGE = 120;
+
     /** @var list<string> */
     public const SEX_VALUES = ['MALE', 'FEMALE', 'OTHER'];
 
@@ -36,7 +40,7 @@ final class PatientValidation
     /**
      * Validate the create/edit patient form.
      *
-     * @param  array{fullName?: string, phone?: string, sex?: string, birthDate?: string, preferredLanguage?: string, notesNonClinical?: string, idNo?: string, idPhoto?: array{type: string, size: int}|null}  $raw
+     * @param  array{fullName?: string, phone?: string, sex?: string, age?: string, preferredLanguage?: string, notesNonClinical?: string, idNo?: string, idPhoto?: array{type: string, size: int}|null}  $raw
      * @return array{fields: array<string, string>, values: array<string, mixed>}
      */
     public static function patientForm(array $raw): array
@@ -68,9 +72,14 @@ final class PatientValidation
             $fields['sex'] = 'invalidSex';
         }
 
-        $birthDate = trim((string) ($raw['birthDate'] ?? ''));
-        if ($birthDate !== '' && ! self::isValidBirthDate($birthDate)) {
-            $fields['birthDate'] = 'invalidDate';
+        $ageInput = trim((string) ($raw['age'] ?? ''));
+        $age = null;
+        if ($ageInput !== '') {
+            if (! self::isValidAge($ageInput)) {
+                $fields['age'] = 'invalidAge';
+            } else {
+                $age = (int) $ageInput;
+            }
         }
 
         $language = (string) ($raw['preferredLanguage'] ?? '');
@@ -108,7 +117,7 @@ final class PatientValidation
                 // E.164 only when valid; null otherwise so callers can bail out.
                 'phone' => $phone,
                 'sex' => $sex === '' ? null : $sex,
-                'birthDate' => $birthDate === '' ? null : $birthDate,
+                'age' => $age,
                 'preferredLanguage' => $language === '' ? null : $language,
                 'notesNonClinical' => $notes === '' ? null : $notes,
                 'idNo' => $idNo === '' ? null : $idNo,
@@ -180,18 +189,12 @@ final class PatientValidation
         return gmdate('Y-m-d');
     }
 
-    private static function isValidBirthDate(string $value): bool
+    private static function isValidAge(string $value): bool
     {
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+        if (preg_match('/^\d{1,3}$/', $value) !== 1) {
             return false;
         }
 
-        [$year, $month, $day] = array_map('intval', explode('-', $value));
-        if (! checkdate($month, $day, $year)) {
-            return false;
-        }
-
-        // Not in the future (string compare against UTC today, as legacy does).
-        return $value <= self::todayIso();
+        return (int) $value >= self::MIN_AGE && (int) $value <= self::MAX_AGE;
     }
 }

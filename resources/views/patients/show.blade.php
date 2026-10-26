@@ -64,8 +64,12 @@
                             <dd class="text-slate-800">{{ $sexLabel }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs uppercase text-slate-500">{{ __('patients.birthDate') }}</dt>
-                            <dd class="text-slate-800">{{ $patient->birth_date?->format('Y-m-d') ?? '—' }}</dd>
+                            <dt class="text-xs uppercase text-slate-500">{{ __('patients.age') }}</dt>
+                            <dd class="text-slate-800">{{ $patient->age ?? '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs uppercase text-slate-500">{{ __('patients.systemId') }}</dt>
+                            <dd class="font-mono text-slate-800">{{ $patient->system_id ?? '—' }}</dd>
                         </div>
                         <div>
                             <dt class="text-xs uppercase text-slate-500">{{ __('patients.idNo') }}</dt>

@@ -465,7 +465,6 @@ final class MsgQueries
                 'preferredLanguage' => (string) $patient->preferred_language,
                 'doNotMessage' => (bool) $patient->do_not_message,
                 'active' => (bool) $patient->active,
-                'birthDate' => $patient->birth_date,
                 'tags' => $patient->tags->pluck('name')->all(),
                 'lastVisitAt' => $lastVisits[$patient->id] ?? null,
                 'lastPurchaseAt' => $lastPurchases[$patient->id] ?? null,

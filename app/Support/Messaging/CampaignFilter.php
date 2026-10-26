@@ -66,18 +66,6 @@ final class CampaignFilter
             return false;
         }
 
-        if ((int) ($filter['birthdayMonth'] ?? 0) > 0) {
-            if (empty($candidate['birthDate'])) {
-                return false;
-            }
-
-            $month = (int) (new \DateTimeImmutable($candidate['birthDate']->format('Y-m-d').'T00:00:00Z'))->format('n');
-
-            if ($month !== (int) $filter['birthdayMonth']) {
-                return false;
-            }
-        }
-
         return true;
     }
 

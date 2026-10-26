@@ -360,7 +360,7 @@ class MessageTaskGenerationTest extends TestCase
     }
 
     // ---------------------------------------------------------------------
-    // Follow-up, birthday, recall, welcome
+    // Follow-up, recall, welcome
     // ---------------------------------------------------------------------
 
     public function test_an_open_follow_up_prepares_a_reminder(): void
@@ -398,28 +398,6 @@ class MessageTaskGenerationTest extends TestCase
         TaskGenerator::onFollowUpChanged($followUp->id, $this->now());
 
         $this->assertSame(0, MessageTask::query()->whereIn('status', TaskGenerator::OPEN_STATUSES)->count());
-    }
-
-    public function test_the_birthday_message_is_due_at_eight_local_today(): void
-    {
-        $this->patient(['birth_date' => '1990-10-08']);
-
-        $created = TaskGenerator::generateBirthdays($this->now(), TaskGenerator::settings());
-
-        $this->assertSame(1, $created);
-
-        $task = MessageTask::query()->where('template_key', 'BIRTHDAY')->sole();
-
-        $this->assertSame('2026-10-08 05:00:00', $task->due_at->format('Y-m-d H:i:s'));
-        // Expires at the next local midnight.
-        $this->assertSame('2026-10-08 21:00:00', $task->expires_at->format('Y-m-d H:i:s'));
-    }
-
-    public function test_a_birthday_that_is_not_today_is_not_prepared(): void
-    {
-        $this->patient(['birth_date' => '1990-10-09']);
-
-        $this->assertSame(0, TaskGenerator::generateBirthdays($this->now(), TaskGenerator::settings()));
     }
 
     public function test_the_recall_skips_a_patient_with_an_upcoming_appointment(): void

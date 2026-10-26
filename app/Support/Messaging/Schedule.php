@@ -176,24 +176,6 @@ final class Schedule
     }
 
     /**
-     * Birthday: 08:00 on the day, expiring at the next local midnight.
-     *
-     * @param  array<string, mixed>  $settings
-     * @return array{dueAt: \DateTimeImmutable, sendBy: \DateTimeImmutable|null, expiresAt: \DateTimeImmutable|null}
-     */
-    public static function birthdaySchedule(\DateTimeInterface $now, array $settings): array
-    {
-        $tz = (string) $settings['timeZone'];
-        $todayKey = ClinicTime::clinicDateKey($now, $tz);
-
-        return [
-            'dueAt' => ClinicTime::combineDateAndTime($todayKey, '08:00', $tz),
-            'sendBy' => null,
-            'expiresAt' => ClinicTime::combineDateAndTime(ClinicTime::dateKeyAdd($todayKey, 1), '00:00', $tz),
-        ];
-    }
-
-    /**
      * Recall: due immediately, valid for 30 days.
      *
      * @return array{dueAt: \DateTimeImmutable, sendBy: \DateTimeImmutable|null, expiresAt: \DateTimeImmutable|null}

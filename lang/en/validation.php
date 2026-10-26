@@ -28,6 +28,7 @@ return [
     'photoInvalidType' => 'Photo must be PNG, JPEG or WebP',
     'photoTooLarge' => 'Photo must be 2 MB or smaller',
     'invalidSex' => 'Choose Male, Female or Other',
+    'invalidAge' => 'Enter a whole-number age between 0 and 120',
     'invalidLanguage' => 'Choose a language: en or am',
     'invalidConsent' => 'Use true or false',
     'tooMany' => 'Too many entries — remove some',

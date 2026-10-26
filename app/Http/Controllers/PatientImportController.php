@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\Tag;
 use App\Support\Audit;
 use App\Support\Patients\PatientImport;
+use App\Support\Patients\SystemId;
 use App\Support\Patients\TagColors;
 use App\Support\Settings;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -131,11 +132,11 @@ class PatientImportController extends Controller
 
             try {
                 $patient = DB::transaction(function () use ($values, $actor): Patient {
-                    $patient = Patient::create([
+                    $patient = SystemId::createPatient([
                         'full_name' => $values['fullName'],
                         'phone_e164' => $values['phoneE164'],
                         'sex' => $values['sex'],
-                        'birth_date' => $values['birthDate'],
+                        'age' => $values['age'],
                         'preferred_language' => $values['preferredLanguage'],
                         'notes_non_clinical' => null,
                         'active' => true,
@@ -163,12 +164,13 @@ class PatientImportController extends Controller
                 'fullName' => $patient->full_name,
                 'phoneE164' => $patient->phone_e164,
                 'sex' => $patient->sex,
-                'birthDate' => $patient->birth_date?->format('Y-m-d'),
+                'age' => $patient->age,
                 'preferredLanguage' => $patient->preferred_language,
                 'notesNonClinical' => null,
                 'doNotMessage' => false,
                 'doNotMessageReason' => null,
                 'idPhotoUrl' => null,
+                'systemId' => $patient->system_id,
                 'idNo' => null,
                 'active' => true,
             ], ['id' => $actor->id, 'name' => $actor->name]);

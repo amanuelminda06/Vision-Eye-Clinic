@@ -158,15 +158,6 @@ class MessagingScheduleTest extends TestCase
         $this->assertNull($schedule['expiresAt']);
     }
 
-    public function test_the_birthday_message_expires_at_the_next_local_midnight(): void
-    {
-        $schedule = Schedule::birthdaySchedule($this->at('2026-10-10T20:00:00.000Z'), self::S);
-
-        $this->assertSame('2026-10-10T05:00:00.000Z', $this->iso($schedule['dueAt']));
-        $this->assertNull($schedule['sendBy']);
-        $this->assertSame('2026-10-10T21:00:00.000Z', $this->iso($schedule['expiresAt']));
-    }
-
     public function test_the_recall_is_valid_for_thirty_days(): void
     {
         $now = $this->at('2026-10-10T12:00:00.000Z');

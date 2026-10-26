@@ -310,7 +310,7 @@ class MessagingCoreTest extends TestCase
             'name', 'date', 'time', 'doctor', 'clinic', 'review_link', 'reopen_date',
         ], Constants::TEMPLATE_VARIABLES);
 
-        $this->assertCount(13, Constants::TEMPLATE_KEYS);
+        $this->assertCount(12, Constants::TEMPLATE_KEYS);
         $this->assertSame(['en', 'am'], Constants::MESSAGE_LANGUAGES);
         $this->assertSame(['inactive', 'doNotMessage', 'invalidPhone', 'sourceCancelled'], Constants::BLOCKED_REASONS);
         $this->assertSame(1000, Constants::MAX_TEMPLATE_BODY);

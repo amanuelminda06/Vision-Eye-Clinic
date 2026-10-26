@@ -18,7 +18,7 @@ class PatientValidationTest extends TestCase
 {
     /** Keys the validation catalog must define for these forms. */
     private const TRANSLATABLE = [
-        'required', 'tooLong', 'invalidPhone', 'invalidSex', 'invalidDate',
+        'required', 'tooLong', 'invalidPhone', 'invalidSex', 'invalidAge', 'invalidDate',
         'invalidLanguage', 'photoInvalidType', 'photoTooLarge',
         'endBeforeStart', 'patientRequired',
     ];
@@ -31,7 +31,7 @@ class PatientValidationTest extends TestCase
         $this->assertSame('Almaz Tesfaye', $result['values']['fullName']);
         $this->assertSame('+251911223344', $result['values']['phone']);
         $this->assertNull($result['values']['sex']);
-        $this->assertNull($result['values']['birthDate']);
+        $this->assertNull($result['values']['age']);
         $this->assertNull($result['values']['notesNonClinical']);
     }
 
@@ -73,19 +73,17 @@ class PatientValidationTest extends TestCase
         }
     }
 
-    public function test_rejects_malformed_and_future_birth_dates(): void
+    public function test_accepts_and_rejects_age_values(): void
     {
-        $bad = PatientValidation::patientForm(['fullName' => 'A', 'phone' => '0911223344', 'birthDate' => '12/31/1990']);
-        $this->assertSame('invalidDate', $bad['fields']['birthDate']);
+        $ok = PatientValidation::patientForm(['fullName' => 'A', 'phone' => '0911223344', 'age' => '42']);
+        $this->assertSame([], $ok['fields']);
+        $this->assertSame(42, $ok['values']['age']);
 
-        $impossible = PatientValidation::patientForm(['fullName' => 'A', 'phone' => '0911223344', 'birthDate' => '2021-02-31']);
-        $this->assertSame('invalidDate', $impossible['fields']['birthDate']);
-
-        $future = PatientValidation::patientForm([
-            'fullName' => 'A', 'phone' => '0911223344',
-            'birthDate' => gmdate('Y-m-d', time() + 86400),
-        ]);
-        $this->assertSame('invalidDate', $future['fields']['birthDate']);
+        foreach (['-1', '121', '12.5', 'abc'] as $bad) {
+            $result = PatientValidation::patientForm(['fullName' => 'A', 'phone' => '0911223344', 'age' => $bad]);
+            $this->assertSame('invalidAge', $result['fields']['age'], "age {$bad} should be rejected");
+            $this->assertNull($result['values']['age']);
+        }
     }
 
     public function test_rejects_unknown_language(): void
@@ -199,7 +197,7 @@ class PatientValidationTest extends TestCase
                 'fullName' => str_repeat('a', 121),
                 'phone' => 'nope',
                 'sex' => 'X',
-                'birthDate' => 'bad',
+                'age' => 'bad',
                 'preferredLanguage' => 'fr',
                 'notesNonClinical' => str_repeat('n', 2001),
                 'idNo' => str_repeat('9', 33),

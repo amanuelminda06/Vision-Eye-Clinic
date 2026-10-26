@@ -25,7 +25,7 @@ final class PatientQueries
     public const PAGE_SIZE = 20;
 
     /** @var list<string> */
-    public const SORTS = ['fullName', 'birthDate', 'createdAt'];
+    public const SORTS = ['fullName', 'age', 'createdAt'];
 
     public const EXPORT_ROW_CAP = 5000;
 
@@ -34,12 +34,11 @@ final class PatientQueries
     {
         $map = [
             'fullName' => 'full_name',
-            'birthDate' => 'birth_date',
+            'age' => 'age',
             'createdAt' => 'created_at',
             // The list screen echoes back the resolved column name in its
             // export links; accept it so a sorted export keeps its sort.
             'full_name' => 'full_name',
-            'birth_date' => 'birth_date',
             'created_at' => 'created_at',
         ];
 
@@ -55,7 +54,7 @@ final class PatientQueries
     /**
      * Shared WHERE builder for the list screen, CSV export and export link.
      *
-     * @param  array{q?: string, idNo?: string, dateFrom?: string, dateTo?: string, status?: string}  $filters
+     * @param  array{q?: string, idNo?: string, systemId?: string, dateFrom?: string, dateTo?: string, status?: string}  $filters
      */
     public static function buildWhere(array $filters): Builder
     {
@@ -70,8 +69,14 @@ final class PatientQueries
                     $inner->orWhere('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
                 }
 
+                $inner->orWhere('system_id', 'like', '%'.self::escapeLike($q).'%');
                 $inner->orWhere('id_no', 'like', '%'.self::escapeLike($q).'%');
             });
+        }
+
+        $systemId = trim((string) ($filters['systemId'] ?? ''));
+        if ($systemId !== '') {
+            $query->where('system_id', 'like', self::escapeLike($systemId));
         }
 
         $idNo = trim((string) ($filters['idNo'] ?? ''));
@@ -163,22 +168,19 @@ final class PatientQueries
     }
 
     /**
-     * Very similar name + exactly the same birth date (never blocks, only warns).
-     * `birthDate` is a calendar date (`YYYY-MM-DD`); empty → no candidates.
+     * Very similar name + exactly the same age (never blocks, only warns).
+     * A null age means nothing to compare, so there are no candidates.
      *
      * @return list<array{id: string, fullName: string}>
      */
-    public static function findSimilar(string $fullName, ?string $birthDate, ?string $excludeId = null, int $limit = 5): array
+    public static function findSimilar(string $fullName, ?int $age, ?string $excludeId = null, int $limit = 5): array
     {
-        if ($birthDate === null || $birthDate === '') {
+        if ($age === null) {
             return [];
         }
 
-        // birth_date round-trips through SQLite as 'YYYY-MM-DD 00:00:00', so a
-        // plain equality misses; whereDate() compiles to strftime()/date() and
-        // is portable across SQLite and MySQL.
         $query = Patient::query()
-            ->whereDate('birth_date', $birthDate)
+            ->where('age', $age)
             ->take(100);
 
         if ($excludeId !== null && $excludeId !== '') {

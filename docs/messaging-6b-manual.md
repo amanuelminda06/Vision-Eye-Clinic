@@ -60,7 +60,6 @@ Filters (all combine with AND unless noted):
 - **Bought a service between** — date range over the last **confirmed** sale.
 - **Upcoming** — any / has / no upcoming appointment.
 - **Service category** and **specific services** — matches on purchased services.
-- **Birthday month**.
 - **Hand-picked patients** — type-ahead search; chosen patients are **added to**
   whichever criteria you also set (union). Hard gates still apply to everyone,
   hand-picked or not.

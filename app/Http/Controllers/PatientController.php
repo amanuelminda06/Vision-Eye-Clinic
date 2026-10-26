@@ -15,6 +15,7 @@ use App\Support\Patients\PatientQueries;
 use App\Support\Patients\PatientTabs;
 use App\Support\Patients\PatientValidation;
 use App\Support\Patients\SickLeaveQueries;
+use App\Support\Patients\SystemId;
 use App\Support\Patients\TagColors;
 use App\Support\Phone;
 use App\Support\Roles;
@@ -51,6 +52,7 @@ class PatientController extends Controller
     {
         $q = mb_substr((string) $request->query('q', ''), 0, 100);
         $idNo = mb_substr((string) $request->query('idNo', ''), 0, 32);
+        $systemId = mb_substr((string) $request->query('systemId', ''), 0, 6);
 
         $dateFromRaw = mb_substr((string) $request->query('dateFrom', ''), 0, 10);
         $dateFrom = preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFromRaw) === 1 ? $dateFromRaw : '';
@@ -67,6 +69,7 @@ class PatientController extends Controller
         $filters = [
             'q' => $q,
             'idNo' => $idNo,
+            'systemId' => $systemId,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'status' => $status,
@@ -123,7 +126,7 @@ class PatientController extends Controller
         $confirmed = (string) $request->input('confirm', '') === 'true';
 
         if (! $confirmed) {
-            $similar = PatientQueries::findSimilar($values['fullName'], $values['birthDate']);
+            $similar = PatientQueries::findSimilar($values['fullName'], $values['age']);
             if ($similar !== []) {
                 return back()->with('similarPatients', $similar)->withInput($request->except('idPhoto'));
             }
@@ -140,11 +143,13 @@ class PatientController extends Controller
         $actor = $request->user();
 
         try {
-            $patient = Patient::create([
+            // The system ID is always auto-generated; `id_no` stays the
+            // optional, manually entered Clinic ID.
+            $patient = SystemId::createPatient([
                 'full_name' => $values['fullName'],
                 'phone_e164' => $values['phone'],
                 'sex' => $values['sex'],
-                'birth_date' => $values['birthDate'],
+                'age' => $values['age'],
                 'preferred_language' => $language,
                 'notes_non_clinical' => $values['notesNonClinical'],
                 'id_no' => $values['idNo'],
@@ -253,7 +258,7 @@ class PatientController extends Controller
         $confirmed = (string) $request->input('confirm', '') === 'true';
 
         if (! $confirmed) {
-            $similar = PatientQueries::findSimilar($values['fullName'], $values['birthDate'], $id);
+            $similar = PatientQueries::findSimilar($values['fullName'], $values['age'], $id);
             if ($similar !== []) {
                 return back()->with('similarPatients', $similar)->withInput($request->except('idPhoto'));
             }
@@ -276,7 +281,7 @@ class PatientController extends Controller
             'full_name' => $values['fullName'],
             'phone_e164' => $values['phone'],
             'sex' => $values['sex'],
-            'birth_date' => $values['birthDate'],
+            'age' => $values['age'],
             'preferred_language' => $language,
             'notes_non_clinical' => $values['notesNonClinical'],
             'id_no' => $values['idNo'],
@@ -497,7 +502,7 @@ class PatientController extends Controller
             'fullName' => (string) $request->input('fullName', ''),
             'phone' => (string) $request->input('phone', ''),
             'sex' => (string) $request->input('sex', ''),
-            'birthDate' => (string) $request->input('birthDate', ''),
+            'age' => (string) $request->input('age', ''),
             'preferredLanguage' => (string) $request->input('preferredLanguage', ''),
             'notesNonClinical' => (string) $request->input('notesNonClinical', ''),
             'idNo' => (string) $request->input('idNo', ''),
@@ -541,12 +546,13 @@ class PatientController extends Controller
             'fullName' => $patient->full_name,
             'phoneE164' => $patient->phone_e164,
             'sex' => $patient->sex,
-            'birthDate' => $patient->birth_date?->format('Y-m-d'),
+            'age' => $patient->age,
             'preferredLanguage' => $patient->preferred_language,
             'notesNonClinical' => $patient->notes_non_clinical,
             'doNotMessage' => (bool) $patient->do_not_message,
             'doNotMessageReason' => $patient->do_not_message_reason,
             'idPhotoUrl' => $patient->id_photo_url,
+            'systemId' => $patient->system_id,
             'idNo' => $patient->id_no,
             'active' => (bool) $patient->active,
         ];

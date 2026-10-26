@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  */
 class PatientImportTest extends TestCase
 {
-    private const HEADER = 'fullName,phone,sex,birthDate,tags,preferredLanguage';
+    private const HEADER = 'fullName,phone,sex,age,tags,preferredLanguage';
 
     /**
      * @param  array<string, mixed>  $overrides
@@ -76,7 +76,7 @@ class PatientImportTest extends TestCase
     public function test_handles_bom_quoted_cells_and_crlf(): void
     {
         $text = "\u{FEFF}".self::HEADER."\r\n".
-            "\"Almaz, Tesfaye\",0911223344,FEMALE,1985-03-12,\"glasses; follow-up\",en\r\n";
+            "\"Almaz, Tesfaye\",0911223344,FEMALE,37,\"glasses; follow-up\",en\r\n";
 
         $result = PatientImport::parseImport($text, $this->ctx());
 
@@ -152,33 +152,33 @@ class PatientImportTest extends TestCase
         $this->assertContains(['field' => 'fullName', 'key' => 'required'], $result['rows'][0]['errors']);
     }
 
-    public function test_rejects_bad_sex_dates_and_language(): void
+    public function test_rejects_bad_sex_age_and_language(): void
     {
         $result = PatientImport::parseImport(
-            $this->csv(self::HEADER, 'Almaz,0911223344,X,1985-03-12,,fr'),
+            $this->csv(self::HEADER, 'Almaz,0911223344,X,abc,,fr'),
             $this->ctx(),
         );
 
         $keys = $this->errorKeys($result['rows'][0]);
         $this->assertContains('invalidSex', $keys);
+        $this->assertContains('invalidAge', $keys);
         $this->assertContains('invalidLanguage', $keys);
+        $this->assertContains(['field' => 'age', 'key' => 'invalidAge'], $result['rows'][0]['errors']);
         $this->assertContains(['field' => 'preferredLanguage', 'key' => 'invalidLanguage'], $result['rows'][0]['errors']);
     }
 
-    public function test_rejects_future_and_malformed_birth_dates(): void
+    public function test_rejects_out_of_range_and_malformed_ages(): void
     {
-        $future = gmdate('Y-m-d', time() + 86400);
-
         $result = PatientImport::parseImport($this->csv(
             self::HEADER,
             'A,0911223341,,,,,',
-            "B,0911223342,MALE,{$future}",
-            'C,0911223343,MALE,12/31/1990',
+            'B,0911223342,MALE,121',
+            'C,0911223343,MALE,12.5',
         ), $this->ctx());
 
         $this->assertCount(0, $result['rows'][0]['errors']);
-        $this->assertContains(['field' => 'birthDate', 'key' => 'invalidDate'], $result['rows'][1]['errors']);
-        $this->assertContains(['field' => 'birthDate', 'key' => 'invalidDate'], $result['rows'][2]['errors']);
+        $this->assertContains(['field' => 'age', 'key' => 'invalidAge'], $result['rows'][1]['errors']);
+        $this->assertContains(['field' => 'age', 'key' => 'invalidAge'], $result['rows'][2]['errors']);
     }
 
     public function test_applies_the_default_language_when_the_column_is_empty(): void
@@ -195,10 +195,10 @@ class PatientImportTest extends TestCase
     {
         $result = PatientImport::parseImport($this->csv(
             self::HEADER,
-            'Almaz,0911223344,FEMALE,1985-03-12,glasses,en',
+            'Almaz,0911223344,FEMALE,37,glasses,en',
             ',0911223345',
             'Bekele,not-a-phone',
-            'Tigist,0911223346,FEMALE,1992-07-25,,am',
+            'Tigist,0911223346,FEMALE,30,,am',
         ), $this->ctx());
 
         $this->assertSame([2, 3, 4, 5], array_column($result['rows'], 'rowNumber'));
@@ -227,7 +227,7 @@ class PatientImportTest extends TestCase
     public function test_lowercases_and_dedupes_tag_cells(): void
     {
         $result = PatientImport::parseImport(
-            $this->csv(self::HEADER, 'Almaz,0911223344,MALE,1990-01-01,"Glasses; glasses, follow-up",en'),
+            $this->csv(self::HEADER, 'Almaz,0911223344,MALE,30,"Glasses; glasses, follow-up",en'),
             $this->ctx(),
         );
 
@@ -237,7 +237,7 @@ class PatientImportTest extends TestCase
     public function test_every_error_has_a_report_message(): void
     {
         // Every key the validator can emit must exist in the English report map.
-        $keys = ['required', 'tooLong', 'invalid', 'invalidPhone', 'phoneTaken', 'invalidSex', 'invalidDate', 'invalidLanguage'];
+        $keys = ['required', 'tooLong', 'invalid', 'invalidPhone', 'phoneTaken', 'invalidSex', 'invalidAge', 'invalidLanguage'];
 
         foreach ($keys as $key) {
             $this->assertArrayHasKey($key, PatientImport::IMPORT_ERROR_MESSAGES);

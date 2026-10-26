@@ -49,7 +49,7 @@ class PatientExportTest extends TestCase
         $this->assertStringContainsString('Exported Patient', $body);
         $this->assertStringContainsString('+251911223344', $body);
         // Header row is written exactly once, with the legacy column order.
-        $this->assertStringContainsString('id,idNo,fullName,phone,sex,birthDate,preferredLanguage,tags,doNotMessage,active,createdAt', $body);
+        $this->assertStringContainsString('id,systemId,idNo,fullName,phone,sex,age,preferredLanguage,tags,doNotMessage,active,createdAt', $body);
     }
 
     public function test_csv_export_includes_each_patients_tags(): void

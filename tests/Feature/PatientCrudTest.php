@@ -51,7 +51,7 @@ class PatientCrudTest extends TestCase
                 'fullName' => 'Almaz Tesfaye',
                 'phone' => '0911 223 344',
                 'sex' => 'FEMALE',
-                'birthDate' => '1990-05-04',
+                'age' => '36',
                 'preferredLanguage' => 'am',
                 'notesNonClinical' => 'Prefers morning appointments',
                 'idNo' => 'ID-77',
@@ -62,12 +62,50 @@ class PatientCrudTest extends TestCase
         $this->assertSame('Almaz Tesfaye', $patient->full_name);
         $this->assertSame('+251911223344', $patient->phone_e164);
         $this->assertSame('FEMALE', $patient->sex);
-        $this->assertSame('1990-05-04', $patient->birth_date->format('Y-m-d'));
+        $this->assertSame(36, $patient->age);
         $this->assertSame('am', $patient->preferred_language);
         $this->assertSame('Prefers morning appointments', $patient->notes_non_clinical);
         $this->assertSame('ID-77', $patient->id_no);
+        $this->assertSame('AA0001', $patient->system_id);
         $this->assertTrue($patient->active);
         $this->assertSame($user->id, $patient->created_by);
+    }
+
+    public function test_the_system_id_is_generated_separately_from_the_clinic_id(): void
+    {
+        $user = $this->owner();
+
+        $this->actingAs($user)->post('/patients', [
+            'fullName' => 'First Patient',
+            'phone' => '0911223300',
+            'idNo' => 'CLINIC-1',
+        ])->assertRedirect();
+
+        $this->actingAs($user)->post('/patients', [
+            'fullName' => 'Second Patient',
+            'phone' => '0911223301',
+        ])->assertRedirect();
+
+        $first = Patient::where('full_name', 'First Patient')->sole();
+        $second = Patient::where('full_name', 'Second Patient')->sole();
+
+        // The system ID is auto-generated and increments independently…
+        $this->assertSame('AA0001', $first->system_id);
+        $this->assertSame('AA0002', $second->system_id);
+        // …while the manual Clinic ID stays exactly as entered (or empty).
+        $this->assertSame('CLINIC-1', $first->id_no);
+        $this->assertNull($second->id_no);
+    }
+
+    public function test_the_system_id_cannot_be_overridden_by_the_form(): void
+    {
+        $this->actingAs($this->owner())->post('/patients', [
+            'fullName' => 'Sneaky Patient',
+            'phone' => '0911223302',
+            'systemId' => 'ZZ9999',
+        ])->assertRedirect();
+
+        $this->assertSame('AA0001', Patient::sole()->system_id);
     }
 
     public function test_it_defaults_the_language_to_the_clinic_setting(): void
@@ -114,11 +152,11 @@ class PatientCrudTest extends TestCase
         $this->assertSame(1, Patient::count());
     }
 
-    public function test_a_similar_name_and_birth_date_requires_confirmation(): void
+    public function test_a_similar_name_and_age_requires_confirmation(): void
     {
         $this->createPatient([
             'full_name' => 'Mekdes Alemu',
-            'birth_date' => '1985-03-12',
+            'age' => 41,
             'phone_e164' => '+251911223300',
         ]);
 
@@ -128,7 +166,7 @@ class PatientCrudTest extends TestCase
             ->post('/patients', [
                 'fullName' => 'Mekides Alemu',
                 'phone' => '0911223344',
-                'birthDate' => '1985-03-12',
+                'age' => '41',
             ])
             ->assertSessionHas('similarPatients');
 
@@ -139,7 +177,7 @@ class PatientCrudTest extends TestCase
     {
         $this->createPatient([
             'full_name' => 'Mekdes Alemu',
-            'birth_date' => '1985-03-12',
+            'age' => 41,
             'phone_e164' => '+251911223300',
         ]);
 
@@ -147,7 +185,7 @@ class PatientCrudTest extends TestCase
             ->post('/patients', [
                 'fullName' => 'Mekides Alemu',
                 'phone' => '0911223344',
-                'birthDate' => '1985-03-12',
+                'age' => '41',
                 'confirm' => 'true',
             ])
             ->assertRedirect();
@@ -233,14 +271,14 @@ class PatientCrudTest extends TestCase
             'full_name' => 'Same Name',
             'phone_e164' => '+251911223344',
             'sex' => 'MALE',
-            'birth_date' => '1990-01-01',
+            'age' => 36,
         ], $user);
 
         $this->actingAs($user)->post("/patients/{$patient->id}", [
             'fullName' => 'Same Name',
             'phone' => '0911223344',
             'sex' => 'MALE',
-            'birthDate' => '1990-01-01',
+            'age' => '36',
         ]);
 
         // Legacy always calls writeAudit on update; with no changed fields the

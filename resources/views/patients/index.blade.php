@@ -13,6 +13,7 @@
         $merged = array_merge($filters, $patch);
         $params = [];
         if (! empty($merged['q'])) $params['q'] = $merged['q'];
+        if (! empty($merged['systemId'])) $params['systemId'] = $merged['systemId'];
         if (! empty($merged['idNo'])) $params['idNo'] = $merged['idNo'];
         if (! empty($merged['dateFrom'])) $params['dateFrom'] = $merged['dateFrom'];
         if (! empty($merged['dateTo'])) $params['dateTo'] = $merged['dateTo'];
@@ -23,7 +24,7 @@
         return $params === [] ? '' : '?'.http_build_query($params);
     };
 
-    $sortKeyFor = fn (string $column) => ['full_name' => 'fullName', 'birth_date' => 'birthDate', 'created_at' => 'createdAt'][$column] ?? null;
+    $sortKeyFor = fn (string $column) => ['full_name' => 'fullName', 'age' => 'age', 'created_at' => 'createdAt'][$column] ?? null;
     $activeSort = $filters['sort'];
     $exportQuery = $buildQuery(['page' => 1]);
 
@@ -36,7 +37,7 @@
         };
     };
 
-    $hasFilters = $filters['q'] !== '' || $filters['dateFrom'] !== '' || $filters['dateTo'] !== '' || $filters['status'] !== '';
+    $hasFilters = $filters['q'] !== '' || $filters['systemId'] !== '' || $filters['idNo'] !== '' || $filters['dateFrom'] !== '' || $filters['dateTo'] !== '' || $filters['status'] !== '';
 @endphp
 
 @section('content')
@@ -54,6 +55,11 @@
                 <label class="label text-xs" for="q">{{ $tc('search') }}</label>
                 <input class="input-field text-sm" id="q" name="q" type="search" maxlength="100"
                        value="{{ $filters['q'] }}" placeholder="{{ __('patients.searchPlaceholder') }}">
+            </div>
+            <div>
+                <label class="label text-xs" for="systemId">{{ __('patients.systemId') }}</label>
+                <input class="input-field text-sm" id="systemId" name="systemId" type="search" maxlength="6"
+                       value="{{ $filters['systemId'] }}" placeholder="{{ __('patients.systemIdHint') }}">
             </div>
             <div>
                 <label class="label text-xs" for="idNo">{{ __('patients.idNo') }}</label>
@@ -97,12 +103,13 @@
                                 {{ __('patients.fullName') }}@if ($activeSort === 'fullName')<span aria-hidden="true">{{ $filters['dir'] === 'asc' ? ' ↑' : ' ↓' }}</span>@endif
                             </a>
                         </th>
+                        <th class="px-4 py-3 font-medium">{{ __('patients.systemId') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.idNo') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.phone') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.sex') }}</th>
                         <th class="px-4 py-3 font-medium">
-                            <a href="{{ route('patients.index').$buildQuery(['sort' => 'birthDate', 'dir' => ($activeSort === 'birthDate' && $filters['dir'] === 'asc') ? 'desc' : 'asc', 'page' => 1]) }}" class="hover:text-slate-900">
-                                {{ __('patients.birthDate') }}@if ($activeSort === 'birthDate')<span aria-hidden="true">{{ $filters['dir'] === 'asc' ? ' ↑' : ' ↓' }}</span>@endif
+                            <a href="{{ route('patients.index').$buildQuery(['sort' => 'age', 'dir' => ($activeSort === 'age' && $filters['dir'] === 'asc') ? 'desc' : 'asc', 'page' => 1]) }}" class="hover:text-slate-900">
+                                {{ __('patients.age') }}@if ($activeSort === 'age')<span aria-hidden="true">{{ $filters['dir'] === 'asc' ? ' ↑' : ' ↓' }}</span>@endif
                             </a>
                         </th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.tagsTitle') }}</th>
@@ -123,10 +130,11 @@
                                     <span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{{ __('patients.dnmYes') }}</span>
                                 @endif
                             </td>
+                            <td class="px-4 py-3 font-mono text-slate-700">{{ $row->system_id ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $row->id_no ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600"><a href="tel:{{ $row->phone_e164 }}" class="hover:text-slate-900">{{ $row->phone_e164 }}</a></td>
                             <td class="px-4 py-3 text-slate-600">{{ $sexLabel($row->sex) }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $row->birth_date?->format('Y-m-d') ?? '—' }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ $row->age ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <span class="flex flex-wrap gap-1">
                                     @foreach ($row->tags as $tag)

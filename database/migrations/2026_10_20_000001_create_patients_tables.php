@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('phone_e164', 32)->unique();
             $table->string('sex', 8)->nullable();          // MALE | FEMALE | OTHER
-            $table->date('birth_date')->nullable();
+            $table->unsignedTinyInteger('age')->nullable();
             $table->string('preferred_language', 8)->default('en'); // en | am
             $table->text('notes_non_clinical')->nullable();
             $table->boolean('do_not_message')->default(false);
@@ -37,7 +37,7 @@ return new class extends Migration
             $table->dateTimeTz('updated_at')->nullable();
 
             $table->index('full_name');
-            $table->index('birth_date');
+            $table->index('age');
             $table->index('active');
             $table->index('created_at');
             $table->index('id_no');

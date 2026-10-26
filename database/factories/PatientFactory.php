@@ -22,7 +22,7 @@ class PatientFactory extends Factory
             // unique, so tests must never collide by accident.
             'phone_e164' => Phone::toE164('09'.fake()->unique()->numerify('########')),
             'sex' => fake()->randomElement(['MALE', 'FEMALE', 'OTHER']),
-            'birth_date' => fake()->dateTimeBetween('-70 years', '-1 year')->format('Y-m-d'),
+            'age' => fake()->numberBetween(1, 90),
             'preferred_language' => 'en',
             'notes_non_clinical' => null,
             'do_not_message' => false,

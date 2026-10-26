@@ -184,10 +184,6 @@ class DatabaseSeeder extends Seeder
             'en' => 'Thank you for visiting {clinic}, {name}. We hope you feel better.\\nPlease leave us a review: {review_link}',
             'am' => 'ስለ ጉብኝትዎ እናመሰግናለን {name}። እንዲሻሻልልዎ ተስፋ እናደርጋለን።\\nአስተያየትዎን ይስጡን: {review_link}',
         ],
-        'BIRTHDAY' => [
-            'en' => 'Happy birthday, {name}! From all of us at {clinic}.',
-            'am' => 'መልካም ልደት {name}! ከ{clinic} ሰራተኞች።',
-        ],
         'WELCOME' => [
             'en' => 'Welcome to {clinic}, {name}. We will send appointment reminders to this number. Reply STOP to stop messages.',
             'am' => 'ወደ {clinic} እንኳን በደህና መጡ {name}። የቀጠሮ ማስታወሻዎችን ወደዚህ ቁጥር እንልካለን። ለማቆም STOP ብለው ይላኩ።',

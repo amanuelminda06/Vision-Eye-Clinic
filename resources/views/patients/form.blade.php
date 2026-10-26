@@ -14,7 +14,6 @@
     $duplicate = session('duplicatePatient');
     // Round-2 submit carries confirm=true once the amber panel was shown.
     $showConfirm = $similar !== [];
-    $today = PatientValidation::todayIso();
 @endphp
 
 @section('content')
@@ -66,11 +65,12 @@
                 </div>
 
                 <div>
-                    <label class="label" for="birthDate">{{ __('patients.birthDate') }}</label>
-                    <input class="input-field" id="birthDate" name="birthDate" type="date" max="{{ $today }}"
-                           value="{{ old('birthDate', $patient?->birth_date?->format('Y-m-d') ?? '') }}"
-                           @if ($errors->has('birthDate')) aria-invalid="true" @endif>
-                    @error('birthDate')
+                    <label class="label" for="age">{{ __('patients.age') }}</label>
+                    <input class="input-field" id="age" name="age" type="number" inputmode="numeric"
+                           min="{{ PatientValidation::MIN_AGE }}" max="{{ PatientValidation::MAX_AGE }}"
+                           value="{{ old('age', $patient?->age ?? '') }}"
+                           @if ($errors->has('age')) aria-invalid="true" @endif>
+                    @error('age')
                         <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>
                     @enderror
                 </div>
@@ -123,10 +123,22 @@
             </div>
             @endif
 
+            @if ($isEdit && $patient?->system_id)
+            <div>
+                <label class="label" for="systemId">{{ __('patients.systemId') }}</label>
+                <input class="input-field bg-slate-50 font-mono text-slate-600" id="systemId" type="text"
+                       value="{{ $patient->system_id }}" readonly disabled>
+                <p class="mt-1 text-xs text-slate-500">{{ __('patients.systemIdAuto') }}</p>
+            </div>
+            @endif
+
             <div>
                 <label class="label" for="idNo">{{ __('patients.idNo') }}</label>
                 <input class="input-field" id="idNo" name="idNo" type="text" maxlength="32"
                        placeholder="{{ __('patients.idNoHint') }}" value="{{ old('idNo', $patient?->id_no ?? '') }}">
+                @if (! $isEdit)
+                    <p class="mt-1 text-xs text-slate-500">{{ __('patients.systemIdAuto') }}</p>
+                @endif
                 @error('idNo')
                     <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>
                 @enderror

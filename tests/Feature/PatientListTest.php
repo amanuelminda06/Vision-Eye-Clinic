@@ -106,6 +106,19 @@ class PatientListTest extends TestCase
             ->assertDontSee('No Id');
     }
 
+    public function test_the_system_id_filter_matches_an_exact_id(): void
+    {
+        $user = $this->owner();
+        $this->createPatient(['full_name' => 'Has System Id', 'system_id' => 'AB0042'], $user);
+        $this->createPatient(['full_name' => 'Other Patient'], $user);
+
+        $this->actingAs($user)
+            ->get('/patients?systemId=AB0042')
+            ->assertOk()
+            ->assertSee('Has System Id')
+            ->assertDontSee('Other Patient');
+    }
+
     public function test_the_status_filter_splits_active_and_inactive(): void
     {
         $user = $this->owner();

@@ -27,11 +27,12 @@ class PatientExportController extends Controller
     /** @var list<string> */
     private const COLUMNS = [
         'id',
+        'systemId',
         'idNo',
         'fullName',
         'phone',
         'sex',
-        'birthDate',
+        'age',
         'preferredLanguage',
         'tags',
         'doNotMessage',
@@ -51,6 +52,7 @@ class PatientExportController extends Controller
         $filters = [
             'q' => mb_substr((string) $request->query('q', ''), 0, 100) ?: null,
             'idNo' => mb_substr((string) $request->query('idNo', ''), 0, 32) ?: null,
+            'systemId' => mb_substr((string) $request->query('systemId', ''), 0, 6) ?: null,
             'dateFrom' => preg_match(self::DATE_RE, $dateFromRaw) === 1 ? $dateFromRaw : null,
             'dateTo' => preg_match(self::DATE_RE, $dateToRaw) === 1 ? $dateToRaw : null,
             'status' => in_array($statusRaw, ['true', 'false'], true) ? $statusRaw : '',
@@ -70,11 +72,12 @@ class PatientExportController extends Controller
         foreach ($rows as $row) {
             $cells[] = [
                 $row->id,
+                $row->system_id ?? '',
                 $row->id_no ?? '',
                 $row->full_name,
                 $row->phone_e164,
                 $row->sex ?? '',
-                $row->birth_date?->format('Y-m-d') ?? '',
+                $row->age ?? '',
                 $row->preferred_language,
                 $row->tags->pluck('name')->implode('; '),
                 (bool) $row->do_not_message,
@@ -108,7 +111,7 @@ class PatientExportController extends Controller
     public function template(): Response
     {
         $csv = Csv::toCsv(PatientImport::IMPORT_COLUMNS, [
-            ['Example Patient', '0912345678', 'MALE', '1990-01-15', 'glasses', 'en'],
+            ['Example Patient', '0912345678', 'MALE', '30', 'glasses', 'en'],
         ]);
 
         return response($csv, 200, self::downloadHeaders(

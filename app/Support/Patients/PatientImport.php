@@ -18,7 +18,7 @@ final class PatientImport
         'fullName',
         'phone',
         'sex',
-        'birthDate',
+        'age',
         'tags',
         'preferredLanguage',
     ];
@@ -42,7 +42,7 @@ final class PatientImport
         'invalidPhone' => 'Invalid phone number',
         'phoneTaken' => 'Phone number already exists',
         'invalidSex' => 'Invalid sex — use Male/Female/Other (or M/F/O)',
-        'invalidDate' => 'Invalid date — use YYYY-MM-DD and a date in the past',
+        'invalidAge' => 'Invalid age — use a whole number between 0 and 120',
         'invalidLanguage' => 'Invalid language — use en or am',
         'fileTooLarge' => 'File is larger than 2 MB',
         'tooManyRows' => 'More than 1000 rows',
@@ -58,12 +58,6 @@ final class PatientImport
         'o' => 'OTHER',
         'other' => 'OTHER',
     ];
-
-    /** Today's UTC calendar date, `YYYY-MM-DD` (matches JS toISOString().slice(0,10)). */
-    public static function todayIso(): string
-    {
-        return gmdate('Y-m-d');
-    }
 
     /**
      * Validate one raw row; never returns `values` for a row with errors.
@@ -105,9 +99,9 @@ final class PatientImport
             $errors[] = ['field' => 'sex', 'key' => 'invalidSex'];
         }
 
-        $birthDate = self::parseBirthDateCell($raw['birthDate'] ?? '');
-        if ($birthDate === false) {
-            $errors[] = ['field' => 'birthDate', 'key' => 'invalidDate'];
+        $age = self::parseAgeCell($raw['age'] ?? '');
+        if ($age === false) {
+            $errors[] = ['field' => 'age', 'key' => 'invalidAge'];
         }
 
         $tags = self::parseTagsCell($raw['tags'] ?? '');
@@ -127,7 +121,7 @@ final class PatientImport
                 'fullName' => $fullName,
                 'phoneE164' => $phoneE164,
                 'sex' => $sex === false ? null : $sex,
-                'birthDate' => $birthDate === false ? null : $birthDate,
+                'age' => $age === false ? null : $age,
                 'tags' => $tags === false ? [] : $tags,
                 'preferredLanguage' => $language === false ? $ctx['defaultLanguage'] : $language,
             ];
@@ -236,8 +230,8 @@ final class PatientImport
         return self::SEX_ALIASES[$key] ?? false;
     }
 
-    /** @return string|null|false `YYYY-MM-DD`, null for empty, false when invalid. */
-    private static function parseBirthDateCell(string $raw): string|null|false
+    /** @return int|null|false Whole years, null for empty, false when invalid. */
+    private static function parseAgeCell(string $raw): int|null|false
     {
         $value = trim($raw);
 
@@ -245,19 +239,13 @@ final class PatientImport
             return null;
         }
 
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+        if (preg_match('/^\d{1,3}$/', $value) !== 1) {
             return false;
         }
 
-        if (! self::isRealCalendarDate($value)) {
-            return false;
-        }
+        $age = (int) $value;
 
-        if ($value > self::todayIso()) {
-            return false;
-        }
-
-        return $value;
+        return $age >= PatientValidation::MIN_AGE && $age <= PatientValidation::MAX_AGE ? $age : false;
     }
 
     /** @return list<string>|false */
@@ -297,16 +285,5 @@ final class PatientImport
         }
 
         return false;
-    }
-
-    /**
-     * JS `Date.parse('YYYY-MM-DDT00:00:00Z')` rejects impossible calendar dates
-     * (e.g. 2021-02-31 rolls over) — mirror that by checking the round trip.
-     */
-    private static function isRealCalendarDate(string $value): bool
-    {
-        [$year, $month, $day] = array_map('intval', explode('-', $value));
-
-        return checkdate($month, $day, $year);
     }
 }

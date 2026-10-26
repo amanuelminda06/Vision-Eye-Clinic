@@ -50,9 +50,9 @@ class PatientImportFlowTest extends TestCase
 
     public function test_preview_lists_valid_and_invalid_rows_without_writing(): void
     {
-        $csv = "fullName,phone,sex,birthDate\n"
-            ."Almaz Tesfaye,0911223344,FEMALE,1990-05-04\n"
-            ."Bad Phone,12345,MALE,1990-01-01\n";
+        $csv = "fullName,phone,sex,age\n"
+            ."Almaz Tesfaye,0911223344,FEMALE,36\n"
+            ."Bad Phone,12345,MALE,36\n";
 
         $this->actingAs($this->owner())
             ->post('/patients/import', ['step' => 'preview', 'file' => $this->csvFile($csv)])
@@ -65,9 +65,9 @@ class PatientImportFlowTest extends TestCase
     public function test_confirm_imports_only_the_valid_rows(): void
     {
         $user = $this->owner();
-        $csv = "fullName,phone,sex,birthDate\n"
-            ."Almaz Tesfaye,0911223344,FEMALE,1990-05-04\n"
-            ."Bad Phone,12345,MALE,1990-01-01\n";
+        $csv = "fullName,phone,sex,age\n"
+            ."Almaz Tesfaye,0911223344,FEMALE,36\n"
+            ."Bad Phone,12345,MALE,36\n";
 
         $this->actingAs($user)
             ->post('/patients/import', ['step' => 'import', 'confirm' => 'true', 'csv' => $csv])

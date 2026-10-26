@@ -25,12 +25,13 @@ class Patient extends Model
         'full_name',
         'phone_e164',
         'sex',
-        'birth_date',
+        'age',
         'preferred_language',
         'notes_non_clinical',
         'do_not_message',
         'do_not_message_reason',
         'id_photo_url',
+        'system_id',
         'id_no',
         'active',
         'created_by',
@@ -39,7 +40,7 @@ class Patient extends Model
     protected function casts(): array
     {
         return [
-            'birth_date' => 'date',
+            'age' => 'integer',
             'do_not_message' => 'boolean',
             'active' => 'boolean',
         ];

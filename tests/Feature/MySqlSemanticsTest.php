@@ -286,7 +286,7 @@ class MySqlSemanticsTest extends TestCase
             'full_name' => 'Duplicate Phone',
             'phone_e164' => '+251911223344',
             'sex' => 'MALE',
-            'birth_date' => '1990-01-01',
+            'age' => 36,
             'preferred_language' => 'en',
             'active' => true,
             'created_by' => $patient->created_by,

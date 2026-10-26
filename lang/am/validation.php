@@ -28,6 +28,7 @@ return [
     'photoInvalidType' => 'ፎቶው PNG፣ JPEG ወይም WebP መሆን አለበት',
     'photoTooLarge' => 'ፎቶው 2 MB ወይም ከዚያ በታች መሆን አለበት',
     'invalidSex' => 'ወንድ፣ ሴት ወይም ሌላ ይምረጡ',
+    'invalidAge' => 'ከ0 እስከ 120 የሆነ ሙሉ ቁጥር ዕድሜ ያስገቡ',
     'invalidLanguage' => 'ቋንቋ ይምረጡ፦ en ወይም am',
     'invalidConsent' => 'true ወይም false ይጠቀሙ',
     'tooMany' => 'በጣም ብዙ አባሎች አሉ — አንዳንዶችን ያስወግዱ',

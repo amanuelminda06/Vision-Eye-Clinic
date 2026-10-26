@@ -19,7 +19,7 @@ non-technical user should observe. Sign off at the bottom.
 1. **Patients**: create a patient with a real Ethiopian phone (`09…`, `07…`,
    `+251…`). Try an invalid phone and a duplicate phone — both must be refused
    with a helpful message.
-2. Create a patient with the same name + date of birth as an existing one —
+2. Create a patient with the same name + age as an existing one —
    a non-blocking duplicate warning appears.
 3. Search a patient by a phone fragment; open the record; tick SMS consent;
    record "patient asked to stop messages" then re-enable it.

@@ -22,7 +22,7 @@ final class Constants
     public const TEMPLATE_KEYS = [
         'APPT_REMINDER', 'APPT_CONFIRMATION', 'APPT_SAME_DAY', 'NO_SHOW',
         'SCHEDULE_CHANGE', 'FOLLOWUP_DUE', 'RECALL', 'GLASSES_READY',
-        'THANK_YOU', 'BIRTHDAY', 'WELCOME', 'CLOSURE_NOTICE', 'CUSTOM',
+        'THANK_YOU', 'WELCOME', 'CLOSURE_NOTICE', 'CUSTOM',
     ];
 
     /** `__('messages.<key>')` for each template. */
@@ -36,7 +36,6 @@ final class Constants
         'RECALL' => 'tplRecall',
         'GLASSES_READY' => 'tplGlassesReady',
         'THANK_YOU' => 'tplThankYou',
-        'BIRTHDAY' => 'tplBirthday',
         'WELCOME' => 'tplWelcome',
         'CLOSURE_NOTICE' => 'tplClosureNotice',
         'CUSTOM' => 'tplCustom',
@@ -57,7 +56,6 @@ final class Constants
     public const MESSAGE_SOURCE_LABEL_KEYS = [
         'APPOINTMENT' => 'sourceAppointment',
         'FOLLOWUP' => 'sourceFollowUp',
-        'BIRTHDAY' => 'sourceBirthday',
         'RECALL' => 'sourceRecall',
         'CAMPAIGN' => 'sourceCampaign',
         'MANUAL' => 'sourceManual',

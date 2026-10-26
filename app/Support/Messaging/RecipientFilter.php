@@ -33,7 +33,6 @@ final class RecipientFilter
             'boughtServiceFrom' => '',
             'boughtServiceTo' => '',
             'upcoming' => 'ANY',
-            'birthdayMonth' => 0,
             'handPickedIds' => [],
             'presetRange' => '',
         ];
@@ -55,7 +54,6 @@ final class RecipientFilter
             'lastVisitTo' => $values['lastVisitTo'] ?? '',
             'upcoming' => $values['upcoming'] ?? 'ANY',
             'serviceCategory' => $values['serviceCategory'] ?? '',
-            'birthdayMonth' => $values['birthdayMonth'] ?? 0,
         ]);
     }
 
@@ -93,9 +91,6 @@ final class RecipientFilter
             'boughtServiceFrom' => $str($input['boughtServiceFrom'] ?? null, $base['boughtServiceFrom']),
             'boughtServiceTo' => $str($input['boughtServiceTo'] ?? null, $base['boughtServiceTo']),
             'upcoming' => in_array($upcoming, ['HAS', 'NONE'], true) ? $upcoming : 'ANY',
-            'birthdayMonth' => is_int($input['birthdayMonth'] ?? null) || is_float($input['birthdayMonth'] ?? null)
-                ? (int) $input['birthdayMonth']
-                : 0,
             'handPickedIds' => $strArray($input['handPickedIds'] ?? []),
             'presetRange' => in_array($preset, self::RECIPIENT_PRESET_RANGES, true) ? $preset : '',
         ];
@@ -149,7 +144,6 @@ final class RecipientFilter
             || ($filter['boughtServiceFrom'] ?? '') !== ''
             || ($filter['boughtServiceTo'] ?? '') !== ''
             || ($filter['upcoming'] ?? 'ANY') !== 'ANY'
-            || (int) ($filter['birthdayMonth'] ?? 0) > 0
             || ($filter['presetRange'] ?? '') !== '';
     }
 
@@ -170,7 +164,6 @@ final class RecipientFilter
             && ($filter['boughtServiceFrom'] ?? '') === ''
             && ($filter['boughtServiceTo'] ?? '') === ''
             && ($filter['upcoming'] ?? 'ANY') === 'ANY'
-            && (int) ($filter['birthdayMonth'] ?? 0) === 0
             && in_array($preset, ['', 'last30', 'last90', 'last180'], true)
             && (($filter['lastVisitFrom'] ?? '') !== '' || ($filter['lastVisitTo'] ?? '') !== '')
             && ($filter['handPickedIds'] ?? []) === [];
@@ -372,18 +365,6 @@ final class RecipientFilter
 
         if (($filter['upcoming'] ?? 'ANY') === 'NONE' && $candidate['hasUpcoming']) {
             return false;
-        }
-
-        if ((int) ($filter['birthdayMonth'] ?? 0) > 0) {
-            if (empty($candidate['birthDate'])) {
-                return false;
-            }
-
-            $month = (int) (new \DateTimeImmutable($candidate['birthDate']->format('Y-m-d').'T00:00:00Z'))->format('n');
-
-            if ($month !== (int) $filter['birthdayMonth']) {
-                return false;
-            }
         }
 
         return true;
