@@ -121,6 +121,7 @@ return [
     'systemId' => 'System ID',
     'systemIdHint' => 'e.g. AA0001',
     'systemIdAuto' => 'Generated automatically by the system.',
-    'idNo' => 'ID number',
-    'idNoHint' => 'Clinic\'s ID',
+    'idNo' => 'Clinic ID',
+    'idNoHint' => 'Optional — the clinic\'s own ID',
+    'idNoHelp' => 'Optional. A system ID (e.g. AA0001) is generated automatically when you save.',
 ];

@@ -137,7 +137,7 @@
                 <input class="input-field" id="idNo" name="idNo" type="text" maxlength="32"
                        placeholder="{{ __('patients.idNoHint') }}" value="{{ old('idNo', $patient?->id_no ?? '') }}">
                 @if (! $isEdit)
-                    <p class="mt-1 text-xs text-slate-500">{{ __('patients.systemIdAuto') }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ __('patients.idNoHelp') }}</p>
                 @endif
                 @error('idNo')
                     <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>

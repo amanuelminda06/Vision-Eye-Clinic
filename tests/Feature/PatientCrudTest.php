@@ -264,6 +264,42 @@ class PatientCrudTest extends TestCase
         $this->assertArrayNotHasKey('sex', $log->new_json);
     }
 
+    public function test_editing_the_clinic_id_never_changes_the_system_id(): void
+    {
+        $user = $this->owner();
+
+        $this->actingAs($user)->post('/patients', [
+            'fullName' => 'Separated Patient',
+            'phone' => '0911223399',
+            'idNo' => 'CLINIC-9',
+        ])->assertRedirect();
+
+        $patient = Patient::sole();
+        $this->assertSame('AA0001', $patient->system_id);
+
+        // Changing the optional Clinic ID leaves the system ID untouched.
+        $this->actingAs($user)->post("/patients/{$patient->id}", [
+            'fullName' => 'Separated Patient',
+            'phone' => '0911223399',
+            'idNo' => 'CLINIC-10',
+        ])->assertRedirect();
+
+        $patient->refresh();
+        $this->assertSame('AA0001', $patient->system_id);
+        $this->assertSame('CLINIC-10', $patient->id_no);
+
+        // Clearing the Clinic ID (it is optional) also leaves it untouched.
+        $this->actingAs($user)->post("/patients/{$patient->id}", [
+            'fullName' => 'Separated Patient',
+            'phone' => '0911223399',
+            'idNo' => '',
+        ])->assertRedirect();
+
+        $patient->refresh();
+        $this->assertSame('AA0001', $patient->system_id);
+        $this->assertNull($patient->id_no);
+    }
+
     public function test_updating_without_a_real_change_records_an_empty_diff(): void
     {
         $user = $this->owner();
