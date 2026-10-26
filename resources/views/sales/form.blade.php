@@ -14,6 +14,7 @@
     ])->values();
 
     $locale = app()->getLocale();
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
     $prefillLine = null;
     if ($prefillServiceId !== '') {
         $found = $services->firstWhere('id', $prefillServiceId);
@@ -65,7 +66,7 @@
                                placeholder="{{ __('sales.patientSearchPlaceholder') }}"
                                @if ($errors->has('patientId')) aria-invalid="true" @endif>
                         <ul id="patient-results" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-slate-200 bg-white shadow-lg"></ul>
-                        @error('patientId')<p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ field_error('patientId') }}</p>@enderror
+                        @error('patientId')<p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                 </section>
 
@@ -94,7 +95,7 @@
                             </tbody>
                         </table>
                     </div>
-                    @error('lines')<p role="alert" class="text-xs font-medium text-red-600">{{ field_error('lines') }}</p>@enderror
+                    @error('lines')<p role="alert" class="text-xs font-medium text-red-600">{{ $tv($message) }}</p>@enderror
                 </section>
             </div>
 
@@ -118,7 +119,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        @error('paymentMethod')<p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ field_error('paymentMethod') }}</p>@enderror
+                        @error('paymentMethod')<p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                 </section>
 

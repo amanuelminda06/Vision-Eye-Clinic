@@ -92,6 +92,22 @@ class ShellAdminTest extends TestCase
         $this->assertSame(0, User::query()->where('email', 'weak@example.com')->count());
     }
 
+    public function test_a_validation_failure_re_renders_the_user_form_without_error(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        // The redirect back re-renders the form: every @error block runs and
+        // must translate the stored key instead of printing it verbatim.
+        $this->actingAs($owner)->from('/users/new')->followingRedirects()->post('/users', [
+            'name' => 'Weak',
+            'email' => 'weak@example.com',
+            'role' => 'STAFF',
+            'password' => 'short',
+        ])->assertOk()
+            ->assertSee(__('validation.passwordTooShort'))
+            ->assertDontSee('passwordTooShort');
+    }
+
     public function test_the_owner_updates_a_user(): void
     {
         $owner = $this->createUser(['role' => Roles::OWNER]);

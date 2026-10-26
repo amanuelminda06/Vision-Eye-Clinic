@@ -7,6 +7,7 @@
     use App\Support\ClinicTime;
 
     $old = fn (string $key, $default = '') => old($key, $default);
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -43,7 +44,7 @@
                         <option value="{{ $patient->id }}">{{ $patient->full_name }}</option>
                     @endforeach
                 </datalist>
-                @error('patientId')<p class="text-xs text-red-600">{{ field_error('patientId') }}</p>@enderror
+                @error('patientId')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
 
                 <details class="rounded-lg border border-brand-100 p-3">
                     <summary class="cursor-pointer text-sm font-medium text-slate-700">{{ __('appointments.quickCreate') }}</summary>
@@ -51,12 +52,12 @@
                         <div>
                             <label class="label text-xs" for="quickName">{{ __('appointments.quickName') }}</label>
                             <input class="input-field text-sm" id="quickName" name="quickName" maxlength="100" value="{{ $old('quickName') }}">
-                            @error('quickName')<p class="text-xs text-red-600">{{ field_error('quickName') }}</p>@enderror
+                            @error('quickName')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                         </div>
                         <div>
                             <label class="label text-xs" for="quickPhone">{{ __('appointments.patient') }}</label>
                             <input class="input-field text-sm" id="quickPhone" name="quickPhone" maxlength="32" value="{{ $old('quickPhone') }}" placeholder="{{ __('appointments.quickPhoneHint') }}">
-                            @error('quickPhone')<p class="text-xs text-red-600">{{ field_error('quickPhone') }}</p>@enderror
+                            @error('quickPhone')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                         </div>
                     </div>
                 </details>
@@ -71,7 +72,7 @@
                             <option value="{{ $doctor->id }}" @selected($old('doctorId', $appointment['doctorId'] ?? '') === $doctor->id)>{{ $doctor->full_name }}</option>
                         @endforeach
                     </select>
-                    @error('doctorId')<p class="text-xs text-red-600">{{ field_error('doctorId') }}</p>@enderror
+                    @error('doctorId')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="serviceId">{{ __('appointments.service') }}</label>
@@ -81,7 +82,7 @@
                             <option value="{{ $service->id }}" @selected($old('serviceId', $appointment['serviceId'] ?? '') === $service->id)>{{ $service->name }}</option>
                         @endforeach
                     </select>
-                    @error('serviceId')<p class="text-xs text-red-600">{{ field_error('serviceId') }}</p>@enderror
+                    @error('serviceId')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -90,12 +91,12 @@
                     <label class="label" for="dateKey">{{ __('appointments.date') }} <span class="text-red-500">*</span></label>
                     <input class="input-field" id="dateKey" name="dateKey" type="date"
                            value="{{ $old('dateKey', $defaultDateKey) }}">
-                    @error('dateKey')<p class="text-xs text-red-600">{{ field_error('dateKey') }}</p>@enderror
+                    @error('dateKey')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="startTime">{{ __('appointments.startTime') }} <span class="text-red-500">*</span></label>
                     <input class="input-field" id="startTime" name="startTime" type="time" value="{{ $old('startTime', '09:00') }}">
-                    @error('startTime')<p class="text-xs text-red-600">{{ field_error('startTime') }}</p>@enderror
+                    @error('startTime')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="durationMin">{{ __('appointments.duration') }} <span class="text-red-500">*</span></label>
@@ -104,7 +105,7 @@
                             <option value="{{ $duration }}" @selected((int) $old('durationMin', Constants::DEFAULT_DURATION) === $duration)>{{ $duration }} min</option>
                         @endforeach
                     </select>
-                    @error('durationMin')<p class="text-xs text-red-600">{{ field_error('durationMin') }}</p>@enderror
+                    @error('durationMin')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -112,7 +113,7 @@
                 <label class="label" for="notes">{{ __('appointments.notes') }}</label>
                 <textarea class="input-field text-sm" id="notes" name="notes" rows="2" maxlength="300">{{ $old('notes', $appointment['notes'] ?? '') }}</textarea>
                 <p class="mt-1 text-xs text-slate-500">{{ __('appointments.notesHint') }}</p>
-                @error('notes')<p class="text-xs text-red-600">{{ field_error('notes') }}</p>@enderror
+                @error('notes')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div class="flex items-center gap-2">

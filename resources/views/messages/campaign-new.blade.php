@@ -2,6 +2,10 @@
 
 @section('title', __('messages.campaignsForbidden') === 'messages.campaignsForbidden' ? __('messages.newCampaign') : __('messages.newCampaign'))
 
+@php
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
+@endphp
+
 @section('content')
     <div class="mx-auto max-w-3xl space-y-5">
         <div class="flex items-center justify-between gap-3">
@@ -60,13 +64,13 @@
             <div>
                 <label class="label" for="title">{{ __('common.name') }}</label>
                 <input class="input-field" id="title" name="title" maxlength="120" value="{{ old('title') }}">
-                @error('title')<p class="text-xs text-red-600">{{ field_error('title') }}</p>@enderror
+                @error('title')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div>
                 <label class="label" for="body">{{ __('messages.customMessage') }}</label>
                 <textarea class="input-field" id="body" name="body" rows="4" maxlength="1000">{{ old('body') }}</textarea>
-                @error('body')<p class="text-xs text-red-600">{{ field_error('body') }}</p>@enderror
+                @error('body')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">

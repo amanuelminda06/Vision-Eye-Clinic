@@ -6,6 +6,7 @@
     use App\Support\Messaging\Constants;
 
     $label = fn (string $key): string => __('messages.'.(Constants::TEMPLATE_LABEL_KEYS[$key] ?? $key));
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -56,7 +57,7 @@
                     </div>
 
                     <textarea class="input-field text-sm" name="body" rows="4" maxlength="1000">{{ $body }}</textarea>
-                    @error('body')<p class="text-xs text-red-600">{{ field_error('body') }}</p>@enderror
+                    @error('body')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
 
                     <div class="flex items-center gap-2">
                         <button type="submit" class="btn-primary">{{ __('common.save') }}</button>

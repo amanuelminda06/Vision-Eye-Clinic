@@ -9,6 +9,8 @@
         return is_array($current) ? '' : (string) $current;
     };
 
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
+
     $hours = $values['working_hours'] ?? [];
     $dayHours = fn (string $day): array => is_array($hours[$day] ?? null)
         ? $hours[$day]
@@ -35,19 +37,19 @@
                     <div>
                         <label class="label text-xs" for="clinic_name">{{ __('settings.clinicName') }}</label>
                         <input class="input-field text-sm" id="clinic_name" name="clinic_name" maxlength="100" value="{{ $value('clinic_name', 'Vision Eye Clinic') }}">
-                        @error('clinic_name')<p class="text-xs text-red-600">{{ field_error('clinic_name') }}</p>@enderror
+                        @error('clinic_name')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="currency">{{ __('settings.currency') }}</label>
                         <input class="input-field text-sm" id="currency" name="currency" maxlength="10" value="{{ $value('currency', 'ETB') }}">
-                        @error('currency')<p class="text-xs text-red-600">{{ field_error('currency') }}</p>@enderror
+                        @error('currency')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                 </div>
 
                 <div>
                     <label class="label text-xs" for="timezone">{{ __('settings.timezone') }}</label>
                     <input class="input-field text-sm" id="timezone" name="timezone" maxlength="64" value="{{ $value('timezone', 'Africa/Addis_Ababa') }}">
-                    @error('timezone')<p class="text-xs text-red-600">{{ field_error('timezone') }}</p>@enderror
+                    @error('timezone')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </section>
 
@@ -74,7 +76,7 @@
                     </div>
                 @endforeach
 
-                @error('working_hours')<p class="text-xs text-red-600">{{ field_error('working_hours') }}</p>@enderror
+                @error('working_hours')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </section>
 
             <section class="card space-y-3 p-4">
@@ -84,22 +86,22 @@
                     <div>
                         <label class="label text-xs" for="reminder_send_time">{{ __('settings.reminderSendTime') }}</label>
                         <input class="input-field text-sm" id="reminder_send_time" name="reminder_send_time" type="time" value="{{ $value('reminder_send_time', '14:00') }}">
-                        @error('reminder_send_time')<p class="text-xs text-red-600">{{ field_error('reminder_send_time') }}</p>@enderror
+                        @error('reminder_send_time')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="reminder_send_by_offset_minutes">{{ __('settings.reminderOffset') }}</label>
                         <input class="input-field text-sm" id="reminder_send_by_offset_minutes" name="reminder_send_by_offset_minutes" type="number" min="1" value="{{ $value('reminder_send_by_offset_minutes', 60) }}">
-                        @error('reminder_send_by_offset_minutes')<p class="text-xs text-red-600">{{ field_error('reminder_send_by_offset_minutes') }}</p>@enderror
+                        @error('reminder_send_by_offset_minutes')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="followup_lead_days">{{ __('settings.followupLeadDays') }}</label>
                         <input class="input-field text-sm" id="followup_lead_days" name="followup_lead_days" type="number" min="1" value="{{ $value('followup_lead_days', 3) }}">
-                        @error('followup_lead_days')<p class="text-xs text-red-600">{{ field_error('followup_lead_days') }}</p>@enderror
+                        @error('followup_lead_days')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="recall_months">{{ __('settings.recallMonths') }}</label>
                         <input class="input-field text-sm" id="recall_months" name="recall_months" type="number" min="1" value="{{ $value('recall_months', 12) }}">
-                        @error('recall_months')<p class="text-xs text-red-600">{{ field_error('recall_months') }}</p>@enderror
+                        @error('recall_months')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="sms_mode">{{ __('settings.smsMode') }}</label>
@@ -107,7 +109,7 @@
                             <option value="MANUAL_LINK" @selected($value('sms_mode', 'MANUAL_LINK') === 'MANUAL_LINK')>{{ __('settings.smsManualLink') }}</option>
                             <option value="GATEWAY" @selected($value('sms_mode') === 'GATEWAY')>{{ __('settings.smsGateway') }}</option>
                         </select>
-                        @error('sms_mode')<p class="text-xs text-red-600">{{ field_error('sms_mode') }}</p>@enderror
+                        @error('sms_mode')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="default_language">{{ __('settings.defaultLanguage') }}</label>
@@ -115,27 +117,27 @@
                             <option value="en" @selected($value('default_language', 'en') === 'en')>English</option>
                             <option value="am" @selected($value('default_language') === 'am')>አማርኛ</option>
                         </select>
-                        @error('default_language')<p class="text-xs text-red-600">{{ field_error('default_language') }}</p>@enderror
+                        @error('default_language')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="review_link">{{ __('settings.reviewLink') }}</label>
                         <input class="input-field text-sm" id="review_link" name="review_link" maxlength="500" value="{{ $value('review_link') }}">
-                        @error('review_link')<p class="text-xs text-red-600">{{ field_error('review_link') }}</p>@enderror
+                        @error('review_link')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="digest_email">{{ __('settings.digestEmail') }}</label>
                         <input class="input-field text-sm" id="digest_email" name="digest_email" type="email" maxlength="200" value="{{ $value('digest_email') }}">
-                        @error('digest_email')<p class="text-xs text-red-600">{{ field_error('digest_email') }}</p>@enderror
+                        @error('digest_email')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="campaign_max_recipients">{{ __('settings.campaignMaxRecipients') }}</label>
                         <input class="input-field text-sm" id="campaign_max_recipients" name="campaign_max_recipients" type="number" min="1" max="300" value="{{ $value('campaign_max_recipients', 300) }}">
-                        @error('campaign_max_recipients')<p class="text-xs text-red-600">{{ field_error('campaign_max_recipients') }}</p>@enderror
+                        @error('campaign_max_recipients')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="group_sms_max_recipients">{{ __('settings.groupSmsMaxRecipients') }}</label>
                         <input class="input-field text-sm" id="group_sms_max_recipients" name="group_sms_max_recipients" type="number" min="1" max="100" value="{{ $value('group_sms_max_recipients', 15) }}">
-                        @error('group_sms_max_recipients')<p class="text-xs text-red-600">{{ field_error('group_sms_max_recipients') }}</p>@enderror
+                        @error('group_sms_max_recipients')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                 </div>
 

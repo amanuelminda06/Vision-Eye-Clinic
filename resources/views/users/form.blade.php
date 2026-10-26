@@ -4,6 +4,7 @@
 
 @php
     $old = fn (string $key, $default = '') => old($key, $default);
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -27,13 +28,13 @@
             <div>
                 <label class="label" for="name">{{ __('common.name') }} <span class="text-red-500">*</span></label>
                 <input class="input-field" id="name" name="name" maxlength="100" value="{{ $old('name', $user->name ?? '') }}">
-                @error('name')<p class="text-xs text-red-600">{{ field_error('name') }}</p>@enderror
+                @error('name')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div>
                 <label class="label" for="email">{{ __('common.email') }} <span class="text-red-500">*</span></label>
                 <input class="input-field" id="email" name="email" type="email" maxlength="254" value="{{ $old('email', $user->email ?? '') }}">
-                @error('email')<p class="text-xs text-red-600">{{ field_error('email') }}</p>@enderror
+                @error('email')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div>
@@ -45,7 +46,7 @@
                         </option>
                     @endforeach
                 </select>
-                @error('role')<p class="text-xs text-red-600">{{ field_error('role') }}</p>@enderror
+                @error('role')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div>
@@ -56,7 +57,7 @@
                         <option value="{{ $staff->id }}" @selected($old('staffId', $user->staff_id ?? '') === $staff->id)>{{ $staff->full_name }}</option>
                     @endforeach
                 </select>
-                @error('staffId')<p class="text-xs text-red-600">{{ field_error('staffId') }}</p>@enderror
+                @error('staffId')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             @if ($user === null)
@@ -64,7 +65,7 @@
                     <label class="label" for="password">{{ __('users.password') }} <span class="text-red-500">*</span></label>
                     <input class="input-field" id="password" name="password" type="password" autocomplete="new-password">
                     <p class="mt-1 text-xs text-slate-500">{{ __('users.passwordHint') }}</p>
-                    @error('password')<p class="text-xs text-red-600">{{ field_error('password') }}</p>@enderror
+                    @error('password')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             @endif
 
@@ -84,12 +85,12 @@
                     <div>
                         <label class="label text-xs" for="set-password">{{ __('users.newPassword') }}</label>
                         <input class="input-field" id="set-password" name="password" type="password" autocomplete="new-password">
-                        @error('password')<p class="text-xs text-red-600">{{ field_error('password') }}</p>@enderror
+                        @error('password')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <div>
                         <label class="label text-xs" for="set-confirm">{{ __('users.confirmPassword') }}</label>
                         <input class="input-field" id="set-confirm" name="confirmPassword" type="password" autocomplete="new-password">
-                        @error('confirmPassword')<p class="text-xs text-red-600">{{ field_error('confirmPassword') }}</p>@enderror
+                        @error('confirmPassword')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                     </div>
                     <label class="flex items-center gap-2 text-sm">
                         <input type="checkbox" name="mustChangePassword" value="true" @checked(old('mustChangePassword') === 'true')>

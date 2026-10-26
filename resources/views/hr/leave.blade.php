@@ -16,6 +16,8 @@
         'CANCELLED' => 'bg-slate-100 text-slate-600',
         default => 'bg-amber-50 text-amber-700',
     };
+
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -54,7 +56,7 @@
                                         <option value="{{ $staff->id }}" @selected(old('staffId') === $staff->id)>{{ $staff->full_name }}</option>
                                     @endforeach
                                 </select>
-                                @error('staffId')<p class="mt-1 text-xs text-red-600">{{ field_error('staffId') }}</p>@enderror
+                                @error('staffId')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                             </div>
                         @else
                             <input type="hidden" name="staffId" value="{{ $myStaffId }}">
@@ -67,19 +69,19 @@
                                     <option value="{{ $type }}" @selected(old('type', 'ANNUAL') === $type)>{{ $typeLabel($type) }}</option>
                                 @endforeach
                             </select>
-                            @error('type')<p class="mt-1 text-xs text-red-600">{{ field_error('type') }}</p>@enderror
+                            @error('type')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="label text-xs" for="leave-startDate">{{ __('hr.startDate') }}</label>
                                 <input class="input-field text-sm" id="leave-startDate" name="startDate" type="date" value="{{ old('startDate', $todayKey) }}">
-                                @error('startDate')<p class="mt-1 text-xs text-red-600">{{ field_error('startDate') }}</p>@enderror
+                                @error('startDate')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                             </div>
                             <div>
                                 <label class="label text-xs" for="leave-endDate">{{ __('hr.endDate') }}</label>
                                 <input class="input-field text-sm" id="leave-endDate" name="endDate" type="date" value="{{ old('endDate', $todayKey) }}">
-                                @error('endDate')<p class="mt-1 text-xs text-red-600">{{ field_error('endDate') }}</p>@enderror
+                                @error('endDate')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                             </div>
                         </div>
 
@@ -92,7 +94,7 @@
                         <div>
                             <label class="label text-xs" for="leave-reason">{{ __('hr.reason') }}</label>
                             <textarea class="input-field text-sm" id="leave-reason" name="reason" rows="2" maxlength="300">{{ old('reason') }}</textarea>
-                            @error('reason')<p class="mt-1 text-xs text-red-600">{{ field_error('reason') }}</p>@enderror
+                            @error('reason')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                         </div>
 
                         <button type="submit" class="btn-primary w-full">{{ __('hr.submitRequest') }}</button>

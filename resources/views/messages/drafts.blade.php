@@ -2,6 +2,10 @@
 
 @section('title', __('messages.draftsTitle'))
 
+@php
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
+@endphp
+
 @section('content')
     <div class="space-y-5">
         <div class="flex items-center justify-between gap-3">
@@ -37,7 +41,7 @@
             <div>
                 <label class="label text-xs" for="draft-body">{{ __('messages.customMessage') }}</label>
                 <textarea class="input-field text-sm" id="draft-body" name="body" rows="3" maxlength="1000">{{ old('body') }}</textarea>
-                @error('body')<p class="text-xs text-red-600">{{ field_error('body') }}</p>@enderror
+                @error('body')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <button type="submit" class="btn-primary">{{ __('common.save') }}</button>

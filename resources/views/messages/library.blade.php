@@ -6,6 +6,7 @@
     use App\Support\Messaging\Constants;
 
     $categoryLabel = fn (string $category): string => __('messages.'.(Constants::LIBRARY_CATEGORY_LABEL_KEYS[$category] ?? $category));
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -60,7 +61,7 @@
             <div>
                 <label class="label text-xs" for="lib-body">{{ __('messages.customMessage') }}</label>
                 <textarea class="input-field text-sm" id="lib-body" name="body" rows="3" maxlength="1000">{{ old('body') }}</textarea>
-                @error('body')<p class="text-xs text-red-600">{{ field_error('body') }}</p>@enderror
+                @error('body')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <button type="submit" class="btn-primary">{{ __('common.save') }}</button>

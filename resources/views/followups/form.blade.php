@@ -7,6 +7,7 @@
     use App\Support\ClinicTime;
 
     $old = fn (string $key, $default = '') => old($key, $default);
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
     $todayKey = ClinicTime::clinicDateKey(now(), $timezone);
 @endphp
 
@@ -36,19 +37,19 @@
                         <option value="{{ $preset }}" @selected($old('preset', '2w') === $preset)>{{ __('appointments.preset.'.$preset) }}</option>
                     @endforeach
                 </select>
-                @error('preset')<p class="text-xs text-red-600">{{ field_error('preset') }}</p>@enderror
+                @error('preset')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div>
                 <label class="label" for="dueDate">{{ __('appointments.dueDate') }}</label>
                 <input class="input-field" id="dueDate" name="dueDate" type="date" value="{{ $old('dueDate', $todayKey) }}">
-                @error('dueDate')<p class="text-xs text-red-600">{{ field_error('dueDate') }}</p>@enderror
+                @error('dueDate')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div>
                 <label class="label" for="reason">{{ __('appointments.reason') }}</label>
                 <textarea class="input-field text-sm" id="reason" name="reason" rows="2" maxlength="300" placeholder="{{ __('appointments.reasonHint') }}">{{ $old('reason') }}</textarea>
-                @error('reason')<p class="text-xs text-red-600">{{ field_error('reason') }}</p>@enderror
+                @error('reason')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div class="flex items-center gap-2">

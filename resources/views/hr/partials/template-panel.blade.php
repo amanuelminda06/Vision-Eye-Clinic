@@ -4,6 +4,7 @@
     use App\Support\Hr\Constants;
 
     $weekdayLabel = fn (int $weekday): string => __('hr.'.Constants::WEEKDAY_LABEL_KEYS[$weekday]);
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 <section class="card space-y-4 p-5">
@@ -20,7 +21,7 @@
                     <option value="{{ $staff->id }}" @selected(old('staffId') === $staff->id)>{{ $staff->full_name }}</option>
                 @endforeach
             </select>
-            @error('staffId')<p class="mt-1 text-xs text-red-600">{{ field_error('staffId') }}</p>@enderror
+            @error('staffId')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
         </div>
         <div>
             <label class="label text-xs" for="tpl-weekday">{{ __('hr.week') }}</label>
@@ -29,27 +30,27 @@
                     <option value="{{ $index }}" @selected(old('weekday') === (string) $index)>{{ __('hr.'.$key) }}</option>
                 @endforeach
             </select>
-            @error('weekday')<p class="mt-1 text-xs text-red-600">{{ field_error('weekday') }}</p>@enderror
+            @error('weekday')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
         </div>
         <div>
             <label class="label text-xs" for="tpl-startTime">{{ __('hr.startTime') }}</label>
             <input class="input-field text-sm" id="tpl-startTime" name="startTime" type="time" value="{{ old('startTime', '09:00') }}">
-            @error('startTime')<p class="mt-1 text-xs text-red-600">{{ field_error('startTime') }}</p>@enderror
+            @error('startTime')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
         </div>
         <div>
             <label class="label text-xs" for="tpl-endTime">{{ __('hr.endTime') }}</label>
             <input class="input-field text-sm" id="tpl-endTime" name="endTime" type="time" value="{{ old('endTime', '17:00') }}">
-            @error('endTime')<p class="mt-1 text-xs text-red-600">{{ field_error('endTime') }}</p>@enderror
+            @error('endTime')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
         </div>
         <div>
             <label class="label text-xs" for="tpl-validFrom">{{ __('hr.from') }}</label>
             <input class="input-field text-sm" id="tpl-validFrom" name="validFrom" type="date" value="{{ old('validFrom', $startKey) }}">
-            @error('validFrom')<p class="mt-1 text-xs text-red-600">{{ field_error('validFrom') }}</p>@enderror
+            @error('validFrom')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
         </div>
         <div>
             <label class="label text-xs" for="tpl-validTo">{{ __('hr.to') }}</label>
             <input class="input-field text-sm" id="tpl-validTo" name="validTo" type="date" value="{{ old('validTo') }}">
-            @error('validTo')<p class="mt-1 text-xs text-red-600">{{ field_error('validTo') }}</p>@enderror
+            @error('validTo')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
         </div>
         <div class="sm:col-span-2 lg:col-span-6">
             <button type="submit" class="btn-primary">{{ __('common.create') }}</button>

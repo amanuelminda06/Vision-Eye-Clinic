@@ -4,6 +4,7 @@
 
 @php
     $old = fn (string $key, $default = '') => old($key, $default);
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -26,12 +27,12 @@
                 <div>
                     <label class="label" for="fullName">{{ __('common.name') }} <span class="text-red-500">*</span></label>
                     <input class="input-field" id="fullName" name="fullName" maxlength="100" value="{{ $old('fullName', $staff->full_name ?? '') }}">
-                    @error('fullName')<p class="text-xs text-red-600">{{ field_error('fullName') }}</p>@enderror
+                    @error('fullName')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="jobTitle">{{ __('staff.jobTitle') }} <span class="text-red-500">*</span></label>
                     <input class="input-field" id="jobTitle" name="jobTitle" maxlength="100" value="{{ $old('jobTitle', $staff->job_title ?? '') }}">
-                    @error('jobTitle')<p class="text-xs text-red-600">{{ field_error('jobTitle') }}</p>@enderror
+                    @error('jobTitle')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -39,12 +40,12 @@
                 <div>
                     <label class="label" for="specialty">{{ __('staff.specialty') }}</label>
                     <input class="input-field" id="specialty" name="specialty" maxlength="100" value="{{ $old('specialty', $staff->specialty ?? '') }}">
-                    @error('specialty')<p class="text-xs text-red-600">{{ field_error('specialty') }}</p>@enderror
+                    @error('specialty')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="phone">{{ __('staff.phone') }}</label>
                     <input class="input-field" id="phone" name="phone" maxlength="32" value="{{ $old('phone', $staff->phone ?? '') }}" placeholder="09… or +251…">
-                    @error('phone')<p class="text-xs text-red-600">{{ field_error('phone') }}</p>@enderror
+                    @error('phone')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -68,7 +69,7 @@
             <div>
                 <label class="label" for="photo">{{ __('staff.photo') }}</label>
                 <input class="input-field" id="photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp">
-                @error('photo')<p class="text-xs text-red-600">{{ field_error('photo') }}</p>@enderror
+                @error('photo')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             <div class="flex items-center gap-2">

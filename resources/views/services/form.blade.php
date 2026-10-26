@@ -7,6 +7,7 @@
     use App\Support\Services\ServiceValidation;
 
     $old = fn (string $key, $default = '') => old($key, $default);
+    $tv = fn (?string $key) => $key === null ? null : field_error($key);
 @endphp
 
 @section('content')
@@ -33,14 +34,14 @@
                     <input class="input-field" id="nameEn" name="nameEn" maxlength="{{ ServiceValidation::MAX_SERVICE_NAME }}"
                            value="{{ $old('nameEn', $service->name_en ?? '') }}" @if ($errors->has('nameEn')) aria-invalid="true" @endif>
                     <p class="mt-1 text-xs text-slate-500">{{ __('services.nameEnHint') }}</p>
-                    @error('nameEn')<p class="mt-1 text-xs text-red-600">{{ field_error('nameEn') }}</p>@enderror
+                    @error('nameEn')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="nameAm">{{ __('services.nameAm') }}</label>
                     <input class="input-field" id="nameAm" name="nameAm" maxlength="{{ ServiceValidation::MAX_SERVICE_NAME }}"
                            value="{{ $old('nameAm', $service->name_am ?? '') }}">
                     <p class="mt-1 text-xs text-slate-500">{{ __('services.nameAmHint') }}</p>
-                    @error('nameAm')<p class="mt-1 text-xs text-red-600">{{ field_error('nameAm') }}</p>@enderror
+                    @error('nameAm')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -55,14 +56,14 @@
                             </option>
                         @endforeach
                     </select>
-                    @error('category')<p class="mt-1 text-xs text-red-600">{{ field_error('category') }}</p>@enderror
+                    @error('category')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="currentPrice">{{ __('services.currentPrice') }} <span class="text-red-500">*</span></label>
                     <input class="input-field" id="currentPrice" name="currentPrice" inputmode="decimal"
                            value="{{ $old('currentPrice', $service ? \App\Support\Money::toDecimalString($service->current_price) : '') }}">
                     <p class="mt-1 text-xs text-slate-500">{{ __('services.priceHint') }}</p>
-                    @error('currentPrice')<p class="mt-1 text-xs text-red-600">{{ field_error('currentPrice') }}</p>@enderror
+                    @error('currentPrice')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -84,13 +85,13 @@
                     <label class="label text-xs" for="publicDescriptionEn">{{ __('services.publicDescriptionEn') }}</label>
                     <textarea class="input-field text-sm" id="publicDescriptionEn" name="publicDescriptionEn" rows="2"
                               maxlength="{{ ServiceValidation::MAX_PUBLIC_DESCRIPTION }}">{{ $old('publicDescriptionEn', $service->public_description_en ?? '') }}</textarea>
-                    @error('publicDescriptionEn')<p class="mt-1 text-xs text-red-600">{{ field_error('publicDescriptionEn') }}</p>@enderror
+                    @error('publicDescriptionEn')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label text-xs" for="publicDescriptionAm">{{ __('services.publicDescriptionAm') }}</label>
                     <textarea class="input-field text-sm" id="publicDescriptionAm" name="publicDescriptionAm" rows="2"
                               maxlength="{{ ServiceValidation::MAX_PUBLIC_DESCRIPTION }}">{{ $old('publicDescriptionAm', $service->public_description_am ?? '') }}</textarea>
-                    @error('publicDescriptionAm')<p class="mt-1 text-xs text-red-600">{{ field_error('publicDescriptionAm') }}</p>@enderror
+                    @error('publicDescriptionAm')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <p class="text-xs text-slate-500">{{ __('services.publicDescriptionHint') }}</p>
             </fieldset>
@@ -100,13 +101,13 @@
                     <label class="label" for="receiptLabelEn">{{ __('services.receiptLabelEn') }}</label>
                     <input class="input-field" id="receiptLabelEn" name="receiptLabelEn" maxlength="{{ ServiceValidation::MAX_SERVICE_NAME }}"
                            value="{{ $old('receiptLabelEn', $service->receipt_label_en ?? '') }}">
-                    @error('receiptLabelEn')<p class="mt-1 text-xs text-red-600">{{ field_error('receiptLabelEn') }}</p>@enderror
+                    @error('receiptLabelEn')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
                 <div>
                     <label class="label" for="receiptLabelAm">{{ __('services.receiptLabelAm') }}</label>
                     <input class="input-field" id="receiptLabelAm" name="receiptLabelAm" maxlength="{{ ServiceValidation::MAX_SERVICE_NAME }}"
                            value="{{ $old('receiptLabelAm', $service->receipt_label_am ?? '') }}">
-                    @error('receiptLabelAm')<p class="mt-1 text-xs text-red-600">{{ field_error('receiptLabelAm') }}</p>@enderror
+                    @error('receiptLabelAm')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
             <p class="-mt-2 text-xs text-slate-500">{{ __('services.receiptLabelsHint') }}</p>
@@ -123,7 +124,7 @@
                     <input class="input-field" id="imageUrl" name="imageUrl" maxlength="{{ ServiceValidation::MAX_IMAGE_URL }}"
                            value="{{ $old('imageUrl', $service->image_url ?? '') }}">
                     <p class="mt-1 text-xs text-slate-500">{{ __('services.imageUrlHint') }}</p>
-                    @error('imageUrl')<p class="mt-1 text-xs text-red-600">{{ field_error('imageUrl') }}</p>@enderror
+                    @error('imageUrl')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
                 </div>
             </div>
 
@@ -131,7 +132,7 @@
                 <label class="label" for="image">{{ __('services.image') }}</label>
                 <input class="input-field" id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp">
                 <p class="mt-1 text-xs text-slate-500">{{ __('services.imageHint') }}</p>
-                @error('image')<p class="mt-1 text-xs text-red-600">{{ field_error('image') }}</p>@enderror
+                @error('image')<p class="mt-1 text-xs text-red-600">{{ $tv($message) }}</p>@enderror
             </div>
 
             @if ($mode === 'edit' && $service->image_url)
