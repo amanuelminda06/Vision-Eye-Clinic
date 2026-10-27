@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Support\Patients\SystemId;
 use App\Support\Phone;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Imports the legacy card-registration archive
@@ -65,11 +64,9 @@ class LegacyPatientsSeeder extends Seeder
             $existingNoPhone[self::noPhoneKey($patient->full_name, $patient->age, $patient->sex)] = true;
         }
 
-        // Next system ID, advanced in memory rather than re-queried per row.
-        $lastId = DB::table('patients')->whereNotNull('system_id')
-            ->orderByRaw('CAST(SUBSTR(system_id,3) AS INTEGER) DESC')
-            ->orderByRaw('SUBSTR(system_id,1,2) DESC')
-            ->value('system_id');
+        // First free system ID, advanced in memory rather than re-queried per
+        // row. generateNext() uses the portable, driver-aware lookup.
+        $nextSystemId = SystemId::generateNext();
 
         $created = 0;
         $skipped = 0;
@@ -114,7 +111,8 @@ class LegacyPatientsSeeder extends Seeder
                 continue;
             }
 
-            $lastId = $lastId === null ? SystemId::FIRST : SystemId::next($lastId);
+            $systemId = $nextSystemId;
+            $nextSystemId = SystemId::next($nextSystemId);
 
             try {
                 Patient::create([
@@ -127,7 +125,7 @@ class LegacyPatientsSeeder extends Seeder
                     'do_not_message' => false,
                     'id_photo_url' => null,
                     'id_no' => null,
-                    'system_id' => $lastId,
+                    'system_id' => $systemId,
                     'active' => true,
                     'created_by' => $owner->id,
                 ]);
