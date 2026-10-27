@@ -126,6 +126,50 @@ class PatientsClearCommandTest extends TestCase
         $this->assertDatabaseCount('receipt_counters', 0);
     }
 
+    public function test_force_yes_deletes_without_prompt(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $patient = Patient::factory()->create();
+        $patient->system_id = SystemId::first();
+        $patient->save();
+
+        Appointment::create([
+            'patient_id' => $patient->id,
+            'doctor_id' => Staff::factory()->create()->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addMinutes(30),
+            'status' => Appointment::STATUS_SCHEDULED,
+            'created_from' => Appointment::SOURCE_STAFF,
+            'created_by' => $user->id,
+        ]);
+
+        $this->assertDatabaseCount('patients', 1);
+
+        $this->artisan('patients:clear', ['--force' => true, '--yes' => true])
+            ->assertExitCode(0);
+
+        $this->assertDatabaseCount('patients', 0);
+        $this->assertDatabaseCount('appointments', 0);
+    }
+
+    public function test_force_alone_still_asks(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $patient = Patient::factory()->create();
+        $patient->system_id = SystemId::first();
+        $patient->save();
+
+        $this->artisan('patients:clear', ['--force' => true])
+            ->expectsQuestion('Type DELETE to confirm', 'WRONG')
+            ->assertExitCode(1);
+
+        $this->assertDatabaseCount('patients', 1);
+    }
+
     public function test_settings_and_staff_are_untouched(): void
     {
         $user = User::factory()->create();
