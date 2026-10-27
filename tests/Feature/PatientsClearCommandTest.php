@@ -94,7 +94,7 @@ class PatientsClearCommandTest extends TestCase
 
         $service = Service::factory()->create();
         $sale = Sale::factory()->create(['patient_id' => $patient->id]);
-        \App\Models\SaleLine::create([
+        SaleLine::create([
             'sale_id' => $sale->id,
             'service_id' => $service->id,
             'service_name_snapshot' => $service->name,

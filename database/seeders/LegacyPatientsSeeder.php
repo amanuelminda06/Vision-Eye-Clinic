@@ -11,6 +11,18 @@ use App\Support\Phone;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Imports the legacy card-registration archive
+ * (database/seeders/data/legacy-patients-full.csv) as starting data.
+ *
+ * The archive is exported verbatim from the Access file, so most rows carry a
+ * name, age and sex but no phone number. Those are imported with
+ * `phone_e164 = NULL` (allowed by the 2026_10_27 migration); new patients added
+ * through the UI still require a phone.
+ *
+ * Idempotent: a row with a phone is skipped when that phone already exists; a
+ * phone-less row is skipped when the same (name, age, sex) already exists.
+ */
 class LegacyPatientsSeeder extends Seeder
 {
     public function run(): void
@@ -20,111 +32,144 @@ class LegacyPatientsSeeder extends Seeder
             $path = database_path('seeders/data/legacy-patients.csv');
         }
         if (! file_exists($path)) {
-            $this->command->error('CSV not found');
+            $this->command->error('CSV not found: '.$path);
 
             return;
         }
 
-        $rows = array_map('str_getcsv', file($path));
-        $header = array_shift($rows);
-
         $owner = User::where('role', 'OWNER')->first() ?? User::first();
+        if ($owner === null) {
+            $this->command->error('No user to attribute the import to.');
+
+            return;
+        }
+
+        $handle = fopen($path, 'r');
+        if ($handle === false) {
+            $this->command->error('Unable to open CSV: '.$path);
+
+            return;
+        }
+
+        // Header
+        fgetcsv($handle, 0, ',', '"', '\\');
+
+        // Existing keys, loaded once so the import stays linear.
+        $existingPhones = [];
+        foreach (Patient::whereNotNull('phone_e164')->pluck('phone_e164') as $phone) {
+            $existingPhones[$phone] = true;
+        }
+
+        $existingNoPhone = [];
+        foreach (Patient::whereNull('phone_e164')->get(['full_name', 'age', 'sex']) as $patient) {
+            $existingNoPhone[self::noPhoneKey($patient->full_name, $patient->age, $patient->sex)] = true;
+        }
+
+        // Next system ID, advanced in memory rather than re-queried per row.
+        $lastId = DB::table('patients')->whereNotNull('system_id')
+            ->orderByRaw('CAST(SUBSTR(system_id,3) AS INTEGER) DESC')
+            ->orderByRaw('SUBSTR(system_id,1,2) DESC')
+            ->value('system_id');
 
         $created = 0;
         $skipped = 0;
+        $invalid = 0;
 
-        foreach ($rows as $row) {
-            if (count($row) < 8) {
+        while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+            if ($row === [null] || count($row) < 7) {
+                $invalid++;
+
                 continue;
             }
 
-            $first = trim($row[1] ?? '');
-            $last = trim($row[2] ?? '');
+            $first = trim((string) ($row[1] ?? ''));
+            $last = trim((string) ($row[2] ?? ''));
             $name = trim($first.' '.$last);
-            if ($name === '' || $name === '-' || $name === ' -') {
+            if ($name === '' || $name === '-' || $name === ' -' || $name === '--') {
+                $invalid++;
+
                 continue;
             }
 
-            $age = $row[4] ?? null;
-            if ($age === '' || $age === null) {
-                $age = null;
-            } elseif (is_numeric($age)) {
-                $age = (int) $age;
-                if ($age < 0 || $age > 150) {
-                    $age = null;
-                }
-            } else {
-                $age = null;
-            }
+            $age = trim((string) ($row[4] ?? ''));
+            $age = ($age !== '' && ctype_digit($age) && (int) $age <= 150) ? (int) $age : null;
 
-            $sex = trim($row[5] ?? '');
-            $sexUpper = strtoupper($sex);
-            if ($sexUpper === 'M' || $sex === '1') {
-                $sex = 'MALE';
-            } elseif ($sexUpper === 'F' || $sexUpper === 'FE' || $sexUpper === 'FEMALE') {
-                $sex = 'FEMALE';
-            } else {
-                $sex = null;
-            }
+            $sexRaw = strtoupper(trim((string) ($row[5] ?? '')));
+            $sex = match (true) {
+                in_array($sexRaw, ['M', '1', 'MALE'], true) => 'MALE',
+                in_array($sexRaw, ['F', 'FE', 'FEMALE'], true) => 'FEMALE',
+                default => null,
+            };
 
-            $phone = trim($row[6] ?? '');
-            if ($phone === '' || $phone === null) {
-                continue;
-            }
+            $phoneE164 = self::normalizePhone((string) ($row[6] ?? ''));
 
-            $phoneE164 = Phone::toE164($phone);
-            if (! $phoneE164) {
-                $digits = preg_replace('/\D/', '', $phone);
-                if (strlen($digits) === 9) {
-                    $phoneE164 = Phone::toE164('0'.$digits);
-                }
-            }
-            if (! $phoneE164) {
-                continue;
-            }
+            $key = $phoneE164 !== null ? 'p:'.$phoneE164 : self::noPhoneKey($name, $age, $sex);
+            $alreadyExists = $phoneE164 !== null
+                ? isset($existingPhones[$phoneE164])
+                : isset($existingNoPhone[$key]);
 
-            if (Patient::where('phone_e164', $phoneE164)->exists()) {
+            if ($alreadyExists) {
                 $skipped++;
 
                 continue;
             }
+
+            $lastId = $lastId === null ? SystemId::FIRST : SystemId::next($lastId);
 
             try {
-                DB::transaction(function () use ($name, $phoneE164, $age, $sex, $owner, &$created) {
-                    $lastId = DB::table('patients')->whereNotNull('system_id')
-                        ->orderByRaw('CAST(SUBSTR(system_id,3) AS INTEGER) DESC')
-                        ->orderByRaw('SUBSTR(system_id,1,2) DESC')
-                        ->value('system_id');
-
-                    if (! $lastId) {
-                        $lastId = SystemId::FIRST;
-                    } else {
-                        $lastId = SystemId::next($lastId);
-                    }
-
-                    Patient::create([
-                        'full_name' => $name,
-                        'phone_e164' => $phoneE164,
-                        'sex' => $sex,
-                        'age' => $age,
-                        'preferred_language' => 'en',
-                        'notes_non_clinical' => null,
-                        'do_not_message' => false,
-                        'id_photo_url' => null,
-                        'id_no' => null,
-                        'system_id' => $lastId,
-                        'active' => true,
-                        'created_by' => $owner->id,
-                    ]);
-                    $created++;
-                });
+                Patient::create([
+                    'full_name' => $name,
+                    'phone_e164' => $phoneE164,
+                    'sex' => $sex,
+                    'age' => $age,
+                    'preferred_language' => 'en',
+                    'notes_non_clinical' => null,
+                    'do_not_message' => false,
+                    'id_photo_url' => null,
+                    'id_no' => null,
+                    'system_id' => $lastId,
+                    'active' => true,
+                    'created_by' => $owner->id,
+                ]);
             } catch (\Throwable $e) {
-                $skipped++;
+                $invalid++;
 
                 continue;
             }
+
+            $phoneE164 !== null
+                ? $existingPhones[$phoneE164] = true
+                : $existingNoPhone[$key] = true;
+
+            $created++;
         }
 
-        $this->command->info("Created: {$created}, Skipped: {$skipped}");
+        fclose($handle);
+
+        $this->command->info("Created: {$created}, Skipped: {$skipped}, Invalid: {$invalid}");
+    }
+
+    /** Stable in-memory key for a patient that has no phone number. */
+    private static function noPhoneKey(?string $name, ?int $age, ?string $sex): string
+    {
+        return 'n:'.mb_strtolower((string) $name).'|'.($age ?? '').'|'.($sex ?? '');
+    }
+
+    /** Normalize a legacy phone or return null when it is empty/unusable. */
+    private static function normalizePhone(string $raw): ?string
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return null;
+        }
+
+        $direct = Phone::toE164($raw);
+        if ($direct !== null) {
+            return $direct;
+        }
+
+        $digits = preg_replace('/\D/', '', $raw) ?? '';
+
+        return strlen($digits) === 9 ? Phone::toE164('0'.$digits) : null;
     }
 }

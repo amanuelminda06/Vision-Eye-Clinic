@@ -98,6 +98,7 @@ class ClearPatients extends Command
                         if (isset($parts[1])) {
                             return $parts[1];
                         }
+
                         return null;
                     })
                     ->filter()
@@ -139,6 +140,7 @@ class ClearPatients extends Command
             return self::SUCCESS;
         } catch (\Throwable $e) {
             $this->error('Error clearing data: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -168,6 +170,7 @@ class ClearPatients extends Command
                 if (isset($parts[1])) {
                     return $parts[1];
                 }
+
                 return null;
             })
             ->filter()
