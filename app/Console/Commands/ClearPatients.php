@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
 
 class ClearPatients extends Command
 {
-    protected $signature = 'patients:clear {--force : Actually perform the deletion}';
+    protected $signature = 'patients:clear {--force : Actually perform the deletion} {--yes : Skip confirmation when used with --force}';
 
     protected $description = 'Clear all test patients and related data (dry run by default)';
 
@@ -46,10 +46,12 @@ class ClearPatients extends Command
         $this->warn('This action cannot be undone!');
         $this->newLine();
 
-        if ($this->ask('Type DELETE to confirm') !== 'DELETE') {
-            $this->error('Confirmation failed. Aborted.');
+        if (! $this->option('yes')) {
+            if ($this->ask('Type DELETE to confirm') !== 'DELETE') {
+                $this->error('Confirmation failed. Aborted.');
 
-            return self::FAILURE;
+                return self::FAILURE;
+            }
         }
 
         try {
