@@ -124,6 +124,8 @@ The Composer step runs `artisan package:discover`, which boots the app
 app is SERVING in production (see `App\Support\LoginSecret`). A malformed
 value is refused everywhere.
 
+> **Back up first**, then run "patients:clear" and then "patients:clear --force".
+
 After the task succeeds, finish by hand — it does not do these:
 
 ```bash
