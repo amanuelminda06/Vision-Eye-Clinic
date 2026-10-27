@@ -15,9 +15,12 @@ class LegacyPatientsSeeder extends Seeder
 {
     public function run(): void
     {
-        $path = database_path('seeders/data/legacy-patients.csv');
+        $path = database_path('seeders/data/legacy-patients-full.csv');
         if (! file_exists($path)) {
-            $this->command->error('CSV not found: '.$path);
+            $path = database_path('seeders/data/legacy-patients.csv');
+        }
+        if (! file_exists($path)) {
+            $this->command->error('CSV not found');
 
             return;
         }
