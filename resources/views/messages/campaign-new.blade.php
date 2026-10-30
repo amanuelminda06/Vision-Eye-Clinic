@@ -130,7 +130,7 @@
         <form method="POST" action="{{ route('messages.campaigns.store') }}" class="card space-y-4 p-4">
             @csrf
             <input type="hidden" name="filter" id="filterJson" value="{{ json_encode($filter) }}">
-            <input type="hidden" name="handPickedIds" id="handPickedIds" value="{{ implode(',', $filter['handPickedIds'] ?? []) }}">
+            <input type="text" name="handPickedIds" id="handPickedIds" value="{{ implode(',', $filter['handPickedIds'] ?? []) }}" class="input-field text-xs" readonly>
 
             <div>
                 <label class="label" for="title">{{ __('common.name') }}</label>
