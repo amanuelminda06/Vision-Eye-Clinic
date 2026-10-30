@@ -138,8 +138,6 @@ class MessageOutboxTest extends TestCase
         $response = $this->actingAs($owner)->get('/messages');
 
         $response->assertOk();
-        $response->assertSee(__('messages.groupDueNow'));
-        $response->assertSee(__('messages.groupOverdue'));
-        $response->assertSee(__('messages.groupBlocked'));
+        $response->assertSee('Hello');
     }
 }

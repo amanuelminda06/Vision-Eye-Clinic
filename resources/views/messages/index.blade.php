@@ -55,26 +55,6 @@
             </div>
         </div>
 
-        {{-- Counters --}}
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div class="card p-4">
-                <p class="text-xs uppercase text-slate-500">{{ __('messages.groupDueNow') }}</p>
-                <p class="mt-1 text-xl font-semibold text-slate-900 tabular-nums">{{ $counts['dueToday'] }}</p>
-            </div>
-            <div class="card p-4">
-                <p class="text-xs uppercase text-slate-500">{{ __('messages.groupOverdue') }}</p>
-                <p class="mt-1 text-xl font-semibold {{ $counts['overdue'] > 0 ? 'text-red-600' : 'text-slate-900' }} tabular-nums">{{ $counts['overdue'] }}</p>
-            </div>
-            <div class="card p-4">
-                <p class="text-xs uppercase text-slate-500">{{ __('messages.groupBlocked') }}</p>
-                <p class="mt-1 text-xl font-semibold text-slate-900 tabular-nums">{{ count($groups['blocked']) }}</p>
-            </div>
-            <div class="card p-4">
-                <p class="text-xs uppercase text-slate-500">{{ __('messages.groupDoneToday') }}</p>
-                <p class="mt-1 text-xl font-semibold text-slate-900 tabular-nums">{{ count($groups['doneToday']) }}</p>
-            </div>
-        </div>
-
         @if (session('actionError'))
             <div role="alert" class="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
                 {{ __('messages.'.session('actionError')) }}
@@ -87,91 +67,99 @@
             </div>
         @endif
 
-        @foreach ($sections as $section)
-            @if ($section['rows'] !== [])
-                <section class="card p-4 {{ $section['tone'] }}">
-                    <h2 class="text-sm font-semibold text-slate-800">
-                        {{ $section['title'] }} <span class="text-slate-500">({{ count($section['rows']) }})</span>
-                    </h2>
+        @php
+            $allRows = array_merge(
+                $groups['overdue'] ?? [],
+                $groups['dueNow'] ?? [],
+                $groups['laterToday'] ?? [],
+                $groups['blocked'] ?? [],
+                $groups['doneToday'] ?? [],
+            );
+            usort($allRows, fn ($a, $b) => ($a['dueAt']?->getTimestamp() ?? 0) <=> ($b['dueAt']?->getTimestamp() ?? 0));
+        @endphp
 
-                    <div class="mt-3 overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
-                                <tr>
-                                    <th class="py-2 pr-3 font-medium">{{ __('messages.due') }}</th>
-                                    <th class="py-2 pr-3 font-medium">{{ __('messages.patient') ?? __('common.name') }}</th>
-                                    <th class="py-2 pr-3 font-medium">{{ __('messages.template') }}</th>
-                                    <th class="py-2 pr-3 font-medium">{{ __('messages.customMessage') }}</th>
-                                    <th class="py-2 pr-3 font-medium">{{ __('common.status') }}</th>
-                                    <th class="py-2 text-right font-medium">{{ __('common.actions') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($section['rows'] as $row)
-                                    <tr class="border-b border-slate-100 last:border-0">
-                                        <td class="py-2 pr-3 text-xs text-slate-600">{{ ClinicTime::clinicTimeKey($row['dueAt'], $timezone) }}</td>
-                                        <td class="py-2 pr-3">
-                                            <p class="font-medium text-slate-900">{{ $row['patientName'] }}</p>
-                                            <p class="text-xs text-slate-500">{{ $row['patientPhoneE164'] }}</p>
-                                        </td>
-                                        <td class="py-2 pr-3 text-xs">
-                                            <p>{{ $templateLabel($row['templateKey']) }}</p>
-                                            <p class="text-slate-400">{{ $sourceLabel($row['sourceType']) }}</p>
-                                        </td>
-                                        <td class="py-2 pr-3">
-                                            <p class="whitespace-pre-line text-xs text-slate-700">{{ $row['renderedMessage'] }}</p>
-                                            @if ($row['blockedReason'])
-                                                <p class="mt-1 text-xs font-medium text-red-600">
-                                                    {{ __('messages.'.(Constants::BLOCKED_REASON_LABEL_KEYS[$row['blockedReason']] ?? $row['blockedReason'])) }}
-                                                </p>
-                                            @endif
-                                        </td>
-                                        <td class="py-2 pr-3">
-                                            <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $statusClass($row['status']) }}">{{ $statusLabel($row['status']) }}</span>
-                                        </td>
-                                        <td class="py-2">
-                                            <div class="flex flex-wrap items-center justify-end gap-2">
-                                                @if ($row['patientPhoneE164'] && $row['status'] !== 'BLOCKED' && $row['status'] !== 'SENT' && $row['status'] !== 'SKIPPED')
-                                                    <a href="{{ Provider::buildSmsLink($row['patientPhoneE164'], $row['renderedMessage'], $platform) }}"
-                                                       class="btn-primary px-2 py-1 text-xs">{{ __('messages.openLink') }}</a>
-                                                @endif
-
-                                                @if (! in_array($row['status'], ['SENT', 'SKIPPED', 'CANCELLED'], true))
-                                                    <form method="POST" action="{{ route('messages.open', $row['id']) }}">
-                                                        @csrf
-                                                        <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.open') }}</button>
-                                                    </form>
-
-                                                    <form method="POST" action="{{ route('messages.sent', $row['id']) }}">
-                                                        @csrf
-                                                        <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.yesSent') }}</button>
-                                                    </form>
-
-                                                    <form method="POST" action="{{ route('messages.postpone', $row['id']) }}">
-                                                        @csrf
-                                                        <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.notYet') }}</button>
-                                                    </form>
-
-                                                    <form method="POST" action="{{ route('messages.skip', $row['id']) }}" class="flex items-center gap-1">
-                                                        @csrf
-                                                        <input type="hidden" name="reason" value="{{ $row['skipReason'] ?? '' }}" placeholder="{{ __('messages.skipReason') }}" class="input-field w-32 px-2 py-1 text-xs">
-                                                        <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.skip') }}</button>
-                                                    </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            @endif
-        @endforeach
-
-        @if ($groups['dueNow'] === [] && $groups['overdue'] === [] && $groups['laterToday'] === []
-            && $groups['doneToday'] === [] && $groups['blocked'] === [])
+        @if ($allRows === [])
             <p class="text-sm text-slate-500">{{ __('messages.noMessages') }}</p>
+        @else
+            <div class="card overflow-x-auto p-0">
+                <table class="w-full text-sm">
+                    <thead class="border-b border-brand-100 bg-brand-50/60 text-left text-xs uppercase text-slate-500">
+                        <tr>
+                            <th class="px-3 py-2">{{ __('messages.due') }}</th>
+                            <th class="px-3 py-2">{{ __('messages.patient') ?? __('common.name') }}</th>
+                            <th class="px-3 py-2">{{ __('messages.customMessage') }}</th>
+                            <th class="px-3 py-2">{{ __('common.status') }}</th>
+                            <th class="px-3 py-2 text-right">{{ __('common.actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($allRows as $row)
+                            <tr class="border-b border-brand-50 last:border-0">
+                                <td class="px-3 py-2 text-xs text-slate-600">
+                                    {{ $row['dueAt']?->format('Y-m-d H:i') }}
+                                </td>
+                                <td class="px-3 py-2 font-medium text-slate-900">
+                                    {{ $row['patientName'] }}
+                                </td>
+                                <td class="px-3 py-2 text-slate-600">
+                                    {{ \Illuminate\Support\Str::limit($row['renderedMessage'], 80) }}
+                                </td>
+                                <td class="px-3 py-2">
+                                    <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $statusClass($row['status']) }}">
+                                        {{ $statusLabel($row['status']) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2 text-right">
+                                    <div class="flex flex-wrap items-center justify-end gap-2">
+                                        @if ($row['patientPhoneE164'] && ! in_array($row['status'], ['BLOCKED', 'SENT', 'SKIPPED', 'CANCELLED'], true))
+                                            <a href="{{ Provider::buildSmsLink($row['patientPhoneE164'], $row['renderedMessage'], $platform) }}"
+                                               class="btn-primary px-2 py-1 text-xs send-link"
+                                               data-task-id="{{ $row['id'] }}">{{ __('messages.openLink') }}</a>
+                                        @endif
+
+                                        @if (! in_array($row['status'], ['SENT', 'SKIPPED', 'CANCELLED'], true))
+                                            <form method="POST" action="{{ route('messages.postpone', $row['id']) }}">
+                                                @csrf
+                                                <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.notYet') }}</button>
+                                            </form>
+
+                                            <form method="POST" action="{{ route('messages.skip', $row['id']) }}" class="flex items-center gap-1">
+                                                @csrf
+                                                <input type="hidden" name="reason" value="{{ $row['skipReason'] ?? '' }}">
+                                                <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.skip') }}</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
-    </div>
+
+        <script>
+            (function () {
+                document.querySelectorAll('.send-link').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        var taskId = link.getAttribute('data-task-id');
+                        if (!taskId) return;
+                        var url = '{{ url('/messages') }}/' + taskId + '/sent';
+                        var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        try {
+                            fetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': token || '',
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: '_token=' + encodeURIComponent(token || ''),
+                                keepalive: true,
+                            });
+                        } catch (e) { /* ignore */ }
+                    });
+                });
+            })();
+        </script>
 @endsection
