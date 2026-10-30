@@ -77,6 +77,7 @@ class CampaignController extends Controller
             'canSend' => $canSend,
             'bodies' => MsgQueries::loadTemplateBodies(),
             'cap' => $cap,
+            'templateKeys' => Constants::TEMPLATE_KEYS,
         ]);
     }
 
@@ -366,6 +367,13 @@ class CampaignController extends Controller
 
         if (! is_array($raw)) {
             $raw = [];
+        }
+
+        // Support comma-separated text inputs coming from the filter form.
+        foreach (['tags', 'serviceIds', 'handPickedIds'] as $key) {
+            if (isset($raw[$key]) && is_string($raw[$key])) {
+                $raw[$key] = array_values(array_filter(array_map('trim', explode(',', $raw[$key]))));
+            }
         }
 
         return array_merge(RecipientFilter::empty(), $raw);

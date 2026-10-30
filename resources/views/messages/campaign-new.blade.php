@@ -25,7 +25,66 @@
             </div>
         @endif
 
-        {{-- Audience preview --}}
+        {{-- Audience filter (GET) --}}
+    <section class="card space-y-3 p-4">
+        <h2 class="text-sm font-semibold text-slate-800">{{ __('messages.filter') ?? 'Filter patients' }}</h2>
+        <form method="GET" action="{{ route('messages.campaigns.new') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+                <label class="label text-xs" for="f_tags">{{ __('messages.tags') ?? 'Tags (comma)' }}</label>
+                <input class="input-field text-sm" id="f_tags" name="filter[tags]" value="{{ implode(',', $filter['tags'] ?? []) }}">
+            </div>
+            <div>
+                <label class="label text-xs" for="f_tagMode">{{ __('messages.tagMode') ?? 'Tag mode' }}</label>
+                <select class="input-field text-sm" id="f_tagMode" name="filter[tagMode]">
+                    <option value="ANY" @selected(($filter['tagMode'] ?? 'ANY') === 'ANY')>ANY</option>
+                    <option value="ALL" @selected(($filter['tagMode'] ?? '') === 'ALL')>ALL</option>
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs" for="f_language">{{ __('messages.language') ?? 'Language' }}</label>
+                <select class="input-field text-sm" id="f_language" name="filter[language]">
+                    <option value="" @selected(($filter['language'] ?? '') === '')>Any</option>
+                    <option value="en" @selected(($filter['language'] ?? '') === 'en')>English</option>
+                    <option value="am" @selected(($filter['language'] ?? '') === 'am')>Amharic</option>
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs" for="f_upcoming">{{ __('messages.upcoming') ?? 'Upcoming appt' }}</label>
+                <select class="input-field text-sm" id="f_upcoming" name="filter[upcoming]">
+                    <option value="ANY" @selected(($filter['upcoming'] ?? 'ANY') === 'ANY')>Any</option>
+                    <option value="HAS" @selected(($filter['upcoming'] ?? '') === 'HAS')>Has upcoming</option>
+                    <option value="NONE" @selected(($filter['upcoming'] ?? '') === 'NONE')>No upcoming</option>
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs" for="f_preset">{{ __('messages.presetRange') ?? 'Last visit preset' }}</label>
+                <select class="input-field text-sm" id="f_preset" name="filter[presetRange]">
+                    <option value="" @selected(($filter['presetRange'] ?? '') === '')>Custom</option>
+                    <option value="last30" @selected(($filter['presetRange'] ?? '') === 'last30')>Last 30 days</option>
+                    <option value="last90" @selected(($filter['presetRange'] ?? '') === 'last90')>Last 90 days</option>
+                    <option value="last180" @selected(($filter['presetRange'] ?? '') === 'last180')>Last 180 days</option>
+                    <option value="thisYear" @selected(($filter['presetRange'] ?? '') === 'thisYear')>This year</option>
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs" for="f_lvfrom">{{ __('messages.filterLastVisitFrom') }}</label>
+                <input class="input-field text-sm" id="f_lvfrom" type="date" name="filter[lastVisitFrom]" value="{{ $filter['lastVisitFrom'] ?? '' }}">
+            </div>
+            <div>
+                <label class="label text-xs" for="f_lvto">{{ __('messages.filterLastVisitTo') }}</label>
+                <input class="input-field text-sm" id="f_lvto" type="date" name="filter[lastVisitTo]" value="{{ $filter['lastVisitTo'] ?? '' }}">
+            </div>
+            <div>
+                <label class="label text-xs" for="f_handpicked">{{ __('messages.handPicked') ?? 'Hand-picked patient IDs (comma)' }}</label>
+                <input class="input-field text-sm" id="f_handpicked" name="filter[handPickedIds]" value="{{ implode(',', $filter['handPickedIds'] ?? []) }}">
+            </div>
+            <div class="sm:col-span-2 lg:col-span-4">
+                <button type="submit" class="btn-secondary text-sm">{{ __('common.filter') ?? 'Apply filter' }}</button>
+            </div>
+        </form>
+    </section>
+
+    {{-- Audience preview --}}
         <section class="card space-y-3 p-4">
             <h2 class="text-sm font-semibold text-slate-800">{{ __('messages.preview') }}</h2>
             <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
@@ -65,6 +124,16 @@
                 <label class="label" for="title">{{ __('common.name') }}</label>
                 <input class="input-field" id="title" name="title" maxlength="120" value="{{ old('title') }}">
                 @error('title')<p class="text-xs text-red-600">{{ $tv($message) }}</p>@enderror
+            </div>
+
+            <div>
+                <label class="label text-xs" for="templateKey">{{ __('messages.template') ?? 'Template (optional)' }}</label>
+                <select class="input-field text-sm" id="templateKey" name="templateKey">
+                    <option value="">{{ __('messages.customMessage') }}</option>
+                    @foreach ($templateKeys ?? \App\Support\Messaging\Constants::TEMPLATE_KEYS as $tk)
+                        <option value="{{ $tk }}">{{ __('messages.'.(\App\Support\Messaging\Constants::TEMPLATE_LABEL_KEYS[$tk] ?? $tk)) }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div>
@@ -110,4 +179,22 @@
             <button type="submit" class="btn-primary">{{ __('messages.newCampaign') }}</button>
         </form>
     </div>
+@push('scripts')
+<script>
+    (function () {
+        var select = document.getElementById('templateKey');
+        var body = document.getElementById('body');
+        if (!select || !body) return;
+        var bodies = @json($bodies ?? []);
+        select.addEventListener('change', function () {
+            var key = select.value;
+            if (!key) return;
+            var en = bodies[key + ':en'] || '';
+            var am = bodies[key + ':am'] || '';
+            body.value = en !== '' ? en : am;
+        });
+    })();
+</script>
+@endpush
+
 @endsection
