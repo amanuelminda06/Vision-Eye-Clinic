@@ -166,19 +166,19 @@ final class SystemId
 
         if ($driver === 'mysql') {
             $query->where(self::COLUMN, 'REGEXP', '^[A-Z]{2}[0-9]{4}$');
-            $query->orderByRaw('CAST(SUBSTRING(`system_id`, 3) AS UNSIGNED) DESC');
             $query->orderByRaw('SUBSTRING(`system_id`, 1, 2) DESC');
+            $query->orderByRaw('CAST(SUBSTRING(`system_id`, 3) AS UNSIGNED) DESC');
         } elseif ($driver === 'pgsql') {
             $query->where(self::COLUMN, '~', '^[A-Z]{2}[0-9]{4}$');
-            $query->orderByRaw('CAST(SUBSTRING(system_id, 3) AS INTEGER) DESC');
             $query->orderByRaw('SUBSTRING(system_id, 1, 2) DESC');
+            $query->orderByRaw('CAST(SUBSTRING(system_id, 3) AS INTEGER) DESC');
         } else {
             // SQLite (tests): GLOB is case-sensitive and supports ranges.
             // Laravel's where() does not know GLOB as an operator, so it has
             // to be written as raw SQL or it becomes `system_id = 'GLOB'`.
             $query->whereRaw(self::COLUMN.' GLOB ?', ['[A-Z][A-Z][0-9][0-9][0-9][0-9]']);
-            $query->orderByRaw('CAST(substr(`system_id`, 3) AS INTEGER) DESC');
             $query->orderByRaw('substr(`system_id`, 1, 2) DESC');
+            $query->orderByRaw('CAST(substr(`system_id`, 3) AS INTEGER) DESC');
         }
 
         return $query->value(self::COLUMN);

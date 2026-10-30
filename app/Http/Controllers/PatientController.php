@@ -157,7 +157,11 @@ class PatientController extends Controller
                 'active' => true,
                 'created_by' => $actor->id,
             ]);
-        } catch (UniqueConstraintViolationException) {
+        } catch (UniqueConstraintViolationException $exception) {
+            if (str_contains($exception->getMessage(), SystemId::COLUMN)) {
+                throw $exception;
+            }
+
             $existing = PatientQueries::findByPhone($values['phone']);
 
             return back()->with('duplicatePatient', $existing === null ? null : [
