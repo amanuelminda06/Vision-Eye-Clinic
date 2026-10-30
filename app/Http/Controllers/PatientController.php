@@ -171,7 +171,7 @@ class PatientController extends Controller
             'name' => $actor->name,
         ]);
 
-        return redirect("/patients/{$patient->id}");
+        return redirect()->route('patients.index');
     }
 
     /** GET /patients/{id} — detail; sick tab reads `edit` for inline edit. */
