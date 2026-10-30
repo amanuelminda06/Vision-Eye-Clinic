@@ -37,6 +37,9 @@
                 <p class="mt-1 text-sm text-slate-600">{{ __('messages.subtitle') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                @if ($canSendCampaigns)
+                    <a href="{{ route('messages.campaigns.new') }}" class="btn-primary">{{ __('messages.newMessageLink') }}</a>
+                @endif
                 @include('partials.export-links', ['base' => route('messages.export'), 'query' => ''])
                 <a href="{{ route('messages.library') }}" class="btn-secondary">{{ __('messages.libraryLink') }}</a>
                 <a href="{{ route('messages.drafts') }}" class="btn-secondary">{{ __('messages.draftsLink') }}</a>
