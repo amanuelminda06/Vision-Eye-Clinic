@@ -254,7 +254,7 @@ class CampaignController extends Controller
         ], ['id' => $actor->id, 'name' => $actor->name]);
 
         if ($deliveryMode === 'INDIVIDUAL') {
-            return redirect('/messages')->with('status', __('messages.sent') ?? 'Message ready to send.');
+            return redirect('/messages');
         }
 
         return redirect('/messages/campaigns/'.$campaign->id);
@@ -377,6 +377,20 @@ class CampaignController extends Controller
         foreach (['tags', 'serviceIds', 'handPickedIds'] as $key) {
             if (isset($raw[$key]) && is_string($raw[$key])) {
                 $raw[$key] = array_values(array_filter(array_map('trim', explode(',', $raw[$key]))));
+            }
+        }
+
+        // Top-level hand-picked IDs (from the patient picker) override/merge.
+        $topPicked = $request->input('handPickedIds');
+        if (is_string($topPicked) && $topPicked !== '') {
+            $ids = array_values(array_filter(array_map('trim', explode(',', $topPicked))));
+            if ($ids !== []) {
+                $raw['handPickedIds'] = array_values(array_unique(array_merge($raw['handPickedIds'] ?? [], $ids)));
+            }
+        } elseif (is_array($topPicked)) {
+            $ids = array_values(array_filter($topPicked, 'is_string'));
+            if ($ids !== []) {
+                $raw['handPickedIds'] = array_values(array_unique(array_merge($raw['handPickedIds'] ?? [], $ids)));
             }
         }
 

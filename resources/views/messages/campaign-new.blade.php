@@ -130,6 +130,7 @@
         <form method="POST" action="{{ route('messages.campaigns.store') }}" class="card space-y-4 p-4">
             @csrf
             <input type="hidden" name="filter" id="filterJson" value="{{ json_encode($filter) }}">
+            <input type="hidden" name="handPickedIds" id="handPickedIds" value="{{ implode(',', $filter['handPickedIds'] ?? []) }}">
 
             <div>
                 <label class="label" for="title">{{ __('common.name') }}</label>
@@ -212,6 +213,7 @@
         var chips = document.getElementById('patientChips');
         var countEl = document.getElementById('patientCount');
         var filterInput = document.getElementById('filterJson');
+        var pickedInput = document.getElementById('handPickedIds');
         var selected = {};
 
         function syncFilter() {
@@ -220,6 +222,9 @@
                 f.handPickedIds = Object.keys(selected);
                 filterInput.value = JSON.stringify(f);
             } catch (e) {}
+            if (pickedInput) {
+                pickedInput.value = Object.keys(selected).join(',');
+            }
             countEl.textContent = Object.keys(selected).length;
         }
 
@@ -282,7 +287,7 @@
         }
 
         // Final confirmation on send
-        var form = document.querySelector('form[action*="campaigns.store"], form[action*="campaigns"]');
+        var form = document.querySelector('form[method="POST"]');
         if (form) {
             form.addEventListener('submit', function (e) {
                 var bodyVal = (body && body.value) ? body.value.trim() : '';
