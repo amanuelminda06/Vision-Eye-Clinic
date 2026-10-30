@@ -253,6 +253,10 @@ class CampaignController extends Controller
             'recipients' => count($eligible),
         ], ['id' => $actor->id, 'name' => $actor->name]);
 
+        if ($deliveryMode === 'INDIVIDUAL') {
+            return redirect('/messages')->with('status', __('messages.sent') ?? 'Message ready to send.');
+        }
+
         return redirect('/messages/campaigns/'.$campaign->id);
     }
 
