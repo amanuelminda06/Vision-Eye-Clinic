@@ -27,21 +27,21 @@
 
         {{-- Audience filter (GET) --}}
     <section class="card space-y-3 p-4">
-        <h2 class="text-sm font-semibold text-slate-800">{{ __('messages.filter') ?? 'Filter patients' }}</h2>
+        <h2 class="text-sm font-semibold text-slate-800">{{ __('messages.filterTitle') }}</h2>
         <form method="GET" action="{{ route('messages.campaigns.new') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-                <label class="label text-xs" for="f_tags">{{ __('messages.tags') ?? 'Tags (comma)' }}</label>
+                <label class="label text-xs" for="f_tags">{{ __('messages.filterTags') }}</label>
                 <input class="input-field text-sm" id="f_tags" name="filter[tags]" value="{{ implode(',', $filter['tags'] ?? []) }}">
             </div>
             <div>
-                <label class="label text-xs" for="f_tagMode">{{ __('messages.tagMode') ?? 'Tag mode' }}</label>
+                <label class="label text-xs" for="f_tagMode">{{ __('messages.filterTagMode') }}</label>
                 <select class="input-field text-sm" id="f_tagMode" name="filter[tagMode]">
                     <option value="ANY" @selected(($filter['tagMode'] ?? 'ANY') === 'ANY')>ANY</option>
                     <option value="ALL" @selected(($filter['tagMode'] ?? '') === 'ALL')>ALL</option>
                 </select>
             </div>
             <div>
-                <label class="label text-xs" for="f_language">{{ __('messages.language') ?? 'Language' }}</label>
+                <label class="label text-xs" for="f_language">{{ __('messages.filterLanguage') }}</label>
                 <select class="input-field text-sm" id="f_language" name="filter[language]">
                     <option value="" @selected(($filter['language'] ?? '') === '')>Any</option>
                     <option value="en" @selected(($filter['language'] ?? '') === 'en')>English</option>
@@ -49,7 +49,7 @@
                 </select>
             </div>
             <div>
-                <label class="label text-xs" for="f_upcoming">{{ __('messages.upcoming') ?? 'Upcoming appt' }}</label>
+                <label class="label text-xs" for="f_upcoming">{{ __('messages.filterUpcoming') }}</label>
                 <select class="input-field text-sm" id="f_upcoming" name="filter[upcoming]">
                     <option value="ANY" @selected(($filter['upcoming'] ?? 'ANY') === 'ANY')>Any</option>
                     <option value="HAS" @selected(($filter['upcoming'] ?? '') === 'HAS')>Has upcoming</option>
@@ -57,7 +57,7 @@
                 </select>
             </div>
             <div>
-                <label class="label text-xs" for="f_preset">{{ __('messages.presetRange') ?? 'Last visit preset' }}</label>
+                <label class="label text-xs" for="f_preset">{{ __('messages.filterPresetRange') }}</label>
                 <select class="input-field text-sm" id="f_preset" name="filter[presetRange]">
                     <option value="" @selected(($filter['presetRange'] ?? '') === '')>Custom</option>
                     <option value="last30" @selected(($filter['presetRange'] ?? '') === 'last30')>Last 30 days</option>
@@ -75,7 +75,7 @@
                 <input class="input-field text-sm" id="f_lvto" type="date" name="filter[lastVisitTo]" value="{{ $filter['lastVisitTo'] ?? '' }}">
             </div>
             <div>
-                <label class="label text-xs" for="f_handpicked">{{ __('messages.handPicked') ?? 'Hand-picked patient IDs (comma)' }}</label>
+                <label class="label text-xs" for="f_handpicked">{{ __('messages.filterHandPicked') }}</label>
                 <input class="input-field text-sm" id="f_handpicked" name="filter[handPickedIds]" value="{{ implode(',', $filter['handPickedIds'] ?? []) }}">
             </div>
             <div class="sm:col-span-2 lg:col-span-4">
@@ -117,9 +117,9 @@
 
         {{-- Patient picker --}}
     <section class="card space-y-3 p-4">
-        <h2 class="text-sm font-semibold text-slate-800">{{ __('messages.patient') ?? 'Patients' }}</h2>
+        <h2 class="text-sm font-semibold text-slate-800">Patients</h2>
         <div class="relative">
-            <input id="patientSearch" class="input-field text-sm" type="search" placeholder="{{ __('app.searchPlaceholder') ?? 'Search patients by name or phone' }}" autocomplete="off">
+            <input id="patientSearch" class="input-field text-sm" type="search" placeholder="Search patients by name or phone" autocomplete="off">
             <div id="patientResults" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-slate-200 bg-white shadow-lg"></div>
         </div>
         <div id="patientChips" class="flex flex-wrap gap-2"></div>
