@@ -113,7 +113,6 @@
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         @if ($row['patientPhoneE164'] && ! in_array($row['status'], ['BLOCKED', 'SENT', 'SKIPPED', 'CANCELLED'], true))
                                             <a href="{{ Provider::buildSmsLink($row['patientPhoneE164'], $row['renderedMessage'], $platform) }}"
-                                               target="_blank" rel="noopener"
                                                class="btn-primary px-2 py-1 text-xs send-link"
                                                data-task-id="{{ $row['id'] }}">{{ __('messages.openLink') }}</a>
                                         @endif
