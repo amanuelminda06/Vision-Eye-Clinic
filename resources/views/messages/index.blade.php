@@ -137,36 +137,5 @@
                 </table>
             </div>
         @endif
-
-        <script>
-            (function () {
-                document.querySelectorAll('.send-link').forEach(function (link) {
-                    link.addEventListener('click', function (e) {
-                        var taskId = link.getAttribute('data-task-id');
-                        if (taskId) {
-                            var url = '{{ url('/messages') }}/' + taskId + '/sent';
-                            var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                            var body = '_token=' + encodeURIComponent(token || '');
-                            if (navigator.sendBeacon) {
-                                var blob = new Blob([body], { type: 'application/x-www-form-urlencoded' });
-                                navigator.sendBeacon(url, blob);
-                            } else {
-                                try {
-                                    fetch(url, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRF-TOKEN': token || '',
-                                            'Accept': 'application/json',
-                                            'Content-Type': 'application/x-www-form-urlencoded',
-                                        },
-                                        body: body,
-                                        keepalive: true,
-                                    });
-                                } catch (err) { /* ignore */ }
-                            }
-                        }
-                    });
-                });
-            })();
-        </script>
+    </div>
 @endsection
