@@ -141,23 +141,29 @@
         <script>
             (function () {
                 document.querySelectorAll('.send-link').forEach(function (link) {
-                    link.addEventListener('click', function () {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
                         var taskId = link.getAttribute('data-task-id');
-                        if (!taskId) return;
-                        var url = '{{ url('/messages') }}/' + taskId + '/sent';
-                        var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                        try {
-                            fetch(url, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': token || '',
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: '_token=' + encodeURIComponent(token || ''),
-                                keepalive: true,
-                            });
-                        } catch (e) { /* ignore */ }
+                        var href = link.getAttribute('href');
+                        if (taskId) {
+                            var url = '{{ url('/messages') }}/' + taskId + '/sent';
+                            var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                            try {
+                                fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': token || '',
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    },
+                                    body: '_token=' + encodeURIComponent(token || ''),
+                                    keepalive: true,
+                                });
+                            } catch (err) { /* ignore */ }
+                        }
+                        if (href) {
+                            window.location.href = href;
+                        }
                     });
                 });
             })();

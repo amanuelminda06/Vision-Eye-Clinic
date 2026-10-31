@@ -17,6 +17,7 @@ use App\Support\Messaging\RecipientFilter;
 use App\Support\Messaging\Render;
 use App\Support\Messaging\Templates;
 use App\Support\Settings;
+use App\Support\Services\ServiceQueries;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -78,6 +79,7 @@ class CampaignController extends Controller
             'bodies' => MsgQueries::loadTemplateBodies(),
             'cap' => $cap,
             'templateKeys' => Constants::TEMPLATE_KEYS,
+            'services' => ServiceQueries::listServiceOptions(),
         ]);
     }
 

@@ -92,8 +92,13 @@
                 <summary class="cursor-pointer text-sm font-medium text-slate-700">Advanced filter</summary>
                 <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="label text-xs">Tags (comma)</label>
-                        <input class="input-field text-sm" name="filter[tags]" value="{{ implode(',', $filter['tags'] ?? []) }}">
+                        <label class="label text-xs">Services used</label>
+                        <select class="input-field text-sm" name="filter[serviceIds][]" multiple size="4">
+                            @foreach (($services ?? collect()) as $svc)
+                                <option value="{{ $svc->id }}" @selected(in_array($svc->id, (array) ($filter['serviceIds'] ?? []), true))>{{ $svc->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-slate-500">Hold Ctrl/Cmd to select multiple.</p>
                     </div>
                     <div>
                         <label class="label text-xs">Language</label>
