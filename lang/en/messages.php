@@ -213,6 +213,7 @@ return [
     'noTemplates' => 'No templates available. Ask the owner to add templates first.',
     'groupAckText' => 'I understand that everyone in this group will see each other\'s phone numbers.',
     'campaignOverCap' => 'Too many recipients — narrow the filter or raise the limit in Settings.',
+    'noRecipients' => 'No recipients matched — pick patients or choose a service that patients have used.',
     'usedTimes' => 'Used {count} times',
     'librarySubtitle' => 'Save a message once and reuse it in any campaign. The same wording is never duplicated for the same language.',
     'draftsSubtitle' => 'Messages you started but did not send yet. Drafts are private to you.',

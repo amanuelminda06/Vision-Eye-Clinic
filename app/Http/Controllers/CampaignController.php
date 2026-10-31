@@ -168,6 +168,9 @@ class CampaignController extends Controller
         }
 
         $eligible = $summary['eligible'];
+        if ($eligible === []) {
+            return back()->with('actionError', 'noRecipients')->withInput();
+        }
         $bodies = MsgQueries::loadTemplateBodies();
         $clinicName = (string) Settings::get('clinic_name', '');
         $reviewLink = (string) Settings::get('review_link', '');
