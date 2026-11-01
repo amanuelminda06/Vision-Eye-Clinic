@@ -433,7 +433,6 @@ final class MsgQueries
         $patients = Patient::query()
             ->with('tags:id,name')
             ->orderBy('full_name')
-            ->take($limit)
             ->get();
 
         if ($patients->isEmpty()) {
