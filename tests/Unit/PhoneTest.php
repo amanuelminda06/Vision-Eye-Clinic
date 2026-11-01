@@ -8,9 +8,10 @@ use App\Support\Phone;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Port of src/lib/phone.test.ts + src/lib/phone-extra.test.ts (the legacy gold
- * standard): E.164 normalization, parse error keys, display formatting and
- * search fragment variants, exactly as the TypeScript originals assert them.
+ * Phone normalization: E.164 output, parse error keys, display formatting and
+ * search fragment variants. The legacy strict mobile-only rule was relaxed to
+ * accept every real phone (landlines, other country codes) while still
+ * rejecting short codes and non-numeric junk.
  */
 class PhoneTest extends TestCase
 {
@@ -34,13 +35,25 @@ class PhoneTest extends TestCase
         $this->assertSame('+251712345678', Phone::toE164(' 07 12 34 56 78 '));
     }
 
-    public function test_rejects_non_mobile_or_malformed_numbers(): void
+    public function test_accepts_ethiopian_landlines_and_other_international_numbers(): void
     {
+        // The strict mobile-only rule was removed: any real phone is allowed.
+        $this->assertSame('+251111234567', Phone::toE164('0111234567'));
+        $this->assertSame('+251111234567', Phone::toE164('+251111234567'));
+        $this->assertSame('+251811234567', Phone::toE164('+251811234567'));
+        $this->assertSame('+12025550123', Phone::toE164('+12025550123'));
+        $this->assertSame('+12025550123', Phone::toE164('12025550123'));
+        $this->assertSame('+12025550123', Phone::toE164('0012025550123'));
+    }
+
+    public function test_rejects_malformed_numbers(): void
+    {
+        // Wrong length for an Ethiopian number (must be +251 + nine digits).
         $this->assertNull(Phone::toE164('091234567'));
         $this->assertNull(Phone::toE164('09123456789'));
         $this->assertNull(Phone::toE164('071234567'));
-        $this->assertNull(Phone::toE164('+251812345678'));
-        $this->assertNull(Phone::toE164('+12025550123'));
+        $this->assertNull(Phone::toE164('+25191234567'));
+        // Short codes and non-numeric junk.
         $this->assertNull(Phone::toE164('12345'));
         $this->assertNull(Phone::toE164(''));
         $this->assertNull(Phone::toE164('   '));
@@ -62,7 +75,9 @@ class PhoneTest extends TestCase
     {
         $this->assertTrue(Phone::isValid('0912345678'));
         $this->assertTrue(Phone::isValid('0712345678'));
-        $this->assertFalse(Phone::isValid('0812345678'));
+        $this->assertTrue(Phone::isValid('0111234567'));
+        $this->assertFalse(Phone::isValid('12345'));
+        $this->assertFalse(Phone::isValid('not-a-phone'));
     }
 
     public function test_parse_returns_the_normalized_value_on_success(): void

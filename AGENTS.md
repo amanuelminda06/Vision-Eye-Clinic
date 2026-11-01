@@ -28,8 +28,10 @@ codebase; the porting contract lives in `docs/spec/` and the legacy code is
 5. **Instants are UTC.** The clinic timezone (a setting, default
    `Africa/Addis_Ababa`) decides what a "day" is. Day buckets are
    clinic-local; the stored value is always UTC.
-6. **Phones are E.164** (`+2519…` / `+2517…`). `App\Support\Phone` is the
-   only place that normalizes them.
+6. **Phones are E.164** (`+251…`, or `+<country>…` for other countries).
+   `App\Support\Phone` is the only place that normalizes them. Any real phone
+   is accepted (mobile, landline, international); short codes and non-numeric
+   junk are rejected.
 7. **The public website never leaks.** No prices, no patient data, no internal
    ids. Public payloads are strict allow-list projections
    (`App\Support\PublicSite\Projection`) and the tests scan them recursively.
