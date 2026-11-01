@@ -428,7 +428,7 @@ final class MsgQueries
      *
      * @return list<array<string, mixed>>
      */
-    public static function listCandidates(int $limit = 1000): array
+    public static function listCandidates(): array
     {
         $patients = Patient::query()
             ->with('tags:id,name')

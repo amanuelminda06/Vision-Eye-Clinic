@@ -27,9 +27,16 @@
         @endif
 
         <section class="card space-y-3 p-4">
-            <h2 class="text-sm font-semibold text-slate-800">Search patients</h2>
-            <input id="patientSearch" class="input-field text-sm" type="search" placeholder="Search patients by name or phone" autocomplete="off">
-            <div id="patientResults" class="mt-1 hidden rounded-lg border border-slate-200 bg-white shadow-lg"></div>
+            <h2 class="text-sm font-semibold text-slate-800">{{ __('messages.searchPatients') }}</h2>
+            <input id="patientSearch" class="input-field text-sm" type="search" placeholder="{{ __('messages.searchPatientsHint') }}" autocomplete="off">
+            <p class="text-xs text-slate-500">{{ __('messages.searchPatientsNote') }}</p>
+            <div id="patientResults" class="mt-1 hidden max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg"></div>
+
+            <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('messages.selectedPatients') }}</h3>
+                <div id="selectedPatients" class="mt-2 flex flex-wrap gap-2"></div>
+                <p id="noSelectedPatients" class="text-xs text-slate-500">{{ __('messages.noPatientSelected') }}</p>
+            </div>
         </section>
 
         <form method="POST" action="{{ route('messages.campaigns.store') }}" class="card space-y-4 p-4">
@@ -76,16 +83,14 @@
                     <label class="label text-xs" for="deliveryMode">Delivery</label>
                     <select class="input-field text-sm" id="deliveryMode" name="deliveryMode">
                         <option value="INDIVIDUAL">Individual (1 person)</option>
-                        <option value="INDIVIDUAL">Campaign (individual)</option>
                         <option value="GROUP">Group</option>
                     </select>
                 </div>
             </div>
 
-            <div>
-                <label class="label text-xs" for="handPickedIds">Patient IDs (comma separated)</label>
-                <input class="input-field text-sm" id="handPickedIds" name="handPickedIds" value="{{ old('handPickedIds') }}">
-                <p class="text-xs text-slate-500">Search above and click a patient to add their ID here.</p>
+            <div class="hidden">
+                <label class="label text-xs" for="handPickedIds">{{ __('messages.selectedPatients') }}</label>
+                <input type="hidden" id="handPickedIds" name="handPickedIds" value="{{ old('handPickedIds') }}">
             </div>
 
             <details class="rounded-lg border border-slate-200 p-3">
@@ -126,57 +131,152 @@
     @push('scripts')
     <script>
         (function () {
+            var endpoint = @json(route('messages.recipients'));
             var search = document.getElementById('patientSearch');
             var results = document.getElementById('patientResults');
             var picked = document.getElementById('handPickedIds');
-            if (search && results) {
-                var timer = null;
-                search.addEventListener('input', function () {
-                    clearTimeout(timer);
-                    var q = search.value.trim();
-                    if (q.length < 3) { results.classList.add('hidden'); results.innerHTML = ''; return; }
-                    timer = setTimeout(function () {
-                        fetch('/api/search?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
-                            .then(function (r) { return r.json(); })
-                            .then(function (data) {
-                                var patients = (data && data.patients) ? data.patients : [];
-                                results.innerHTML = '';
-                                if (patients.length === 0) { results.classList.add('hidden'); return; }
-                                patients.forEach(function (p) {
-                                    var btn = document.createElement('button');
-                                    btn.type = 'button';
-                                    btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-slate-50';
-                                    btn.textContent = p.title + (p.subtitle ? ' — ' + p.subtitle : '');
-                                    btn.addEventListener('click', function () {
-                                        var ids = picked.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-                                        if (ids.indexOf(p.id) === -1) ids.push(p.id);
-                                        picked.value = ids.join(',');
-                                        search.value = p.title;
-                                        results.classList.add('hidden');
-                                        results.innerHTML = '';
-                                    });
-                                    results.appendChild(btn);
-                                });
+            var chips = document.getElementById('selectedPatients');
+            var emptyNote = document.getElementById('noSelectedPatients');
+
+            if (!search || !results || !picked || !chips) return;
+
+            var timer = null;
+            var labels = {}; // patient id -> display name
+
+            function selectedIds() {
+                return picked.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            }
+
+            function renderChips() {
+                var current = selectedIds();
+                chips.innerHTML = '';
+
+                current.forEach(function (id) {
+                    var chip = document.createElement('span');
+                    chip.className = 'inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700';
+
+                    var label = document.createElement('span');
+                    label.textContent = labels[id] || id;
+
+                    var remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'text-base leading-none text-slate-400 hover:text-red-600';
+                    remove.textContent = '×';
+                    remove.setAttribute('aria-label', @json(__('messages.remove')));
+                    remove.addEventListener('click', function () {
+                        picked.value = selectedIds().filter(function (value) { return value !== id; }).join(',');
+                        delete labels[id];
+                        renderChips();
+                    });
+
+                    chip.appendChild(label);
+                    chip.appendChild(remove);
+                    chips.appendChild(chip);
+                });
+
+                emptyNote.classList.toggle('hidden', current.length > 0);
+            }
+
+            function addPatient(id, name) {
+                var current = selectedIds();
+                if (current.indexOf(id) === -1) {
+                    current.push(id);
+                    picked.value = current.join(',');
+                }
+                labels[id] = name;
+                renderChips();
+            }
+
+            function hideResults() {
+                results.classList.add('hidden');
+                results.innerHTML = '';
+            }
+
+            search.addEventListener('input', function () {
+                clearTimeout(timer);
+                var q = search.value.trim();
+
+                if (q.length < 2) {
+                    hideResults();
+                    return;
+                }
+
+                timer = setTimeout(function () {
+                    fetch(endpoint + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            var patients = (data && data.patients) ? data.patients : [];
+                            results.innerHTML = '';
+
+                            if (patients.length === 0) {
+                                var none = document.createElement('p');
+                                none.className = 'px-3 py-2 text-sm text-slate-500';
+                                none.textContent = @json(__('messages.noPatientsFound'));
+                                results.appendChild(none);
                                 results.classList.remove('hidden');
-                            })
-                            .catch(function () { results.classList.add('hidden'); });
-                    }, 250);
-                });
-                document.addEventListener('click', function (e) {
-                    if (!results.contains(e.target) && e.target !== search) {
-                        results.classList.add('hidden');
-                    }
-                });
+                                return;
+                            }
+
+                            patients.forEach(function (p) {
+                                var btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-slate-50';
+                                btn.textContent = p.title + (p.subtitle ? ' — ' + p.subtitle : '');
+                                btn.addEventListener('click', function () {
+                                    addPatient(p.id, p.title);
+                                    search.value = '';
+                                    hideResults();
+                                    search.focus();
+                                });
+                                results.appendChild(btn);
+                            });
+
+                            results.classList.remove('hidden');
+                        })
+                        .catch(hideResults);
+                }, 200);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!results.contains(e.target) && e.target !== search) {
+                    hideResults();
+                }
+            });
+
+            // Restoration after a validation redirect: keep the picked ids and
+            // resolve their names so the chips are not raw ULIDs.
+            var initial = selectedIds();
+            if (initial.length > 0) {
+                initial.forEach(function (id) { labels[id] = id; });
+                renderChips();
+
+                fetch(endpoint + '?ids=' + encodeURIComponent(initial.join(',')), { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        (data && data.patients ? data.patients : []).forEach(function (p) {
+                            labels[p.id] = p.title;
+                        });
+                        renderChips();
+                    })
+                    .catch(function () {});
+            } else {
+                renderChips();
             }
 
             var form = document.querySelector('form[method="POST"]');
             if (form) {
+                var confirmTemplate = @json(__('messages.sendConfirm', ['count' => ':count']));
+                var confirmFiltered = @json(__('messages.sendConfirmFiltered'));
+
                 form.addEventListener('submit', function (e) {
-                    var body = document.getElementById('body');
-                    var bodyVal = body ? body.value.trim() : '';
-                    var ids = document.getElementById('handPickedIds').value.trim();
-                    var msg = 'Send this message?\n\nRecipients: ' + (ids || 'filtered') + '\n\n' + bodyVal;
-                    if (!window.confirm(msg)) e.preventDefault();
+                    var count = selectedIds().length;
+                    var msg = count > 0
+                        ? confirmTemplate.replace(':count', String(count))
+                        : confirmFiltered;
+
+                    if (!window.confirm(msg)) {
+                        e.preventDefault();
+                    }
                 });
             }
 

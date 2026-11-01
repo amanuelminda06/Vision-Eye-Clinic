@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Campaign;
 use App\Models\CampaignBatch;
 use App\Models\MessageTask;
+use App\Models\Patient;
 use App\Support\Audit;
 use App\Support\ClinicTime;
 use App\Support\Messaging\Constants;
@@ -16,8 +17,11 @@ use App\Support\Messaging\MsgRoles;
 use App\Support\Messaging\RecipientFilter;
 use App\Support\Messaging\Render;
 use App\Support\Messaging\Templates;
-use App\Support\Settings;
+use App\Support\Patients\SystemId;
+use App\Support\Phone;
 use App\Support\Services\ServiceQueries;
+use App\Support\Settings;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -81,6 +85,110 @@ class CampaignController extends Controller
             'templateKeys' => Constants::TEMPLATE_KEYS,
             'services' => ServiceQueries::listServiceOptions(),
         ]);
+    }
+
+    /**
+     * GET /messages/recipients — the composer's patient type-ahead.
+     *
+     * The global /api/search route returns six hits sorted alphabetically,
+     * which in a database of ~19k patients made everyone whose name sorts
+     * after the "A…" block effectively impossible to pick. This endpoint
+     * returns a relevance-ordered window (prefix hits first) and also matches
+     * the system ID (AA0001) and the clinic ID shown on the patients list.
+     */
+    public function recipients(Request $request): JsonResponse
+    {
+        $actor = $request->user();
+
+        if (! MsgRoles::canSendCampaigns(
+            $actor->role,
+            (bool) Settings::get('reception_can_send_campaigns', false),
+        )) {
+            abort(403);
+        }
+
+        $columns = ['id', 'full_name', 'phone_e164', 'system_id', 'id_no'];
+
+        // Re-load the names of already-picked patients (after a failed submit).
+        $idsParam = trim((string) $request->query('ids', ''));
+
+        if ($idsParam !== '') {
+            $ids = array_slice(array_values(array_filter(array_map('trim', explode(',', $idsParam)))), 0, 100);
+
+            if ($ids === []) {
+                return response()->json(['patients' => []])->header('Cache-Control', 'no-store');
+            }
+
+            $byId = Patient::query()->whereIn('id', $ids)->get($columns)->keyBy('id');
+            $ordered = [];
+
+            foreach ($ids as $id) {
+                if (isset($byId[$id])) {
+                    $ordered[] = self::recipientRow($byId[$id]);
+                }
+            }
+
+            return response()->json(['patients' => $ordered])->header('Cache-Control', 'no-store');
+        }
+
+        $q = mb_substr(trim((string) $request->query('q', '')), 0, 100);
+
+        if (mb_strlen($q, 'UTF-8') < 2) {
+            return response()->json(['patients' => []])->header('Cache-Control', 'no-store');
+        }
+
+        $contains = '%'.self::escapeLike($q).'%';
+        $starts = self::escapeLike($q).'%';
+
+        $patients = Patient::query()
+            ->where('active', true)
+            ->where(function ($inner) use ($contains, $q): void {
+                $inner->where('full_name', 'like', $contains)
+                    ->orWhere('system_id', 'like', $contains)
+                    ->orWhere('id_no', 'like', $contains);
+
+                foreach (Phone::phoneSearchVariants($q) ?? [] as $variant) {
+                    $inner->orWhere('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
+                }
+            })
+            ->orderByRaw(
+                'CASE
+                    WHEN full_name LIKE ? THEN 0
+                    WHEN system_id LIKE ? THEN 1
+                    WHEN id_no LIKE ? THEN 2
+                    WHEN full_name LIKE ? THEN 3
+                    ELSE 4
+                END',
+                [$starts, $starts, $starts, $contains],
+            )
+            ->orderBy('full_name')
+            ->limit(30)
+            ->get($columns);
+
+        return response()->json([
+            'patients' => $patients->map(fn (Patient $patient): array => self::recipientRow($patient))->all(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    /** One picker hit (the shape the composer JS expects). */
+    private static function recipientRow(Patient $patient): array
+    {
+        return [
+            'id' => $patient->id,
+            'title' => (string) $patient->full_name,
+            'subtitle' => implode(' · ', array_filter([
+                (string) $patient->system_id,
+                (string) $patient->phone_e164,
+            ], static fn (string $part): bool => $part !== '')),
+            'systemId' => $patient->system_id,
+            'phoneE164' => $patient->phone_e164,
+        ];
+    }
+
+    /** Escape LIKE wildcards so user fragments match literally. */
+    private static function escapeLike(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
     /** GET /messages/campaigns/{id} — the campaign detail. */
@@ -399,6 +507,49 @@ class CampaignController extends Controller
             }
         }
 
+        // Accept the human-facing system ID (AA0001) as well as the internal
+        // patient id, so pasting what the patients list shows still works.
+        $raw['handPickedIds'] = $this->resolveHandPickedIds(
+            array_values(array_filter((array) ($raw['handPickedIds'] ?? []), 'is_string')),
+        );
+
         return array_merge(RecipientFilter::empty(), $raw);
+    }
+
+    /**
+     * Normalises the hand-picked tokens: internal ULIDs stay as-is, system
+     * IDs (AA0001) are resolved to their patient id, and system IDs that do
+     * not exist are dropped.
+     *
+     * @param  list<string>  $tokens
+     * @return list<string>
+     */
+    private function resolveHandPickedIds(array $tokens): array
+    {
+        $ids = [];
+        $systemIds = [];
+
+        foreach ($tokens as $token) {
+            $token = trim($token);
+
+            if ($token === '') {
+                continue;
+            }
+
+            if (SystemId::isValid(strtoupper($token))) {
+                $systemIds[] = strtoupper($token);
+            } else {
+                $ids[] = $token;
+            }
+        }
+
+        if ($systemIds !== []) {
+            $ids = array_merge(
+                $ids,
+                Patient::query()->whereIn('system_id', array_values(array_unique($systemIds)))->pluck('id')->all(),
+            );
+        }
+
+        return array_values(array_unique($ids));
     }
 }

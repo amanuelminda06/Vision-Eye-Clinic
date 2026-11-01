@@ -241,6 +241,7 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
     Route::post('/messages/library/{id}/toggle', [MessageLibraryController::class, 'toggle'])->name('messages.library.toggle');
 
     Route::get('/messages/campaigns', [CampaignController::class, 'index'])->name('messages.campaigns');
+    Route::get('/messages/recipients', [CampaignController::class, 'recipients'])->name('messages.recipients');
     Route::get('/messages/campaigns/new', [CampaignController::class, 'create'])->name('messages.campaigns.new');
     Route::post('/messages/campaigns', [CampaignController::class, 'store'])->name('messages.campaigns.store');
     Route::get('/messages/campaigns/{id}', [CampaignController::class, 'show'])->name('messages.campaigns.show');

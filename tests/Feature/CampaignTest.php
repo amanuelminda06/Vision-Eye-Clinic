@@ -42,6 +42,80 @@ class CampaignTest extends TestCase
         $this->actingAs($reception)->get('/messages/campaigns/new')->assertOk();
     }
 
+    public function test_the_recipient_picker_is_not_truncated_to_the_a_block(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        // Forty hits that sort before the target: the old /api/search picker
+        // returned only the first six alphabetically (all "A…"), so a patient
+        // sorting after them could never be selected. Relevance ordering puts
+        // the prefix match first, so it survives the 30-row window.
+        for ($i = 0; $i < 40; $i++) {
+            $this->createPatient(['full_name' => 'AARON MULU '.str_pad((string) $i, 2, '0', STR_PAD_LEFT)]);
+        }
+
+        $target = $this->createPatient(['full_name' => 'MULU ZEWDU']);
+
+        $response = $this->actingAs($owner)
+            ->getJson('/messages/recipients?q=mulu')
+            ->assertOk();
+
+        $ids = array_column($response->json('patients'), 'id');
+
+        $this->assertSame($target->id, $ids[0]);
+        $this->assertLessThanOrEqual(30, count($ids));
+    }
+
+    public function test_the_recipient_picker_ranks_prefix_matches_first(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $this->createPatient(['full_name' => 'AARON MULU']);
+        $prefix = $this->createPatient(['full_name' => 'MULU BEKELE']);
+
+        $response = $this->actingAs($owner)
+            ->getJson('/messages/recipients?q=mulu')
+            ->assertOk();
+
+        $this->assertSame($prefix->id, $response->json('patients.0.id'));
+    }
+
+    public function test_the_recipient_picker_finds_a_patient_by_system_id(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+        $patient = $this->createPatient(['full_name' => 'Zewdu Mulu', 'system_id' => 'AZ0007']);
+
+        $this->actingAs($owner)
+            ->getJson('/messages/recipients?q=AZ0007')
+            ->assertOk()
+            ->assertJsonPath('patients.0.id', $patient->id);
+    }
+
+    public function test_a_campaign_can_target_a_patient_by_system_id(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+        $patient = $this->createPatient(['full_name' => 'Zewdu Mulu', 'system_id' => 'AZ0007']);
+
+        $this->actingAs($owner)->post('/messages/campaigns', [
+            'title' => 'Recall',
+            'body' => 'Dear {name}, please visit us.',
+            'languageMode' => 'PATIENT',
+            'deliveryMode' => 'INDIVIDUAL',
+            'handPickedIds' => 'AZ0007',
+        ])->assertRedirect();
+
+        $task = MessageTask::query()->firstOrFail();
+
+        $this->assertSame($patient->id, $task->patient_id);
+    }
+
+    public function test_reception_cannot_use_the_recipient_picker_by_default(): void
+    {
+        $reception = $this->createUser(['role' => Roles::RECEPTION]);
+
+        $this->actingAs($reception)->getJson('/messages/recipients?q=ab')->assertForbidden();
+    }
+
     public function test_the_owner_creates_an_individual_campaign(): void
     {
         $owner = $this->createUser(['role' => Roles::OWNER]);
