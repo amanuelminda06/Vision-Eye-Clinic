@@ -217,6 +217,7 @@ return [
     'remove' => 'Remove',
     'sendConfirm' => 'Send this message to {count} patient(s)?',
     'sendConfirmFiltered' => 'Send this message to the filtered audience?',
+    'openSmsHint' => 'Your SMS app should open automatically. If it does not, tap the button below, send the message, then come back.',
     'deliveryIndividualShort' => 'Individually',
     'deliveryGroupShort' => 'Group',
     'noTemplates' => 'No templates available. Ask the owner to add templates first.',

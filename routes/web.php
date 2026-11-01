@@ -226,6 +226,7 @@ Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(f
 Route::middleware(['auth', 'password.changed', 'role:OWNER,RECEPTION'])->group(function () {
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages/{id}/open', [MessageController::class, 'open'])->name('messages.open');
+    Route::get('/messages/{id}/sms', [MessageController::class, 'sms'])->name('messages.sms');
     Route::post('/messages/{id}/send', [MessageController::class, 'send'])->name('messages.send');
     Route::post('/messages/{id}/sent', [MessageController::class, 'sent'])->name('messages.sent');
     Route::post('/messages/{id}/postpone', [MessageController::class, 'postpone'])->name('messages.postpone');

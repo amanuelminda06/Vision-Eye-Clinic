@@ -217,6 +217,7 @@ return [
     'remove' => 'አስወግድ',
     'sendConfirm' => 'ይህን መልእክት ለ {count} ታካሚ(ዎች) ይላክ?',
     'sendConfirmFiltered' => 'ይህን መልእክት ለተጣራው ታካሚ ቡድን ይላክ?',
+    'openSmsHint' => 'የSMS መተግበሪያዎ በራስ-ሰር ይከፈታል። ካልከፈተ፣ ከታች ያለውን አዝራር ይጫኑ፣ መልእክቱን ይላኩ እና ይመለሱ።',
     'deliveryIndividualShort' => 'በተናጠል',
     'deliveryGroupShort' => 'ቡድን',
     'noTemplates' => 'ምንም አብነት የለም። ባለቤቱ መጀመሪያ አብነቶችን እንዲያክል ይጠይቁ።',

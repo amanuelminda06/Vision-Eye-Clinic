@@ -170,6 +170,33 @@ class MessagingTest extends TestCase
         $this->assertSame(1, AuditLog::query()->where('action', 'MESSAGE_SENT')->count());
     }
 
+    public function test_the_send_button_marks_sent_and_opens_the_sms_launcher(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+        $patient = $this->createPatient(['phone_e164' => '+251911223344']);
+        $task = $this->createTask(['rendered_message' => 'Hello there'], $patient);
+
+        $this->actingAs($owner)
+            ->post("/messages/{$task->id}/send")
+            ->assertRedirect(route('messages.sms', ['id' => $task->id]));
+
+        $task->refresh();
+
+        $this->assertSame(MessageTask::STATUS_SENT, (string) $task->status);
+        $this->assertSame($owner->id, $task->handled_by);
+        $this->assertDatabaseHas('audit_logs', [
+            'entity' => 'MessageTask',
+            'entity_id' => $task->id,
+            'action' => 'MESSAGE_SENT',
+        ]);
+
+        $this->actingAs($owner->fresh())
+            ->get(route('messages.sms', ['id' => $task->id]))
+            ->assertOk()
+            ->assertSee('sms:+251911223344?body=Hello%20there', false)
+            ->assertSee('window.location.href', false);
+    }
+
     public function test_postponing_keeps_the_task_pending(): void
     {
         $owner = $this->createUser(['role' => Roles::OWNER]);

@@ -8,6 +8,7 @@ use App\Models\Campaign;
 use App\Models\CampaignBatch;
 use App\Models\MessageTask;
 use App\Models\Patient;
+use App\Models\User;
 use App\Support\Audit;
 use App\Support\ClinicTime;
 use App\Support\Messaging\Constants;
@@ -367,10 +368,51 @@ class CampaignController extends Controller
         ], ['id' => $actor->id, 'name' => $actor->name]);
 
         if ($deliveryMode === 'INDIVIDUAL') {
+            // A single patient is the composer's normal case: jump straight
+            // into the handset's SMS app instead of making the operator find
+            // the row in the outbox and press Send again.
+            if (count($eligible) === 1) {
+                $task = MessageTask::query()->where('campaign_id', $campaign->id)->first();
+                $redirect = $task === null ? null : $this->openSmsApp($task, $actor);
+
+                if ($redirect !== null) {
+                    return $redirect;
+                }
+            }
+
             return redirect('/messages');
         }
 
         return redirect('/messages/campaigns/'.$campaign->id);
+    }
+
+    /**
+     * Mark the task sent and hand over to the SMS launcher page.
+     *
+     * Mirrors the outbox Send button (MessageController::send): the operator
+     * confirms the SMS in the handset app; the app only prepares the link.
+     */
+    private function openSmsApp(MessageTask $task, User $actor): ?RedirectResponse
+    {
+        $patient = Patient::find($task->patient_id);
+
+        if ($patient === null || (string) $patient->phone_e164 === '') {
+            return null;
+        }
+
+        $task->forceFill([
+            'status' => MessageTask::STATUS_SENT,
+            'blocked_reason' => null,
+            'handled_by' => $actor->id,
+            'handled_at' => ClinicTime::nowUtc(),
+        ])->save();
+
+        Audit::write('MessageTask', (string) $task->id, 'MESSAGE_SENT', null, null, [
+            'id' => $actor->id,
+            'name' => $actor->name,
+        ]);
+
+        return redirect()->route('messages.sms', ['id' => $task->id]);
     }
 
     /** POST /messages/campaigns/{id}/batches/{batchId} — sent / skipped / cancel. */

@@ -153,6 +153,63 @@ class CampaignTest extends TestCase
         ]);
     }
 
+    public function test_sending_to_a_single_patient_opens_the_sms_app(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+        $patient = $this->createPatient([
+            'full_name' => 'Almaz Tesfaye',
+            'phone_e164' => '+251911223344',
+        ]);
+
+        $response = $this->actingAs($owner)->post('/messages/campaigns', [
+            'title' => 'Recall',
+            'body' => 'Dear {name}, please visit us.',
+            'languageMode' => 'PATIENT',
+            'deliveryMode' => 'INDIVIDUAL',
+            'handPickedIds' => $patient->id,
+        ]);
+
+        $task = MessageTask::query()->sole();
+
+        // The composer hands straight over to the SMS launcher instead of the
+        // outbox, so one Send press opens the handset's Messages app.
+        $response->assertRedirect(route('messages.sms', ['id' => $task->id]));
+
+        $this->assertSame(MessageTask::STATUS_SENT, (string) $task->fresh()->status);
+        $this->assertDatabaseHas('audit_logs', [
+            'entity' => 'MessageTask',
+            'entity_id' => $task->id,
+            'action' => 'MESSAGE_SENT',
+        ]);
+
+        $this->actingAs($owner->fresh())
+            ->get(route('messages.sms', ['id' => $task->id]))
+            ->assertOk()
+            ->assertSee('sms:+251911223344?body=', false)
+            ->assertSee(rawurlencode('Almaz Tesfaye'), false)
+            ->assertSee('window.location.href', false);
+    }
+
+    public function test_a_campaign_with_several_patients_still_goes_to_the_outbox(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $first = $this->createPatient();
+        $second = $this->createPatient();
+
+        $this->actingAs($owner)->post('/messages/campaigns', [
+            'title' => 'Recall',
+            'body' => 'Dear {name}, please visit us.',
+            'languageMode' => 'PATIENT',
+            'deliveryMode' => 'INDIVIDUAL',
+            'handPickedIds' => $first->id.','.$second->id,
+        ])->assertRedirect('/messages');
+
+        $this->assertSame(2, MessageTask::query()
+            ->where('status', MessageTask::STATUS_PENDING)
+            ->count());
+    }
+
     public function test_an_empty_filter_matches_nobody(): void
     {
         $owner = $this->createUser(['role' => Roles::OWNER]);

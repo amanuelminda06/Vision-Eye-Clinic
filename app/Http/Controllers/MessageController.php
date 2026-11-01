@@ -124,20 +124,48 @@ class MessageController extends Controller
         ]);
 
         $patient = Patient::find($task->patient_id);
-        $platform = Provider::detectPlatform($request->userAgent());
 
         if ($patient !== null && (string) $patient->phone_e164 !== '') {
-            try {
-                $link = Provider::buildSmsLink((string) $patient->phone_e164, (string) $task->rendered_message, $platform);
-                return redirect()->away($link);
-            } catch (\Throwable $e) {
-                // Fall through to a normal redirect if the link cannot be built.
-            }
+            return redirect()->route('messages.sms', ['id' => $id]);
         }
 
         return back();
     }
 
+    /**
+     * GET /messages/{id}/sms — the hand-off page that opens the `sms:` link.
+     *
+     * A 302 straight to `sms:` is blocked by several mobile browsers (custom
+     * schemes need a user gesture). Rendering a normal page whose button is a
+     * real link keeps one tap as the fallback, while the script tries to open
+     * the app immediately.
+     */
+    public function sms(Request $request, string $id): Response
+    {
+        $task = MessageTask::find($id);
+
+        if ($task === null) {
+            abort(404);
+        }
+
+        $patient = Patient::find($task->patient_id);
+
+        if ($patient === null || (string) $patient->phone_e164 === '') {
+            return redirect()->route('messages.index')->with('actionError', 'notFound');
+        }
+
+        try {
+            $link = Provider::buildSmsLink(
+                (string) $patient->phone_e164,
+                (string) $task->rendered_message,
+                Provider::detectPlatform($request->userAgent()),
+            );
+        } catch (\Throwable $e) {
+            return redirect()->route('messages.index')->with('actionError', 'unknownError');
+        }
+
+        return response()->view('messages.open-sms', ['link' => $link]);
+    }
 
     /** POST /messages/{id}/sent — the operator confirmed the SMS went out. */
     public function sent(Request $request, string $id): RedirectResponse
