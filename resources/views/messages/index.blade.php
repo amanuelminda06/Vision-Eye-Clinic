@@ -112,21 +112,9 @@
                                 <td class="px-3 py-2 text-right">
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         @if ($row['patientPhoneE164'] && ! in_array($row['status'], ['BLOCKED', 'SENT', 'SKIPPED', 'CANCELLED'], true))
-                                            <a href="{{ Provider::buildSmsLink($row['patientPhoneE164'], $row['renderedMessage'], $platform) }}"
-                                               class="btn-primary px-2 py-1 text-xs send-link"
-                                               data-task-id="{{ $row['id'] }}">{{ __('messages.openLink') }}</a>
-                                        @endif
-
-                                        @if (! in_array($row['status'], ['SENT', 'SKIPPED', 'CANCELLED'], true))
-                                            <form method="POST" action="{{ route('messages.postpone', $row['id']) }}">
+                                            <form method="POST" action="{{ route('messages.send', $row['id']) }}" class="inline">
                                                 @csrf
-                                                <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.notYet') }}</button>
-                                            </form>
-
-                                            <form method="POST" action="{{ route('messages.skip', $row['id']) }}" class="flex items-center gap-1">
-                                                @csrf
-                                                <input type="hidden" name="reason" value="{{ $row['skipReason'] ?? '' }}">
-                                                <button type="submit" class="btn-secondary px-2 py-1 text-xs">{{ __('messages.skip') }}</button>
+                                                <button type="submit" class="btn-primary px-2 py-1 text-xs">{{ __('messages.send') }}</button>
                                             </form>
                                         @endif
                                     </div>

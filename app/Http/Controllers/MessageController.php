@@ -86,6 +86,59 @@ class MessageController extends Controller
         return back();
     }
 
+    /** POST /messages/{id}/send — open the SMS app and mark the task as sent. */
+    public function send(Request $request, string $id): RedirectResponse
+    {
+        $actor = $request->user();
+        $task = MessageTask::find($id);
+
+        if ($task === null) {
+            return back()->with('actionError', 'notFound');
+        }
+
+        if (in_array((string) $task->status, [MessageTask::STATUS_SENT, MessageTask::STATUS_SKIPPED, MessageTask::STATUS_CANCELLED], true)) {
+            return back()->with('actionError', 'taskAlreadyHandled');
+        }
+
+        $reason = $this->liveBlockedReason($task);
+
+        if ($reason !== null) {
+            $task->forceFill([
+                'status' => MessageTask::STATUS_BLOCKED,
+                'blocked_reason' => $reason,
+            ])->save();
+
+            return back()->with('actionError', 'blocked');
+        }
+
+        $task->forceFill([
+            'status' => MessageTask::STATUS_SENT,
+            'blocked_reason' => null,
+            'handled_by' => $actor->id,
+            'handled_at' => ClinicTime::nowUtc(),
+        ])->save();
+
+        Audit::write('MessageTask', $id, 'MESSAGE_SENT', null, null, [
+            'id' => $actor->id,
+            'name' => $actor->name,
+        ]);
+
+        $patient = Patient::find($task->patient_id);
+        $platform = Provider::detectPlatform($request->userAgent());
+
+        if ($patient !== null && (string) $patient->phone_e164 !== '') {
+            try {
+                $link = Provider::buildSmsLink((string) $patient->phone_e164, (string) $task->rendered_message, $platform);
+                return redirect()->away($link);
+            } catch (\Throwable $e) {
+                // Fall through to a normal redirect if the link cannot be built.
+            }
+        }
+
+        return back();
+    }
+
+
     /** POST /messages/{id}/sent — the operator confirmed the SMS went out. */
     public function sent(Request $request, string $id): RedirectResponse
     {
