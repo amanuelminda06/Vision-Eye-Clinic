@@ -9,7 +9,7 @@
             <p class="text-sm text-slate-600">{{ __('messages.openSmsHint') }}</p>
 
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <a id="openSmsLink" href="{{ $link }}" class="btn-primary">{{ __('messages.openLink') }}</a>
+                <a id="openSmsLink" href="{{ $link }}" class="btn-primary">{{ __('messages.send') }}</a>
                 <a href="{{ route('messages.index') }}" class="btn-secondary">{{ __('messages.backToMessages') }}</a>
             </div>
         </div>
