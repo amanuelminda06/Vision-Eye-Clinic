@@ -69,8 +69,9 @@ php artisan test          # the whole suite must be green
 - Migrations are portable: they must run on **MySQL 8.0** (production) and on
   **SQLite** (the test suite).
 - The production seed (`database/seeders/DatabaseSeeder.php`) creates the
-  settings, one doctor, the **six real services** and the three accounts from
-  the environment. It creates **no demo patients, sales or appointments**.
+  settings, one doctor, the **six real services**, the message templates, the
+  public-site copy (`SiteContentSeeder`) and the three accounts from the
+  environment. It creates **no demo patients, sales or appointments**.
 - Never run `migrate:fresh` on production.
 
 ## Deployment

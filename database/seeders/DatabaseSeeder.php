@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * PRODUCTION seed — exactly what a fresh clinic install needs:
- * the 17 settings defaults, the doctor staff row, and the three accounts
- * from env (OWNER/RECEPTION/STAFF). Idempotent, matching prisma/seed.ts.
+ * the settings, the doctor staff row, the six real services, the message
+ * templates, the public-site copy and the three accounts from env
+ * (OWNER/RECEPTION/STAFF). Idempotent, matching prisma/seed.ts.
  *
  * NO demo patients, sales, or appointments — those live in DemoSeeder
  * (php artisan db:seed --class=DemoSeeder, dev/test only).
@@ -80,8 +81,9 @@ class DatabaseSeeder extends Seeder
         $this->seedUsers($doctor);
         $this->seedServices();
         $this->seedMessageTemplates();
+        $this->seedSiteContent();
 
-        $this->command?->info('Seeded settings, staff, services, message templates and accounts (no demo data).');
+        $this->command?->info('Seeded settings, staff, services, message templates, site content and accounts (no demo data).');
     }
 
     /**
@@ -329,6 +331,12 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /** The CMS-lite public-site copy (idempotent; never overwrites edits). */
+    private function seedSiteContent(): void
+    {
+        $this->call(SiteContentSeeder::class);
     }
 
     /**

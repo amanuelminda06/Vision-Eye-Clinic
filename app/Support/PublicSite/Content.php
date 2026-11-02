@@ -96,16 +96,16 @@ final class Content
             'am' => '',
         ],
         'faq_items' => [
-            'en' => '',
-            'am' => '',
+            'en' => '[{"question":"Do I need an appointment?","answer":"Walk-ins are welcome, but booking ahead means less waiting. Use the booking form and we will call you to confirm."},{"question":"What should I bring?","answer":"Bring any current glasses or contact lenses, a list of medicines you take, and your previous eye records if you have them."},{"question":"Is an eye exam painful?","answer":"No. The exam is comfortable and non-invasive. Some tests use eye drops that briefly blur your vision, so you may wish to avoid driving afterwards."}]',
+            'am' => '[{"question":"ቀጠሮ ያስፈልጋል?","answer":"ያለቀጠሮ መምጣት ይቻላል፣ ነገር ግን ቀድመው መያዝ ጥበቃን ይቀንሳል። የቀጠሮ ቅጹን ይጠቀሙ፤ እኛም ለማረጋገጥ እንደውልልዎታለን።"},{"question":"ምን ማምጣት አለብኝ?","answer":"ያለዎትን ብርጭቆ ወይም የዓይን ሌንስ፣ የሚወስዱትን መድሃኒት ዝርዝር እና ቀድሞ የነበረዎትን የዓይን መዝገብ ይዘው ይምጡ።"},{"question":"የዓይን ምርመራ ያማል?","answer":"አያማም። ምርመራው ምቹ እና ህዝቃዜ የለውም። አንዳንድ ምርመራዎች ለጥቂት ጊዜ እይታን የሚያደበዝዙ ጠብታዎችን ይጠቀማሉ፤ ስለዚህ ከምርመራ በኋላ መንዳት ይቀርቡ።"}]',
         ],
         'testimonials_items' => [
-            'en' => '',
-            'am' => '',
+            'en' => '[{"name":"Sample patient","text":"Placeholder testimonial — replace with a real, consented patient review."},{"name":"Sample patient","text":"Placeholder testimonial — replace with a real, consented patient review."}]',
+            'am' => '[{"name":"ናሙና ታካሚ","text":"ጊዜያዊ ምስክርነት — በእውነተኛ ፈቃድ በተሰጠ የታካሚ ግምገማ ይተኩ።"},{"name":"ናሙና ታካሚ","text":"ጊዜያዊ ምስክርነት — በእውነተኛ ፈቃድ በተሰጠ የታካሚ ግምገማ ይተኩ።"}]',
         ],
         'contact_address' => [
             'en' => 'Kaliti Farid Building, 2nd floor, Addis Ababa, Ethiopia',
-            'am' => '',
+            'am' => 'ካሊቲ ፋሪድ ቤት፣ 2ኛ ፎቅ፣ አዲስ አበባ፣ ኢትዮጵያ',
         ],
         'contact_phone_primary' => [
             'en' => '+251900000000',
@@ -136,8 +136,8 @@ final class Content
             'am' => 'PLACEHOLDER — Amharic doctors intro pending native-speaker review.',
         ],
         'announcements_items' => [
-            'en' => '',
-            'am' => '',
+            'en' => '[{"title":"Free vision screening this Saturday","message":"Bring your family for a quick eye check. No appointment needed."}]',
+            'am' => '[{"title":"በዚህ ቅዳሜ ነፃ የዓይን ምርመራ","message":"ቤተሰብዎን ይዘው ለፈጣን የዓይን ምርመራ ይምጡ። ቀጠሮ አያስፈልግም።"}]',
         ],
         'city' => [
             'en' => 'Addis Ababa',

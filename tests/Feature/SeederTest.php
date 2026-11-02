@@ -7,8 +7,11 @@ namespace Tests\Feature;
 use App\Models\MessageTemplate;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Models\SiteContent;
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\PublicSite\Content;
+use App\Support\PublicSite\PublicQueries;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -16,8 +19,9 @@ use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /**
- * Production seed (database/seeders/DatabaseSeeder.php): the 17 settings, the
- * doctor staff row and the three env accounts — idempotent, and NEVER any demo
+ * Production seed (database/seeders/DatabaseSeeder.php): the settings, the
+ * doctor staff row, the six services, the message templates, the public-site
+ * content and the three env accounts — idempotent, and NEVER any demo
  * patients/sales/appointments. Invalid env values fail fast without echoing.
  */
 class SeederTest extends TestCase
@@ -195,6 +199,48 @@ class SeederTest extends TestCase
         $this->assertSame(count(self::SETTINGS_KEYS), Setting::count());
         $this->assertSame(3, User::count());
         $this->assertSame(1, Staff::count());
+    }
+
+    public function test_it_seeds_every_public_site_content_key(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertSame(count(Content::CONTENT_KEYS), SiteContent::query()->count());
+
+        foreach (Content::CONTENT_KEYS as $key) {
+            $row = SiteContent::find($key);
+
+            $this->assertNotNull($row, "Missing site content key: {$key}");
+            $this->assertSame(Content::DEFAULT_CONTENT[$key]['en'], (string) $row->value_en);
+            $this->assertSame(Content::DEFAULT_CONTENT[$key]['am'], (string) $row->value_am);
+        }
+    }
+
+    public function test_the_seeded_site_content_includes_the_faq_testimonials_and_announcements(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $content = PublicQueries::getSiteContent();
+
+        $faq = Content::parseItems($content['faq_items']['en'], [Content::class, 'isFaqItem']);
+        $testimonials = Content::parseItems($content['testimonials_items']['en'], [Content::class, 'isTestimonialItem']);
+        $announcements = Content::parseItems($content['announcements_items']['en'], [Content::class, 'isAnnouncementItem']);
+
+        $this->assertCount(3, $faq);
+        $this->assertCount(2, $testimonials);
+        $this->assertCount(1, $announcements);
+        $this->assertSame('Do I need an appointment?', $faq[0]['question']);
+    }
+
+    public function test_reseeding_does_not_overwrite_admin_edited_site_content(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        SiteContent::find('hero_title')->forceFill(['value_en' => 'Clinic-edited headline'])->save();
+
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertSame('Clinic-edited headline', (string) SiteContent::find('hero_title')->value_en);
     }
 
     public function test_reseeding_does_not_overwrite_admin_edited_settings(): void

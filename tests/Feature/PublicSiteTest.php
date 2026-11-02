@@ -427,4 +427,18 @@ class PublicSiteTest extends TestCase
         $this->assertCount(30, Content::CONTENT_KEYS);
         $this->assertSame(Content::CONTENT_KEYS, array_keys(Content::DEFAULT_CONTENT));
     }
+
+    public function test_the_default_faq_announcement_and_testimonial_copy_renders(): void
+    {
+        $this->get('/faq')
+            ->assertOk()
+            ->assertSee('Do I need an appointment?')
+            ->assertSee('What should I bring?')
+            ->assertSee('Is an eye exam painful?');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Free vision screening this Saturday')
+            ->assertSee('Sample patient');
+    }
 }
