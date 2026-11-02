@@ -319,6 +319,74 @@ class PublicSiteTest extends TestCase
         $this->assertStringContainsString('id="announcements"', $body);
     }
 
+    public function test_the_editor_renders_date_pickers_for_the_announcement_window(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $body = $this->actingAs($owner)->get('/dashboard/content')->assertOk()->getContent();
+
+        $this->assertStringContainsString('type="date"', $body);
+        $this->assertStringContainsString('name="announcement_start_en"', $body);
+        $this->assertStringContainsString('name="announcement_end_en"', $body);
+    }
+
+    public function test_an_announcement_window_that_has_already_ended_hides_the_banner(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $this->actingAs($owner)->post('/dashboard/content', [
+            'announcement_active' => 'true',
+            'announcement_text_en' => 'Expired banner',
+            'announcement_text_am' => 'ያለፈ ማስታወቂያ',
+            'announcement_start_en' => now()->subDays(10)->format('Y-m-d'),
+            'announcement_end_en' => now()->subDay()->format('Y-m-d'),
+        ])->assertRedirect();
+
+        $body = $this->get('/')->getContent();
+
+        $this->assertStringNotContainsString('Expired banner', $body);
+        $this->assertStringNotContainsString('id="announcements"', $body);
+    }
+
+    public function test_an_announcement_window_that_starts_in_the_future_hides_the_banner(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $this->actingAs($owner)->post('/dashboard/content', [
+            'announcement_active' => 'true',
+            'announcement_text_en' => 'Future banner',
+            'announcement_text_am' => 'የፊት ማስታወቂያ',
+            'announcement_start_en' => now()->addDay()->format('Y-m-d'),
+            'announcement_end_en' => now()->addDays(10)->format('Y-m-d'),
+        ])->assertRedirect();
+
+        $body = $this->get('/')->getContent();
+
+        $this->assertStringNotContainsString('Future banner', $body);
+        $this->assertStringNotContainsString('id="announcements"', $body);
+    }
+
+    public function test_an_invalid_announcement_date_is_rejected(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $this->actingAs($owner)->post('/dashboard/content', [
+            'announcement_start_en' => '2026-13-40',
+        ])->assertSessionHasErrors('announcement_start_en');
+
+        $this->assertDatabaseMissing('site_content', ['key' => 'announcement_start']);
+    }
+
+    public function test_the_announcement_end_must_not_be_before_the_start(): void
+    {
+        $owner = $this->createUser(['role' => Roles::OWNER]);
+
+        $this->actingAs($owner)->post('/dashboard/content', [
+            'announcement_start_en' => '2026-12-31',
+            'announcement_end_en' => '2026-01-01',
+        ])->assertSessionHasErrors('announcement_end_en');
+    }
+
     public function test_an_inactive_announcement_is_hidden(): void
     {
         $owner = $this->createUser(['role' => Roles::OWNER]);

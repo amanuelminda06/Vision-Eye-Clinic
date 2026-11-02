@@ -46,6 +46,26 @@
                             <input type="checkbox" name="announcement_active" value="true" @checked($value($key, 'en') === 'true')>
                             {{ __('content.announcementActive') }}
                         </label>
+                    @elseif (in_array($key, ['announcement_start', 'announcement_end'], true))
+                        @php
+                            $dateLabel = $key === 'announcement_start'
+                                ? __('content.announcementStart')
+                                : __('content.announcementEnd');
+                            $min = $key === 'announcement_end' ? $value('announcement_start', 'en') : '';
+                            $max = $key === 'announcement_start' ? $value('announcement_end', 'en') : '';
+                        @endphp
+                        <div>
+                            <label class="label text-xs" for="{{ $key }}_en">{{ $dateLabel }}</label>
+                            <input type="date" class="input-field text-sm" id="{{ $key }}_en" name="{{ $key }}_en"
+                                   value="{{ $value($key, 'en') }}"
+                                   @if ($min !== '') min="{{ $min }}" @endif
+                                   @if ($max !== '') max="{{ $max }}" @endif>
+                            @if ($error = $errors->first($key.'_en'))
+                                <p class="mt-1 text-xs text-red-600">{{ field_error($error) }}</p>
+                            @endif
+                            {{-- The window is global; the Amharic half is kept as-is. --}}
+                            <input type="hidden" name="{{ $key }}_am" value="{{ $value($key, 'am') }}">
+                        </div>
                     @else
                         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
@@ -65,3 +85,41 @@
         </form>
     </div>
 @endsection
+@push('scripts')
+<script>
+    (function () {
+        var start = document.getElementById('announcement_start_en');
+        var end = document.getElementById('announcement_end_en');
+
+        if (!start || !end) {
+            return;
+        }
+
+        function sync() {
+            if (start.value) {
+                end.min = start.value;
+            } else {
+                end.removeAttribute('min');
+            }
+
+            if (end.value) {
+                start.max = end.value;
+            } else {
+                start.removeAttribute('max');
+            }
+
+            if (end.min && end.value && end.value < end.min) {
+                end.value = '';
+            }
+
+            if (start.max && start.value && start.value > start.max) {
+                start.value = '';
+            }
+        }
+
+        start.addEventListener('change', sync);
+        end.addEventListener('change', sync);
+        sync();
+    })();
+</script>
+@endpush

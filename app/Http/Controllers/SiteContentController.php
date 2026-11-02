@@ -62,7 +62,22 @@ class SiteContentController extends Controller
                 return back()->withErrors([$key => 'tooLong'])->withInput();
             }
 
+            // The banner window is two clinic-local dates (YYYY-MM-DD) and is
+            // read from the `en` columns only. Reject anything the browser's
+            // date picker could not have produced.
+            if (in_array($key, ['announcement_start', 'announcement_end'], true)
+                && $en !== ''
+                && ! self::isIsoDate($en)) {
+                return back()->withErrors([$key.'_en' => 'invalidDate'])->withInput();
+            }
+
             $submitted[$key] = ['en' => $en, 'am' => $am];
+        }
+
+        if ($submitted['announcement_start']['en'] !== ''
+            && $submitted['announcement_end']['en'] !== ''
+            && $submitted['announcement_start']['en'] > $submitted['announcement_end']['en']) {
+            return back()->withErrors(['announcement_end_en' => 'endBeforeStart'])->withInput();
         }
 
         // The announcement flag is a single checkbox, mirrored into the `en`
@@ -187,5 +202,13 @@ class SiteContentController extends Controller
         ]);
 
         return back();
+    }
+
+    /** True only for a real calendar date in the exact `YYYY-MM-DD` form. */
+    private static function isIsoDate(string $value): bool
+    {
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+        return $date !== false && $date->format('Y-m-d') === $value;
     }
 }
