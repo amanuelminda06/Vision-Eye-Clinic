@@ -395,8 +395,9 @@ class CampaignController extends Controller
     private function openSmsApp(MessageTask $task, User $actor): ?RedirectResponse
     {
         $patient = Patient::find($task->patient_id);
+        $phoneE164 = $patient?->effectivePhoneE164();
 
-        if ($patient === null || (string) $patient->phone_e164 === '') {
+        if ($patient === null || $phoneE164 === null || $phoneE164 === '') {
             return null;
         }
 

@@ -40,7 +40,12 @@ final class PatientValidation
     /**
      * Validate the create/edit patient form.
      *
-     * @param  array{fullName?: string, phone?: string, sex?: string, age?: string, preferredLanguage?: string, notesNonClinical?: string, idNo?: string, idPhoto?: array{type: string, size: int}|null}  $raw
+     * The phone is required UNLESS a guardian is given: a child has no number
+     * of their own and messages go to the guardian's. With no guardian the
+     * phone stays mandatory, so the duplicate rule keeps its meaning for
+     * every patient who owns a number.
+     *
+     * @param  array{fullName?: string, phone?: string, sex?: string, age?: string, preferredLanguage?: string, notesNonClinical?: string, idNo?: string, guardianId?: string, guardian?: string, idPhoto?: array{type: string, size: int}|null}  $raw
      * @return array{fields: array<string, string>, values: array<string, mixed>}
      */
     public static function patientForm(array $raw): array
@@ -54,10 +59,22 @@ final class PatientValidation
             $fields['fullName'] = 'tooLong';
         }
 
+        $guardianId = trim((string) ($raw['guardianId'] ?? ''));
+        $guardian = trim((string) ($raw['guardian'] ?? ''));
+        if (mb_strlen($guardianId, 'UTF-8') > 64) {
+            $fields['guardianId'] = 'tooLong';
+        }
+        if (mb_strlen($guardian, 'UTF-8') > 64) {
+            $fields['guardian'] = 'tooLong';
+        }
+
         $phoneInput = trim((string) ($raw['phone'] ?? ''));
         $phone = null;
+        $hasGuardian = $guardianId !== '' || $guardian !== '';
         if ($phoneInput === '') {
-            $fields['phone'] = 'required';
+            if (! $hasGuardian) {
+                $fields['phone'] = 'required';
+            }
         } else {
             $normalized = Phone::toE164($phoneInput);
             if ($normalized === null) {
@@ -121,6 +138,10 @@ final class PatientValidation
                 'preferredLanguage' => $language === '' ? null : $language,
                 'notesNonClinical' => $notes === '' ? null : $notes,
                 'idNo' => $idNo === '' ? null : $idNo,
+                // Resolved to a patient id by the controller (a guardian
+                // may be given as an id or as a phone / system-ID lookup).
+                'guardianId' => $guardianId === '' ? null : $guardianId,
+                'guardian' => $guardian === '' ? null : $guardian,
             ],
         ];
     }

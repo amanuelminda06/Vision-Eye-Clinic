@@ -14,6 +14,14 @@
     $duplicate = session('duplicatePatient');
     // Round-2 submit carries confirm=true once the amber panel was shown.
     $showConfirm = $similar !== [];
+
+    // The guardian lookup is pre-filled with the linked guardian's number (or
+    // system ID) so re-submitting the form keeps the same link untouched.
+    $linkedGuardian = $patient?->guardian;
+    $guardianPrefill = '';
+    if ($linkedGuardian !== null) {
+        $guardianPrefill = Phone::display($linkedGuardian->phone_e164) ?: (string) $linkedGuardian->system_id;
+    }
 @endphp
 
 @section('content')
@@ -42,10 +50,28 @@
             <div>
                 <label class="label" for="phone">{{ __('patients.phone') }}</label>
                 <input class="input-field" id="phone" name="phone" type="tel" inputmode="tel" placeholder="0912345678"
-                       required autocomplete="off" value="{{ $phoneValue }}"
+                       autocomplete="off" value="{{ $phoneValue }}"
                        @if ($errors->has('phone')) aria-invalid="true" @endif>
                 <p class="mt-1 text-xs text-slate-500">{{ __('patients.phoneHint') }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ __('patients.phoneOptional') }}</p>
                 @error('phone')
+                    <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label class="label" for="guardian">{{ __('patients.guardian') }}</label>
+                <input class="input-field" id="guardian" name="guardian" type="text" autocomplete="off"
+                       placeholder="{{ __('patients.guardianPlaceholder') }}" value="{{ old('guardian', $guardianPrefill) }}"
+                       @if ($errors->has('guardian') || $errors->has('guardianId')) aria-invalid="true" @endif>
+                <p class="mt-1 text-xs text-slate-500">{{ __('patients.guardianHint') }}</p>
+                @if ($linkedGuardian !== null)
+                    <p class="mt-1 text-xs text-slate-600">{{ __t('patients.guardianLinked', ['name' => $linkedGuardian->full_name]) }}</p>
+                @endif
+                @error('guardian')
+                    <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>
+                @enderror
+                @error('guardianId')
                     <p role="alert" class="mt-1 text-xs font-medium text-red-600">{{ $tv($message) }}</p>
                 @enderror
             </div>
@@ -228,6 +254,30 @@
                 lightbox.classList.remove('flex');
             }
         });
+    })();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+    // The phone is required — unless a guardian is linked, in which case the
+    // guardian's number is what messages are addressed to. The server enforces
+    // the same rule, so this only keeps the browser hint honest.
+    (function () {
+        var phone = document.getElementById('phone');
+        var guardian = document.getElementById('guardian');
+        if (!phone || !guardian) return;
+
+        var sync = function () {
+            if (guardian.value.trim() !== '') {
+                phone.removeAttribute('required');
+            } else {
+                phone.setAttribute('required', '');
+            }
+        };
+
+        guardian.addEventListener('input', sync);
+        sync();
     })();
 </script>
 @endpush

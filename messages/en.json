@@ -341,7 +341,10 @@
         "invalidPreset": "Choose a follow-up preset.",
         "maxLength": "Keep it within {max} characters.",
         "idPhotoDisabled": "Patient ID photos are disabled.",
-        "sickLeaveDisabled": "Patient sick leave is disabled."
+        "sickLeaveDisabled": "Patient sick leave is disabled.",
+        "invalidGuardian": "No patient matches that phone number or system ID.",
+        "guardianSelf": "A patient cannot be their own guardian.",
+        "guardianCycle": "That guardian would create a loop in the family link."
     },
     "appointments": {
         "title": "Appointments",
@@ -455,6 +458,14 @@
         "fullName": "Full name",
         "phone": "Phone",
         "phoneHint": "Ethiopian mobile — 09…, 07… or +251…",
+        "phoneOptional": "Optional when a guardian is selected below.",
+        "guardian": "Guardian",
+        "guardianPlaceholder": "Guardian's phone number or system ID",
+        "guardianHint": "For a child who has no phone: messages are sent to this guardian's number. Leave empty when the patient has their own phone.",
+        "guardianLinked": "Linked guardian: {name}",
+        "guardianNone": "No guardian linked",
+        "guardianHit": "Guardian: {name}",
+        "phoneViaGuardian": "Guardian's number",
         "sex": "Sex",
         "sexMale": "Male",
         "sexFemale": "Female",

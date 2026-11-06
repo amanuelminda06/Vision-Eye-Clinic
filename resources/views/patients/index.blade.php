@@ -106,6 +106,7 @@
                         <th class="px-4 py-3 font-medium">{{ __('patients.systemId') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.idNo') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.phone') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('patients.guardian') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('patients.sex') }}</th>
                         <th class="px-4 py-3 font-medium">
                             <a href="{{ route('patients.index').$buildQuery(['sort' => 'age', 'dir' => ($activeSort === 'age' && $filters['dir'] === 'asc') ? 'desc' : 'asc', 'page' => 1]) }}" class="hover:text-slate-900">
@@ -132,7 +133,27 @@
                             </td>
                             <td class="px-4 py-3 font-mono text-slate-700">{{ $row->system_id ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $row->id_no ?? '—' }}</td>
-                            <td class="px-4 py-3 text-slate-600"><a href="tel:{{ $row->phone_e164 }}" class="hover:text-slate-900">{{ $row->phone_e164 }}</a></td>
+                            <td class="px-4 py-3 text-slate-600">
+                                @if ($row->phone_e164 !== null && $row->phone_e164 !== '')
+                                    <a href="tel:{{ $row->phone_e164 }}" class="hover:text-slate-900">{{ $row->phone_e164 }}</a>
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-slate-600">
+                                @if ($row->guardian !== null)
+                                    <a href="{{ route('patients.show', $row->guardian->id) }}" class="font-medium hover:text-slate-900">{{ $row->guardian->full_name }}</a>
+                                    <span class="block text-xs text-slate-500">
+                                        @if ($row->guardian->phone_e164 !== null && $row->guardian->phone_e164 !== '')
+                                            <a href="tel:{{ $row->guardian->phone_e164 }}" class="hover:text-slate-900">{{ $row->guardian->phone_e164 }}</a>
+                                        @else
+                                            —
+                                        @endif
+                                    </span>
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-slate-600">{{ $sexLabel($row->sex) }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $row->age ?? '—' }}</td>
                             <td class="px-4 py-3">
@@ -151,7 +172,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-10 text-center text-slate-500">
+                            <td colspan="10" class="px-4 py-10 text-center text-slate-500">
                                 {{ $hasFilters ? $tc('noResults') : $tc('empty') }}
                             </td>
                         </tr>

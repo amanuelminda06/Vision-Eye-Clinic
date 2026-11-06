@@ -29,6 +29,13 @@ final class PatientQueries
 
     public const EXPORT_ROW_CAP = 5000;
 
+    /**
+     * The guardian columns every list/detail surface renders — keeping the
+     * relation eager means effectivePhoneE164() never issues a lazy query
+     * per row.
+     */
+    public const GUARDIAN_WITH = 'guardian:id,full_name,phone_e164';
+
     /** Whitelist a `?sort=` value (legacy sortFrom). Also accepts DB column names. */
     public static function sortColumn(?string $value): string
     {
@@ -62,11 +69,20 @@ final class PatientQueries
 
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
-            $query->where(function (Builder $inner) use ($q): void {
+            $variants = Phone::phoneSearchVariants($q) ?? [];
+
+            $query->where(function (Builder $inner) use ($q, $variants): void {
                 $inner->where('full_name', 'like', '%'.self::escapeLike($q).'%');
 
-                foreach (Phone::phoneSearchVariants($q) ?? [] as $variant) {
+                foreach ($variants as $variant) {
                     $inner->orWhere('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
+
+                    // A linked child stores no phone of their own: searching
+                    // the guardian's number returns the guardian AND every
+                    // family member linked to them.
+                    $inner->orWhereHas('guardian', function (Builder $guardian) use ($variant): void {
+                        $guardian->where('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
+                    });
                 }
 
                 $inner->orWhere('system_id', 'like', '%'.self::escapeLike($q).'%');
@@ -116,7 +132,7 @@ final class PatientQueries
         $page = min(max(1, (int) ($filters['page'] ?? 1)), $pageCount);
 
         $rows = self::buildWhere($filters)
-            ->with(['tags' => fn ($relation) => $relation->orderBy('name')])
+            ->with(['tags' => fn ($relation) => $relation->orderBy('name'), self::GUARDIAN_WITH])
             ->orderBy(self::sortColumn($filters['sort'] ?? null), self::sortDir($filters['dir'] ?? null))
             ->orderBy('id')
             ->skip(($page - 1) * self::PAGE_SIZE)
@@ -135,17 +151,20 @@ final class PatientQueries
     public static function listForExport(array $filters): Collection
     {
         return self::buildWhere($filters)
-            ->with(['tags' => fn ($relation) => $relation->orderBy('name')])
+            ->with(['tags' => fn ($relation) => $relation->orderBy('name'), self::GUARDIAN_WITH])
             ->orderBy(self::sortColumn($filters['sort'] ?? null), self::sortDir($filters['dir'] ?? null))
             ->orderBy('id')
             ->take(self::EXPORT_ROW_CAP)
             ->get();
     }
 
-    /** Detail loader: tags (name asc) + the creator's name (no FK, raw id). */
+    /** Detail loader: tags (name asc) + the guardian + the creator's name. */
     public static function find(string $id): ?Patient
     {
-        $patient = Patient::with(['tags' => fn ($relation) => $relation->orderBy('name')])->find($id);
+        $patient = Patient::with([
+            'tags' => fn ($relation) => $relation->orderBy('name'),
+            self::GUARDIAN_WITH,
+        ])->find($id);
 
         if ($patient === null) {
             return null;

@@ -43,6 +43,33 @@ class PatientValidationTest extends TestCase
         $this->assertSame('required', $result['fields']['phone']);
     }
 
+    public function test_the_phone_is_optional_when_a_guardian_is_given(): void
+    {
+        // The human lookup field (a phone or a system ID) waives the phone.
+        $byLookup = PatientValidation::patientForm([
+            'fullName' => 'Child', 'phone' => '', 'guardian' => '0911223344',
+        ]);
+        $this->assertSame([], $byLookup['fields']);
+        $this->assertNull($byLookup['values']['phone']);
+
+        // …and so does an explicit patient id on programmatic posts.
+        $byId = PatientValidation::patientForm([
+            'fullName' => 'Child', 'phone' => '', 'guardianId' => '01JXXXXXXXXXXXXXXXXXXXXXXX',
+        ]);
+        $this->assertSame([], $byId['fields']);
+        $this->assertNull($byId['values']['phone']);
+    }
+
+    public function test_a_guardian_does_not_excuse_an_invalid_phone(): void
+    {
+        $result = PatientValidation::patientForm([
+            'fullName' => 'Child', 'phone' => '12345', 'guardian' => '0911223344',
+        ]);
+
+        $this->assertSame('invalidPhone', $result['fields']['phone']);
+        $this->assertNull($result['values']['phone']);
+    }
+
     public function test_rejects_too_long_name(): void
     {
         $result = PatientValidation::patientForm(['fullName' => str_repeat('a', 121), 'phone' => '0911223344']);

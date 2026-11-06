@@ -124,8 +124,9 @@ class MessageController extends Controller
         ]);
 
         $patient = Patient::find($task->patient_id);
+        $phoneE164 = $patient?->effectivePhoneE164();
 
-        if ($patient !== null && (string) $patient->phone_e164 !== '') {
+        if ($patient !== null && $phoneE164 !== null && $phoneE164 !== '') {
             return redirect()->route('messages.sms', ['id' => $id]);
         }
 
@@ -149,14 +150,16 @@ class MessageController extends Controller
         }
 
         $patient = Patient::find($task->patient_id);
+        // A child linked to a guardian is messaged on the guardian's number.
+        $phoneE164 = $patient?->effectivePhoneE164();
 
-        if ($patient === null || (string) $patient->phone_e164 === '') {
+        if ($patient === null || $phoneE164 === null || $phoneE164 === '') {
             return redirect()->route('messages.index')->with('actionError', 'notFound');
         }
 
         try {
             $link = Provider::buildSmsLink(
-                (string) $patient->phone_e164,
+                $phoneE164,
                 (string) $task->rendered_message,
                 Provider::detectPlatform($request->userAgent()),
             );
@@ -306,7 +309,7 @@ class MessageController extends Controller
             'patient' => [
                 'active' => (bool) $patient->active,
                 'doNotMessage' => (bool) $patient->do_not_message,
-                'phoneE164' => (string) $patient->phone_e164,
+                'phoneE164' => (string) ($patient->effectivePhoneE164() ?? ''),
             ],
             'sourceStatus' => $this->sourceStatus($task),
         ]);

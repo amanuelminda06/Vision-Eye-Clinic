@@ -684,6 +684,9 @@ final class TaskGenerator
     /**
      * The patient fields the messaging rules need.
      *
+     * `phoneE164` is the number the message must reach: the patient's own
+     * number, or — for a child linked to a guardian — the guardian's.
+     *
      * @return array<string, mixed>
      */
     private static function patientPayload(?Patient $patient): array
@@ -691,7 +694,7 @@ final class TaskGenerator
         return [
             'id' => $patient?->id ?? '',
             'fullName' => (string) ($patient?->full_name ?? ''),
-            'phoneE164' => (string) ($patient?->phone_e164 ?? ''),
+            'phoneE164' => (string) ($patient?->effectivePhoneE164() ?? ''),
             'preferredLanguage' => (string) ($patient?->preferred_language ?? 'en'),
             'doNotMessage' => (bool) ($patient?->do_not_message ?? false),
             'active' => (bool) ($patient?->active ?? false),

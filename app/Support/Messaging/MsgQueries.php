@@ -28,6 +28,18 @@ use Illuminate\Database\Eloquent\Collection;
 final class MsgQueries
 {
     /**
+     * The patient columns a task row renders — the guardian link included,
+     * because it decides which number the message reaches (a linked child
+     * borrows the guardian's number), without a lazy query per row.
+     *
+     * @var list<string>
+     */
+    private const PATIENT_WITH = [
+        'patient:id,full_name,phone_e164,guardian_id',
+        'patient.guardian:id,full_name,phone_e164',
+    ];
+
+    /**
      * The active template bodies as a `KEY:lang` map.
      *
      * @return array<string, string>
@@ -64,7 +76,7 @@ final class MsgQueries
         $dayEnd = ClinicTime::endOfDay($now, $timeZone);
 
         $rows = MessageTask::query()
-            ->with(['patient:id,full_name,phone_e164', 'campaign:id,title'])
+            ->with([...self::PATIENT_WITH, 'campaign:id,title'])
             ->where(function (Builder $inner) use ($dayEnd, $dayStart): void {
                 $inner->where(function (Builder $open) use ($dayEnd): void {
                     $open->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED])
@@ -171,7 +183,7 @@ final class MsgQueries
         $to = ClinicTime::combineDateAndTime(ClinicTime::dateKeyAdd($todayKey, 1), '00:00', $timeZone);
 
         $rows = MessageTask::query()
-            ->with(['patient:id,full_name,phone_e164', 'campaign:id,title'])
+            ->with([...self::PATIENT_WITH, 'campaign:id,title'])
             ->whereIn('status', [MessageTask::STATUS_PENDING, MessageTask::STATUS_OPENED, MessageTask::STATUS_BLOCKED])
             ->where('due_at', '<', $to)
             ->orderBy('due_at')
@@ -187,7 +199,7 @@ final class MsgQueries
     public static function getTask(string $id): ?array
     {
         $task = MessageTask::query()
-            ->with(['patient:id,full_name,phone_e164', 'campaign:id,title'])
+            ->with([...self::PATIENT_WITH, 'campaign:id,title'])
             ->find($id);
 
         return $task === null ? null : self::serializeTask($task);
@@ -201,7 +213,7 @@ final class MsgQueries
     public static function listPatientMessages(string $patientId, int $limit = 100): array
     {
         return MessageTask::query()
-            ->with('patient:id,full_name,phone_e164')
+            ->with(self::PATIENT_WITH)
             ->where('patient_id', $patientId)
             ->orderByDesc('created_at')
             ->take($limit)
@@ -367,7 +379,7 @@ final class MsgQueries
     public static function listCampaignTasks(string $campaignId): array
     {
         return MessageTask::query()
-            ->with('patient:id,full_name,phone_e164')
+            ->with(self::PATIENT_WITH)
             ->where('campaign_id', $campaignId)
             ->orderBy('created_at')
             ->take(500)
@@ -400,7 +412,7 @@ final class MsgQueries
     public static function expiredNotSentReport(string $timeZone): array
     {
         $rows = MessageTask::query()
-            ->with('patient:id,full_name,phone_e164')
+            ->with(self::PATIENT_WITH)
             ->where('status', MessageTask::STATUS_EXPIRED)
             ->orderByDesc('expires_at')
             ->take(1000)
@@ -431,7 +443,7 @@ final class MsgQueries
     public static function listCandidates(): array
     {
         $patients = Patient::query()
-            ->with('tags:id,name')
+            ->with(['tags:id,name', 'guardian:id,full_name,phone_e164'])
             ->orderBy('full_name')
             ->get();
 
@@ -460,7 +472,9 @@ final class MsgQueries
             return [
                 'id' => $patient->id,
                 'fullName' => (string) $patient->full_name,
-                'phoneE164' => (string) $patient->phone_e164,
+                // The number a message reaches: their own, or the linked
+                // guardian's for a child who has no phone.
+                'phoneE164' => (string) ($patient->effectivePhoneE164() ?? ''),
                 'preferredLanguage' => (string) $patient->preferred_language,
                 'doNotMessage' => (bool) $patient->do_not_message,
                 'active' => (bool) $patient->active,
@@ -577,7 +591,7 @@ final class MsgQueries
             'id' => $task->id,
             'patientId' => $task->patient_id,
             'patientName' => $task->patient?->full_name ?? '',
-            'patientPhoneE164' => $task->patient?->phone_e164,
+            'patientPhoneE164' => $task->patient?->effectivePhoneE164(),
             'templateKey' => (string) $task->template_key,
             'sourceType' => (string) $task->source_type,
             'sourceId' => (string) $task->source_id,

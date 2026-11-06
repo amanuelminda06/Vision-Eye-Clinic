@@ -54,4 +54,7 @@ return [
     'maxLength' => 'እስከ {max} ቁምፊዎች ያቆዩ።',
     'idPhotoDisabled' => 'የታማኒ ፎቶ አልተፈቀደም።',
     'sickLeaveDisabled' => 'የታማኒ በሽታ ፈልጋ አልተፈቀደም።',
+    'invalidGuardian' => 'በዚህ ስልክ ወይም በስርዓት መለያ የሚመስል ታካሚ አልተገኘም።',
+    'guardianSelf' => 'ታካሚ ራሱን እንደአሳዳጊ መምረጥ አይችልም።',
+    'guardianCycle' => 'ይህ አሳዳጊ አገናኝ ወደዚያው ታካሚ አስቀድሞ ተገናኝተሃል።',
 ];

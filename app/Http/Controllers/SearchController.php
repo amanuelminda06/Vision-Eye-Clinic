@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\Sale;
 use App\Support\ClinicTime;
 use App\Support\Money;
+use App\Support\Patients\PatientQueries;
 use App\Support\Phone;
 use App\Support\Settings;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,11 @@ use Illuminate\Http\Request;
  *
  * OWNER+RECEPTION only (route gate). `q` is trimmed and capped to 100 chars;
  * fewer than 2 chars returns empty groups. The patient branch only runs at 3+
- * chars, is restricted to active patients, and matches name (insensitive) or a
- * phone search variant — 6 hits, ordered by name.
+ * chars, is restricted to active patients, and matches name (insensitive), a
+ * phone search variant, or the phone of the patient's guardian — searching a
+ * guardian's number returns the guardian AND every linked family member — 6
+ * hits, ordered by name. A linked child's hit carries the guardian's name and
+ * number, because that is the number their messages reach.
  *
  * The sales branch matches receipt number, patient name or a phone variant
  * (newest first). Every group is finally sorted by title with a locale-aware
@@ -45,15 +49,24 @@ class SearchController extends Controller
         $sales = [];
 
         if (mb_strlen($q, 'UTF-8') >= 3) {
+            $variants = Phone::phoneSearchVariants($q) ?? [];
+
             $query = Patient::query()
                 ->where('active', true)
-                ->where(function ($inner) use ($q): void {
+                ->where(function ($inner) use ($q, $variants): void {
                     $inner->where('full_name', 'like', '%'.self::escapeLike($q).'%');
 
-                    foreach (Phone::phoneSearchVariants($q) ?? [] as $variant) {
+                    foreach ($variants as $variant) {
                         $inner->orWhere('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
+
+                        // A linked child has no phone of their own: the
+                        // guardian's number finds the whole family.
+                        $inner->orWhereHas('guardian', function ($guardian) use ($variant): void {
+                            $guardian->where('phone_e164', 'like', '%'.self::escapeLike($variant).'%');
+                        });
                     }
                 })
+                ->with(PatientQueries::GUARDIAN_WITH)
                 ->orderBy('full_name')
                 ->take(6)
                 ->get();
@@ -62,7 +75,7 @@ class SearchController extends Controller
                 $patients[] = [
                     'id' => $patient->id,
                     'title' => $patient->full_name,
-                    'subtitle' => $patient->phone_e164,
+                    'subtitle' => self::subtitle($patient),
                     'href' => "/patients/{$patient->id}",
                 ];
             }
@@ -106,6 +119,24 @@ class SearchController extends Controller
             'sales' => self::sortHits($sales),
             'appointments' => [],
         ])->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * The line under a hit: the patient's own number, or — for a linked
+     * child — the guardian's name and number (the one messages reach).
+     */
+    private static function subtitle(Patient $patient): ?string
+    {
+        $guardian = $patient->guardian;
+
+        if ($guardian === null) {
+            return $patient->phone_e164;
+        }
+
+        $hit = __t('patients.guardianHit', ['name' => $guardian->full_name]);
+        $phone = $guardian->phone_e164;
+
+        return $phone === null || $phone === '' ? $hit : $hit.' · '.$phone;
     }
 
     /**

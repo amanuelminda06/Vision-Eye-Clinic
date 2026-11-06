@@ -10,6 +10,7 @@ use App\Support\Appointments\ApptQueries;
 use App\Support\Audit;
 use App\Support\Messaging\MsgQueries;
 use App\Support\Messaging\TaskGenerator;
+use App\Support\Patients\GuardianLink;
 use App\Support\Patients\PatientImport;
 use App\Support\Patients\PatientQueries;
 use App\Support\Patients\PatientTabs;
@@ -35,7 +36,10 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Rules preserved:
  * - PATIENT_ROLES = OWNER + RECEPTION; STAFF never reaches here (route gate).
- * - phone stored E.164, unique → duplicate blocks create/update.
+ * - phone stored E.164, unique → duplicate blocks create/update (a patient
+ *   with no phone of their own — a linked child — has nothing to duplicate).
+ * - a guardian link lets a child be saved with no phone: messages then go to
+ *   the guardian's number; every link change is audited.
  * - similar-name warning is non-blocking (second submit with confirm=1).
  * - no hard deletes: only `active` toggles.
  * - stop-messages re-enable is OWNER-only.
@@ -115,12 +119,22 @@ class PatientController extends Controller
 
         $values = $validated['values'];
 
-        $duplicate = PatientQueries::findByPhone($values['phone']);
-        if ($duplicate !== null) {
-            return back()->with('duplicatePatient', [
-                'id' => $duplicate->id,
-                'fullName' => $duplicate->full_name,
-            ])->withInput($request->except('idPhoto'));
+        $guardian = $this->guardianFrom($values);
+        if ($guardian['error'] !== null) {
+            return back()->withErrors([$guardian['errorKey'] => $guardian['error']])
+                ->withInput($request->except('idPhoto'));
+        }
+
+        // A patient with no number of their own (a linked child) has nothing
+        // to duplicate — the rule only ever applies to a real phone.
+        if ($values['phone'] !== null) {
+            $duplicate = PatientQueries::findByPhone($values['phone']);
+            if ($duplicate !== null) {
+                return back()->with('duplicatePatient', [
+                    'id' => $duplicate->id,
+                    'fullName' => $duplicate->full_name,
+                ])->withInput($request->except('idPhoto'));
+            }
         }
 
         $confirmed = (string) $request->input('confirm', '') === 'true';
@@ -154,6 +168,8 @@ class PatientController extends Controller
                 'notes_non_clinical' => $values['notesNonClinical'],
                 'id_no' => $values['idNo'],
                 'id_photo_url' => $idPhotoUrl,
+                'guardian_id' => $guardian['id'],
+                'relationship' => $guardian['id'] !== null ? Patient::RELATIONSHIP_GUARDIAN : null,
                 'active' => true,
                 'created_by' => $actor->id,
             ]);
@@ -162,7 +178,7 @@ class PatientController extends Controller
                 throw $exception;
             }
 
-            $existing = PatientQueries::findByPhone($values['phone']);
+            $existing = $values['phone'] === null ? null : PatientQueries::findByPhone($values['phone']);
 
             return back()->with('duplicatePatient', $existing === null ? null : [
                 'id' => $existing->id,
@@ -251,12 +267,21 @@ class PatientController extends Controller
 
         $values = $validated['values'];
 
-        $duplicate = PatientQueries::findByPhone($values['phone']);
-        if ($duplicate !== null && $duplicate->id !== $id) {
-            return back()->with('duplicatePatient', [
-                'id' => $duplicate->id,
-                'fullName' => $duplicate->full_name,
-            ])->withInput($request->except('idPhoto'));
+        $guardian = $this->guardianFrom($values, $id);
+        if ($guardian['error'] !== null) {
+            return back()->withErrors([$guardian['errorKey'] => $guardian['error']])
+                ->withInput($request->except('idPhoto'));
+        }
+
+        // Only a real number can clash; a linked child keeps NULL.
+        if ($values['phone'] !== null) {
+            $duplicate = PatientQueries::findByPhone($values['phone']);
+            if ($duplicate !== null && $duplicate->id !== $id) {
+                return back()->with('duplicatePatient', [
+                    'id' => $duplicate->id,
+                    'fullName' => $duplicate->full_name,
+                ])->withInput($request->except('idPhoto'));
+            }
         }
 
         $confirmed = (string) $request->input('confirm', '') === 'true';
@@ -280,6 +305,7 @@ class PatientController extends Controller
 
         $beforeSnapshot = $this->snapshot($before);
         $oldPhotoUrl = $before->id_photo_url;
+        $beforeGuardianId = $before->guardian_id;
 
         $before->fill([
             'full_name' => $values['fullName'],
@@ -290,6 +316,8 @@ class PatientController extends Controller
             'notes_non_clinical' => $values['notesNonClinical'],
             'id_no' => $values['idNo'],
             'id_photo_url' => $idPhotoUrl,
+            'guardian_id' => $guardian['id'],
+            'relationship' => $guardian['id'] !== null ? Patient::RELATIONSHIP_GUARDIAN : null,
         ])->save();
 
         // Replace the old blob only after a successful save (best-effort).
@@ -305,10 +333,23 @@ class PatientController extends Controller
         }
 
         $actor = $request->user();
-        Audit::write('Patient', $id, 'PATIENT_UPDATED', $beforeSnapshot, $this->snapshot($before->fresh()), [
+        $after = $before->fresh();
+
+        Audit::write('Patient', $id, 'PATIENT_UPDATED', $beforeSnapshot, $this->snapshot($after), [
             'id' => $actor->id,
             'name' => $actor->name,
         ]);
+
+        // Linking / unlinking a guardian is its own auditable event: the
+        // PATIENT_UPDATED diff above carries the field, this row says that
+        // the family link itself is what changed.
+        if ($beforeGuardianId !== $after->guardian_id) {
+            Audit::write('Patient', $id, 'PATIENT_GUARDIAN_CHANGED', [
+                'guardianId' => $beforeGuardianId,
+            ], [
+                'guardianId' => $after->guardian_id,
+            ], ['id' => $actor->id, 'name' => $actor->name]);
+        }
 
         return redirect("/patients/{$id}");
     }
@@ -510,8 +551,44 @@ class PatientController extends Controller
             'preferredLanguage' => (string) $request->input('preferredLanguage', ''),
             'notesNonClinical' => (string) $request->input('notesNonClinical', ''),
             'idNo' => (string) $request->input('idNo', ''),
+            'guardianId' => (string) $request->input('guardianId', ''),
+            'guardian' => (string) $request->input('guardian', ''),
             'idPhoto' => $file !== null ? ['type' => (string) $file->getMimeType(), 'size' => (int) $file->getSize()] : null,
         ];
+    }
+
+    /**
+     * The guardian the form points at: an explicit patient id wins, otherwise
+     * the `guardian` lookup (a phone number or a system ID). Empty input
+     * clears the link.
+     *
+     * @param  array<string, mixed>  $values
+     * @return array{id: string|null, error: string|null, errorKey: string}
+     */
+    private function guardianFrom(array $values, ?string $patientId = null): array
+    {
+        $explicit = (string) ($values['guardianId'] ?? '');
+        $lookup = (string) ($values['guardian'] ?? '');
+        $errorKey = $explicit !== '' ? 'guardianId' : 'guardian';
+
+        if ($explicit === '' && $lookup === '') {
+            return ['id' => null, 'error' => null, 'errorKey' => 'guardian'];
+        }
+
+        // GuardianLink::resolve() understands an id as well as the human
+        // lookup, so one path answers both inputs.
+        $guardian = GuardianLink::resolve($explicit !== '' ? $explicit : $lookup);
+
+        if ($guardian === null) {
+            return ['id' => null, 'error' => 'invalidGuardian', 'errorKey' => $errorKey];
+        }
+
+        $error = GuardianLink::linkError($patientId, $guardian);
+        if ($error !== null) {
+            return ['id' => null, 'error' => $error, 'errorKey' => $errorKey];
+        }
+
+        return ['id' => $guardian->id, 'error' => null, 'errorKey' => $errorKey];
     }
 
     /** Store an uploaded ID photo and return its /uploads URL, or null. */
@@ -558,6 +635,7 @@ class PatientController extends Controller
             'idPhotoUrl' => $patient->id_photo_url,
             'systemId' => $patient->system_id,
             'idNo' => $patient->id_no,
+            'guardianId' => $patient->guardian_id,
             'active' => (bool) $patient->active,
         ];
     }

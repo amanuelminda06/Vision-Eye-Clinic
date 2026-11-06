@@ -54,4 +54,7 @@ return [
     'maxLength' => 'Keep it within {max} characters.',
     'idPhotoDisabled' => 'Patient ID photos are disabled.',
     'sickLeaveDisabled' => 'Patient sick leave is disabled.',
+    'invalidGuardian' => 'No patient matches that phone number or system ID.',
+    'guardianSelf' => 'A patient cannot be their own guardian.',
+    'guardianCycle' => 'That guardian would create a loop in the family link.',
 ];

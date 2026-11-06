@@ -54,9 +54,19 @@
             <div class="space-y-5 lg:col-span-2">
                 {{-- Phone + demographics --}}
                 <div class="card space-y-3 p-5">
+                    @php
+                        // A child has no number of their own: the detail page
+                        // shows the number messages actually reach.
+                        $reachPhone = $patient->effectivePhoneE164();
+                        $borrowed = $patient->phone_e164 === null && $reachPhone !== null;
+                    @endphp
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <a href="tel:{{ $patient->phone_e164 }}" class="text-lg font-medium text-slate-900 hover:underline">{{ Phone::display($patient->phone_e164) }}</a>
-                        <span class="text-xs text-slate-500">{{ __('patients.tapToCall') }}</span>
+                        @if ($reachPhone !== null)
+                            <a href="tel:{{ $reachPhone }}" class="text-lg font-medium text-slate-900 hover:underline">{{ Phone::display($reachPhone) }}</a>
+                        @else
+                            <span class="text-lg font-medium text-slate-400">—</span>
+                        @endif
+                        <span class="text-xs text-slate-500">{{ $borrowed ? __('patients.phoneViaGuardian') : __('patients.tapToCall') }}</span>
                     </div>
                     <dl class="grid gap-3 text-sm sm:grid-cols-3">
                         <div>
@@ -74,6 +84,23 @@
                         <div>
                             <dt class="text-xs uppercase text-slate-500">{{ __('patients.idNo') }}</dt>
                             <dd class="text-slate-800">{{ $patient->id_no ?? '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs uppercase text-slate-500">{{ __('patients.guardian') }}</dt>
+                            <dd class="text-slate-800">
+                                @if ($patient->guardian !== null)
+                                    <a href="{{ route('patients.show', $patient->guardian->id) }}" class="font-medium hover:underline">{{ $patient->guardian->full_name }}</a>
+                                    <span class="block text-xs text-slate-500">
+                                        @if ($patient->guardian->phone_e164 !== null && $patient->guardian->phone_e164 !== '')
+                                            <a href="tel:{{ $patient->guardian->phone_e164 }}" class="hover:underline">{{ $patient->guardian->phone_e164 }}</a>
+                                        @else
+                                            —
+                                        @endif
+                                    </span>
+                                @else
+                                    <span class="text-slate-500">{{ __('patients.guardianNone') }}</span>
+                                @endif
+                            </dd>
                         </div>
                         <div>
                             <dt class="text-xs uppercase text-slate-500">{{ __('common.language') }}</dt>
