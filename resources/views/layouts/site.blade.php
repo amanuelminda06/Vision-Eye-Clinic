@@ -111,7 +111,11 @@
             class="group fixed inset-x-0 top-0 z-30 px-2 py-2.5 transition-colors duration-300 sm:px-4
                    {{ $headerOverlay ? 'bg-transparent data-[scrolled]:bg-white' : 'bg-white' }}"
             @if ($headerOverlay) data-scrollable @endif>
-        <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 rounded-full border px-3 transition-colors duration-300 sm:gap-4 sm:px-6
+        {{-- `gap-1 px-2` below `sm`: the pill is tightest on a 360px phone
+             (logo + language switcher + call icon + booking + menu must all
+             fit in one 64px line), so it gets the smallest padding/gap and
+             grows back from `sm` up. --}}
+        <div class="mx-auto flex h-16 max-w-6xl items-center gap-1 rounded-full border px-2 transition-colors duration-300 sm:gap-4 sm:px-6 lg:gap-2 lg:px-4
                     {{ $headerOverlay
                         ? 'border-white/50 bg-white/70 backdrop-blur-lg group-data-[scrolled]:border-slate-200 group-data-[scrolled]:bg-slate-100 group-data-[scrolled]:backdrop-blur-none'
                         : 'border-slate-200 bg-slate-100' }}">
@@ -121,14 +125,18 @@
                          cropped off) — the intrinsic size keeps the header
                          from jumping while the image loads. --}}
                     <img src="{{ $logo }}" alt="{{ $clinicName }}" width="271" height="183"
-                         class="h-9 w-auto shrink-0" decoding="async"
+                         class="h-8 w-auto shrink-0 sm:h-9" decoding="async"
                          data-fallback="hide">
                 @endif
                 {{-- On a 360px phone there is no room left for the wordmark
                      once the language switcher, the booking button and the
                      menu button are placed, so it appears from `sm` up. The
                      logo image carries the brand; its `alt` is the name. --}}
-                <span class="hidden flex-col leading-tight sm:flex">
+                {{-- `min-w-0` lets the text side of the flex row SHRINK, so
+                     `truncate` engages instead of the name painting over the
+                     nav links when the pill runs out of room (it happens
+                     around 1024px, where the full nav sits next to it). --}}
+                <span class="hidden min-w-0 flex-col leading-tight sm:flex">
                     <span class="truncate text-base font-semibold text-brand-800">{{ $clinicName }}</span>
                     <span class="truncate text-xs text-slate-500">{{ __('site.clinicNameAm') }}</span>
                 </span>
@@ -137,27 +145,51 @@
             {{-- The full nav needs ~430px; below the `lg` breakpoint it does
                  not fit next to the logo and the action buttons, so the
                  mobile menu is used there instead. --}}
-            <nav class="ml-auto hidden items-center gap-1 lg:flex" aria-label="{{ __('site.menuLabel') }}">
+            {{-- `shrink-0`: the nav keeps its natural width and never wraps
+                 its links, so the (also shrink-proof) action buttons and the
+                 logo end of the pill cannot be squeezed underneath it — the
+                 wordmark absorbs the slack by truncating instead. --}}
+            <nav class="ml-auto hidden items-center gap-1 lg:flex shrink-0" aria-label="{{ __('site.menuLabel') }}">
                 @foreach ($navItems as $href => $key)
                     @php $isCurrent = $currentPath === $href || ($href !== '/' && str_starts_with($currentPath, $href)); @endphp
                     {{-- The SELECTED link wears a filled chip. Every button
                          uses the same treatment, so whichever page you are on
                          paints its own button the same way. --}}
                     <a href="{{ $href }}"
-                       class="rounded-lg px-3 py-1.5 text-sm transition {{ $isCurrent ? 'bg-brand-100 font-medium text-brand-800' : 'text-slate-600 hover:bg-brand-50 hover:text-brand-800' }}"
+                       class="rounded-lg whitespace-nowrap px-2 py-1.5 text-sm transition {{ $isCurrent ? 'bg-brand-100 font-medium text-brand-800' : 'text-slate-600 hover:bg-brand-50 hover:text-brand-800' }}"
                        @if ($isCurrent) aria-current="page" @endif>
                         {{ __('site.'.$key) }}
                     </a>
                 @endforeach
             </nav>
 
-            <div class="ml-auto flex items-center gap-1 sm:gap-2 lg:ml-0">
+            {{-- `shrink-0` + `whitespace-nowrap` on the buttons: they never
+                 compress or wrap to a second line inside the `h-16` pill, so
+                 the header stays one line at every width. Below `sm` the
+                 "Call now" button is a 44px icon and the booking button uses
+                 the short `bookNow` label — that is what keeps the whole row
+                 inside a 360px viewport. --}}
+            <div class="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-2 lg:ml-0">
                 @include('partials.locale-switcher')
 
                 @if ($telHref)
-                    <a href="{{ $telHref }}" class="btn-secondary hidden sm:inline-flex">{{ __('site.callNow') }}</a>
+                    {{-- Icon-only below `sm` (the text needs ~110px and does
+                         not fit next to the other actions on a phone); the
+                         label returns from `sm` up. `aria-label` names the
+                         link either way. --}}
+                    <a href="{{ $telHref }}"
+                       class="btn-secondary inline-flex h-11 w-11 shrink-0 items-center justify-center p-0 sm:h-auto sm:w-auto sm:shrink sm:p-[0.55rem_1rem]"
+                       aria-label="{{ __('site.callNow') }}">
+                        <svg class="sm:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <span class="hidden whitespace-nowrap sm:inline">{{ __('site.callNow') }}</span>
+                    </a>
                 @endif
-                <a href="/book" class="btn-primary px-3 sm:px-5">{{ __('site.bookAppointment') }}</a>
+                {{-- Short label below `sm`, full label from `sm` up (see the
+                     `bookNow` key in messages/{en,am}.json). --}}
+                <a href="/book" class="btn-primary whitespace-nowrap px-3 text-sm sm:px-4 sm:text-[0.95rem]">
+                    <span class="sm:hidden">{{ __('site.bookNow') }}</span>
+                    <span class="hidden sm:inline">{{ __('site.bookAppointment') }}</span>
+                </a>
 
                 <button type="button" id="site-menu-toggle" class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-brand-800 hover:bg-brand-50 lg:hidden" aria-expanded="false" aria-controls="site-mobile-menu" aria-label="{{ __('site.menuLabel') }}">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>

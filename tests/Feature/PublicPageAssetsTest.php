@@ -333,19 +333,33 @@ class PublicPageAssetsTest extends TestCase
     }
 
     /**
-     * The action buttons must fit next to the logo on a phone.
+     * On a phone the "Call now" button is an icon, not a label.
      *
-     * The "Call now" button is `hidden sm:inline-flex`, so it disappears
-     * below 640px — that is what keeps the header inside a 360px viewport.
+     * The full text button (~110px) does not fit next to the logo, the
+     * language switcher, the booking button and the menu button in a 360px
+     * viewport — the action row used to squish to 65px inside the 64px
+     * pill. Below `sm` the link is a 44x44 tap target (WCAG 2.2 2.5.8)
+     * carrying an `aria-label`, and the visible text returns from `sm` up
+     * where there is room for it.
      */
-    public function test_the_call_button_is_hidden_on_the_smallest_phones(): void
+    public function test_the_call_button_is_an_icon_on_the_smallest_phones(): void
     {
         $html = (string) $this->get('/')->getContent();
 
-        $this->assertStringContainsString(
-            'btn-secondary hidden sm:inline-flex',
+        $this->assertMatchesRegularExpression(
+            '/<a href="tel:[^"]*"[^>]*class="[^"]*btn-secondary[^"]*h-11 w-11/',
             $html,
-            'The "Call now" button must be hidden below the `sm` breakpoint.',
+            'The "Call now" link must be a 44px icon button below the `sm` breakpoint.',
+        );
+        $this->assertMatchesRegularExpression(
+            '/<a href="tel:[^"]*"[^>]*aria-label="/',
+            $html,
+            'The icon-only "Call now" button needs an `aria-label` (it has no visible text below `sm`).',
+        );
+        $this->assertMatchesRegularExpression(
+            '/<span class="hidden whitespace-nowrap sm:inline">/',
+            $html,
+            'The "Call now" text must be hidden below `sm` and visible from `sm` up.',
         );
     }
 
@@ -363,9 +377,9 @@ class PublicPageAssetsTest extends TestCase
         $html = (string) $this->get($path)->getContent();
 
         $this->assertMatchesRegularExpression(
-            '/<span class="hidden flex-col leading-tight sm:flex">/',
+            '/<span class="hidden min-w-0 flex-col leading-tight sm:flex">/',
             $html,
-            "{$path}: the clinic wordmark must be hidden below `sm` so it cannot overlap the language switcher.",
+            "{$path}: the clinic wordmark must be hidden below `sm` so it cannot overlap the language switcher, and must be shrink-safe (`min-w-0`) so `truncate` engages instead of painting over the nav.",
         );
     }
 

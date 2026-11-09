@@ -29,6 +29,7 @@ return [
     'navContact' => 'አግኙን',
     'navFaq' => 'ጥያቄዎች',
     'bookAppointment' => 'ቀጠሮ ይያዙ',
+    'bookNow' => 'ቀጠሮ',
     'clinicNameAm' => 'ቪዥን የዓይን ህክምና ክሊኒክ',
     'callNow' => 'ዛሬ ይደውሉ',
     'phonePending' => 'የስልክ ቁጥር በቅርቡ',

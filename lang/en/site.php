@@ -29,6 +29,7 @@ return [
     'navContact' => 'Contact',
     'navFaq' => 'FAQ',
     'bookAppointment' => 'Book an appointment',
+    'bookNow' => 'Book now',
     'clinicNameAm' => 'ቪዥን የዓይን ህክምና ክሊኒክ',
     'callNow' => 'Call now',
     'phonePending' => 'Phone number coming soon',
