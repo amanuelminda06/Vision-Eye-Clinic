@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vision Eye Clinic — ERP Quick Manual</title>
+<style>
+  @page { size: A4; margin: 14mm 13mm 15mm 13mm;
+    @bottom-center { content: "Vision Eye Clinic · ERP Quick Manual · " counter(page); font-size: 8pt; color: #64748b; } }
+  * { box-sizing: border-box; }
+  body { font-family: "DejaVu Sans", "Noto Sans", sans-serif; font-size: 9.3pt; line-height: 1.42; color: #16243b; }
+  h1 { font-size: 26pt; color: #0f4c81; margin: 30mm 0 4mm; line-height: 1.15; }
+  h2 { font-size: 13pt; color: #0f4c81; margin: 6mm 0 2mm; padding-bottom: 1.5mm; border-bottom: 1.5px solid #0f4c81; break-after: avoid; }
+  h3 { font-size: 10pt; color: #0f766e; margin: 3.5mm 0 1mm; break-after: avoid; }
+  ul { margin: 0 0 2mm; padding-left: 5mm; }
+  li { margin: 0 0 1.1mm; }
+  li ul { margin: 0.5mm 0 1.5mm; }
+  .sub { color: #475569; font-size: 10pt; }
+  .cover { page-break-after: always; }
+  .cover .tag { display: inline-block; background: #e0f2fe; color: #075985; padding: 2mm 3mm; border-radius: 3mm; font-size: 9pt; }
+  figure { margin: 2mm 0 4mm; break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid #cbd5e1; border-radius: 2mm; }
+  figcaption { font-size: 7.8pt; color: #64748b; margin-top: 1mm; }
+  .note { background: #f1f5f9; border-left: 3px solid #0f766e; padding: 2mm 3mm; margin: 2mm 0 3mm; }
+  .note ul { margin: 0; padding-left: 4.5mm; }
+  .newpage { page-break-before: always; }
+  code { background: #f1f5f9; padding: 0 1mm; font-size: 8.6pt; color: #0f4c81; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <span class="tag">QUICK REFERENCE · V1.0 · NOVEMBER 2026</span>
+  <h1>Vision Eye Clinic<br>ERP Quick Manual</h1>
+  <p class="sub">All modules · dot-point guide · 30-minute read</p>
+  <ul>
+    <li><strong>For:</strong> Owner, Reception and Staff (doctors)</li>
+    <li><strong>How to use:</strong> follow the sidebar module names in bold; screenshots show demo data</li>
+    <li><strong>Two languages:</strong> switch EN / አማርኛ from the header</li>
+  </ul>
+  <h2>In this manual</h2>
+  <ul>
+    <li>1 · Start here — login, roles, global tools</li>
+    <li>2 · Dashboard and Daily summary</li>
+    <li>3 · Patients (PMS)</li>
+    <li>4 · Sales, receipts and Revenue (PMS)</li>
+    <li>5 · Appointments, Follow-ups and Website requests (PMS)</li>
+    <li>6 · Staff, Users, Schedule and Leave (HRM)</li>
+    <li>7 · Messages and Campaigns (MMS)</li>
+    <li>8 · Services, Website content, Feedback, Settings, Audit (CMS)</li>
+    <li>9 · Public website</li>
+    <li>10 · Golden rules</li>
+  </ul>
+</div>
+
+<h2>1 · Start here</h2>
+<h3>Sign in</h3>
+<ul>
+  <li>Open the clinic's secure link: <code>&lt;site address&gt;/login/&lt;secret-path&gt;</code> — ask the Owner for it; any other login address shows 404</li>
+  <li>Enter your email + password → <strong>Sign in</strong></li>
+  <li>New accounts must set a new password at first sign-in</li>
+  <li>Forgot your password? ask the Owner to reset it (Users → Reset password)</li>
+</ul>
+<h3>Global tools</h3>
+<ul>
+  <li>Header <strong>Search…</strong> — type a name or phone → open a patient, sale or appointment</li>
+  <li>Header badges — amber = messages due, red = new website requests</li>
+  <li>Header menu — <strong>Change password</strong> / <strong>Sign out</strong></li>
+  <li>Sidebar modules — <strong>PMS</strong> (patients/money), <strong>HRM</strong> (people), <strong>MMS</strong> (messages), <strong>CMS</strong> (website/settings)</li>
+</ul>
+<h3>Who can do what</h3>
+<ul>
+  <li><strong>Owner</strong> — everything: revenue, void approvals, staff/users, services, settings, templates, reports, audit</li>
+  <li><strong>Reception</strong> — patients, sales, appointments, requests, follow-ups, messages, own leave; no revenue/admin</li>
+  <li><strong>Staff (doctor)</strong> — dashboard, own schedule, own leave only; other pages show 403</li>
+</ul>
+
+<h2>2 · Dashboard and Daily summary</h2>
+<ul>
+  <li><strong>Dashboard</strong> — click any card to jump to its module</li>
+  <li>Owner cards — Revenue today / Revenue this week / Void requests / Leave requests</li>
+  <li>Reception cards — Appointments today / Messages due / Overdue follow-ups</li>
+  <li>Staff cards — My appointments today / Annual leave days left</li>
+  <li><strong>Who is on duty now</strong> — live list of shifts; badges: On duty now / On leave / Not on duty</li>
+</ul>
+<figure><img src="manual-screenshots/01-dashboard.png" alt="Dashboard"><caption>Dashboard — Owner view</caption></figure>
+<ul>
+  <li><strong>Daily summary</strong> (Owner) — <strong>Previous / Today / Next / Print</strong></li>
+  <li>Cards — Confirmed, Voided; table — receipt number, when, patient, doctor, status, total</li>
+</ul>
+<figure><img src="manual-screenshots/10-daily-summary.png" alt="Daily summary"><caption>Daily summary — print at closing time</caption></figure>
+
+<div class="newpage"></div>
+<h2>3 · Patients (PMS → Patients)</h2>
+<ul>
+  <li><strong>Find</strong> — search by name or phone; filter by System ID, Clinic ID, date range, Status → <strong>Filter</strong> → <strong>Clear</strong></li>
+  <li><strong>Export</strong> — <strong>CSV</strong> / <strong>Excel</strong> · <strong>Import CSV</strong> → <strong>Download template</strong> → <strong>Upload and validate</strong> → <strong>Import valid rows</strong></li>
+  <li><strong>New patient</strong> — Full name, Phone, Guardian, Sex, Age, Language, non-clinical Notes, Clinic ID → <strong>Create patient</strong></li>
+  <li>Duplicate warning — check the linked patient; <strong>Save again</strong> only if it is genuinely a new person</li>
+  <li>Patient detail tabs — <strong>Overview / Sales / Appointments / Messages / Sick leave</strong> (if enabled)</li>
+  <li><strong>Tags</strong> — type comma-separated tags → <strong>Save tags</strong></li>
+  <li><strong>Messaging</strong> — <strong>Stop messages</strong> (with reason) or <strong>Allow messages again</strong></li>
+  <li><strong>Status</strong> — <strong>Deactivate</strong> / <strong>Reactivate</strong> (record is never deleted)</li>
+  <li>Phone is tap-to-call; ID photo actions only when enabled in Settings</li>
+</ul>
+<figure><img src="manual-screenshots/02-patients.png" alt="Patients list"><caption>Patients list — search, filter, export, import</caption></figure>
+<figure><img src="manual-screenshots/03-patient-detail.png" alt="Patient detail"><caption>Patient detail — tabs, tags, status and messaging controls</caption></figure>
+
+<div class="newpage"></div>
+<h2>4 · Sales, receipts and Revenue (PMS)</h2>
+<h3>New sale (POS)</h3>
+<ul>
+  <li><strong>Sales → New sale</strong> → search patient by name/phone and click, or tick <strong>Walk-in</strong></li>
+  <li>Type a service → press <strong>Enter</strong> → set <strong>Qty</strong> → <strong>Delete</strong> removes a line</li>
+  <li>Choose <strong>Doctor</strong> and <strong>Payment method</strong> → check <strong>Total</strong> → <strong>Confirm sale</strong></li>
+  <li>Total is calculated by the system; confirmed sales cannot be edited</li>
+</ul>
+<figure><img src="manual-screenshots/05-new-sale.png" alt="New sale"><caption>New sale — patient, services and payment</caption></figure>
+<h3>Receipts and voids</h3>
+<ul>
+  <li>Open a receipt number → <strong>Print A5</strong> or <strong>Print thermal</strong></li>
+  <li>Reception → <strong>Request void</strong> + reason; Owner → <strong>Approve</strong> / <strong>Reject</strong> in <strong>Void requests</strong></li>
+  <li>Owner may <strong>Void sale</strong> directly; receipt shows <strong>Voided</strong> and an audit trail</li>
+</ul>
+<h3>Sales list and Revenue (Owner)</h3>
+<ul>
+  <li>Sales list — filter by date, patient, status, payment method → <strong>CSV</strong> / <strong>Excel</strong></li>
+  <li>Reception sees only their own sales for the current clinic day</li>
+  <li><strong>Revenue</strong> — <strong>Today / This week / This month / Last month / Custom</strong></li>
+  <li>Cards — Total revenue, Number of sales, Average sale, Voided total</li>
+  <li>Breakdowns — Daily trend, By service, By category, By doctor, By payment method</li>
+</ul>
+<figure><img src="manual-screenshots/06-revenue.png" alt="Revenue"><caption>Revenue — period totals and breakdowns</caption></figure>
+
+<div class="newpage"></div>
+<h2>5 · Appointments, Follow-ups and Website requests (PMS)</h2>
+<h3>Appointments</h3>
+<ul>
+  <li>Views — <strong>List / Day / Week</strong>; navigate <strong>Previous / Today / Next</strong>; filter by doctor; export <strong>CSV / Excel</strong></li>
+  <li><strong>New appointment</strong> — search patient (or quick-create), choose Doctor, Service, Date, Start time, Duration, Notes → <strong>Save</strong></li>
+  <li>System warns about double-booking, shifts, and approved leave — resolve before saving</li>
+  <li>Status flow — <strong>Scheduled → Confirmed → Completed</strong>; also <strong>No-show</strong> and <strong>Cancelled</strong></li>
+  <li>Row actions — Confirm, Complete, No-show, Cancel (reason), Edit; Completed also has <strong>Create follow-up</strong> and <strong>Record sale</strong></li>
+</ul>
+<figure><img src="manual-screenshots/07-appointments.png" alt="Appointments"><caption>Appointments — list view with status actions</caption></figure>
+<h3>Follow-ups</h3>
+<ul>
+  <li>Tabs — <strong>Open / Overdue / Done / Cancelled</strong>; filter by patient</li>
+  <li><strong>Create follow-up</strong> — pick 2 weeks / 1 month / 3 months / 6 months or custom date + reason</li>
+  <li>Open rows — <strong>Mark done</strong> or <strong>Cancel</strong></li>
+</ul>
+<h3>Website requests</h3>
+<ul>
+  <li>Filter by status: All / New / Contacted / Converted / Declined / Spam</li>
+  <li><strong>Mark contacted</strong>, <strong>Decline</strong>, <strong>Spam</strong></li>
+  <li><strong>Convert to appointment</strong> → choose Doctor, Service, notes → <strong>Book the appointment</strong> (patient matched by phone or created)</li>
+</ul>
+<figure><img src="manual-screenshots/09-requests.png" alt="Appointment requests"><caption>Website requests — convert into a real appointment</caption></figure>
+
+<div class="newpage"></div>
+<h2>6 · Staff, Users, Schedule and Leave (HRM)</h2>
+<ul>
+  <li><strong>Staff</strong> (Owner) — <strong>Create</strong>, Edit, Deactivate/Reactivate; set Job title, Specialty, Doctor flag, public website flag, leave Entitlement, Photo</li>
+  <li><strong>Users</strong> (Owner) — <strong>New user</strong>: Name, Email, Role, linked staff member, initial password (min 10 characters)</li>
+  <li>User actions — Edit, <strong>Set password</strong>, <strong>Reset password</strong>, Deactivate/Reactivate; you cannot deactivate your own account</li>
+  <li><strong>Schedule</strong> — Previous / Today / Next; <strong>Add shift</strong> (staff, date, start, end, note); Edit / Delete on each shift</li>
+  <li>Templates — create weekly pattern → <strong>Apply template</strong> for a date range, or <strong>Copy last week</strong>; overlaps are skipped</li>
+  <li><strong>Leave</strong> — <strong>Request leave</strong>: type, dates, half day, reason → <strong>Submit request</strong>; balance card shows Entitlement / Taken / Remaining</li>
+  <li><strong>Cancel request</strong> on pending rows; CSV / Excel export</li>
+  <li><strong>Leave approvals</strong> (Owner) — add a Note → <strong>Approve</strong> / <strong>Reject</strong>; owners cannot approve their own leave</li>
+  <li><strong>Leave calendar</strong> (Owner + Reception) — team view by period</li>
+  <li>Staff role — sees only own schedule and own leave</li>
+</ul>
+<figure><img src="manual-screenshots/11-schedule.png" alt="Schedule"><caption>Schedule — shifts and templates</caption></figure>
+<figure><img src="manual-screenshots/13-leave-inbox.png" alt="Leave approvals"><caption>Leave approvals — approve or reject with a note</caption></figure>
+<figure><img src="manual-screenshots/15-users.png" alt="Users"><caption>Users — roles, passwords and status</caption></figure>
+
+<div class="newpage"></div>
+<h2>7 · Messages and Campaigns (MMS)</h2>
+<div class="note"><ul>
+  <li>The app <strong>never sends SMS itself</strong> — it prepares an <code>sms:</code> link; you send from the clinic phone and confirm in the app</li>
+  <li>Never include diagnoses, treatments, doctor specialties or prices in a message</li>
+</ul></div>
+<ul>
+  <li><strong>Messages</strong> — groups: Overdue, Due now, Later today, Done today, Blocked</li>
+  <li>Per message: <strong>Send</strong> → <strong>Open in Messages app</strong> → send on the phone → return and mark sent</li>
+  <li>Statuses — Pending, Opened, Sent, Skipped, Expired, Cancelled, Blocked</li>
+  <li>Blocked reasons — inactive patient, no consent, opted out, invalid phone, cancelled appointment</li>
+  <li><strong>Drafts</strong> — save a private message while composing; Delete removes a draft</li>
+  <li><strong>Library</strong> (Owner) — archive reusable wording by title, language and category; Favorite / Archive / Reuse</li>
+  <li><strong>Templates</strong> (Owner) — edit wording per language; keep <strong>Active</strong> ticked to use a template</li>
+  <li><strong>Campaigns</strong> — <strong>New campaign</strong>: Name, Template (or Write your own), Message, Language mode, Delivery (Individual / Group)</li>
+  <li>Pick recipients by search or Advanced filter (services, language, last-visit dates) → <strong>Send</strong> → confirm the audience count</li>
+  <li>Group delivery — open campaign → <strong>Groups</strong> → send each group → <strong>Mark sent</strong> or <strong>Skip group</strong> with reason</li>
+  <li><strong>Reports</strong> (Owner) — history by date; <strong>CSV</strong> / <strong>Excel</strong> export</li>
+  <li>Sidebar <strong>Messages</strong> badge counts due and overdue messages</li>
+</ul>
+<figure><img src="manual-screenshots/16-messages.png" alt="Messages"><caption>Today's Messages — send from the clinic phone, then confirm</caption></figure>
+<figure><img src="manual-screenshots/18-message-campaigns.png" alt="Campaigns"><caption>Campaigns — audience, message and delivery</caption></figure>
+
+<div class="newpage"></div>
+<h2>8 · Services, Website content, Feedback, Settings, Audit (CMS)</h2>
+<ul>
+  <li><strong>Services</strong> (Owner) — <strong>New service</strong>: English/Amharic name, Category, Current price → <strong>Create service</strong>; Edit to change price (history is kept; old sales are unchanged)</li>
+  <li>In service edit form → <strong>Public website</strong>: tick <strong>Show this service on the website</strong>, add public descriptions, receipt labels, display order, image → <strong>Save</strong></li>
+  <li><strong>Website content</strong> — edit English and Amharic text for hero, home intro, contact, FAQ, announcements, social links, SEO → <strong>Save</strong> → <strong>Open the website</strong></li>
+  <li><strong>Feedback</strong> — <strong>Active</strong> shows a comment on the website; <strong>Inactive</strong> hides it; <strong>Delete</strong> removes it</li>
+  <li><strong>Settings</strong> — Clinic name, Currency, Timezone; Working hours per day (Open / Close / Closed)</li>
+  <li>Messages settings — reminder time and offset, follow-up lead, recall months, SMS mode, default language, review link, campaign caps</li>
+  <li>Toggles — Reception may send campaigns, daily unsent email, group-send override, Patient ID photos, Patient sick leave, Auto-approve requests</li>
+  <li><strong>Audit log</strong> (Owner) — filter by name/status/template/date → <strong>Filter</strong>; <strong>CSV</strong> / <strong>Excel</strong> export</li>
+</ul>
+<figure><img src="manual-screenshots/19-services.png" alt="Services"><caption>Services — catalogue and prices</caption></figure>
+<figure><img src="manual-screenshots/20-website-content.png" alt="Website content"><caption>Website content — edit public text in both languages</caption></figure>
+<figure><img src="manual-screenshots/22-settings.png" alt="Settings"><caption>Settings — clinic details, hours and message rules</caption></figure>
+
+<div class="newpage"></div>
+<h2>9 · Public website</h2>
+<ul>
+  <li>Pages — Home, About, Services, Doctors, Contact, FAQ, Privacy</li>
+  <li>Home shows key services, doctors on duty, announcements and approved feedback</li>
+  <li><strong>Book an appointment</strong> — name, phone, preferred date, time window, service of interest, message → <strong>Send my request</strong></li>
+  <li>The request appears in ERP → PMS → <strong>Appointment requests</strong> for conversion</li>
+  <li><strong>Share your feedback</strong> on Contact → Owner moderates in CMS → Feedback</li>
+  <li>Prices and patient data are never shown on the public site</li>
+</ul>
+<figure><img src="manual-screenshots/24-public-home.png" alt="Public website"><caption>Public website — booking and information for patients</caption></figure>
+
+<h2>10 · Golden rules</h2>
+<ul>
+  <li>Records are <strong>deactivated, not deleted</strong> — use Deactivate / Reactivate</li>
+  <li>Every change is <strong>audited</strong> — see Audit log</li>
+  <li>Patient notes are <strong>non-clinical only</strong> — no diagnoses, treatment or prescriptions</li>
+  <li>Messages are <strong>sent manually</strong> from the clinic phone, then confirmed in the app</li>
+  <li>Prices apply to <strong>future sales only</strong> — old receipts never change</li>
+  <li>Money is exact (2 decimals); dates follow the clinic timezone in Settings</li>
+  <li>Phones use Ethiopian mobile format: <code>09…</code>, <code>07…</code>, <code>+2519…</code>, <code>+2517…</code></li>
+  <li>If a page says 403 — your role has no access; ask the Owner</li>
+</ul>
+
+</body>
+</html>

@@ -71,6 +71,7 @@ sign-in.
 
 | Document | What it covers |
 | --- | --- |
+| **[docs/ERP_Quick_Manual.pdf](docs/ERP_Quick_Manual.pdf)** | **Client-facing quick manual** — all modules, dot points, screenshots (`docs/manual-source.html` is the editable source). |
 | **[docs/PLESK_DEPLOYMENT.md](docs/PLESK_DEPLOYMENT.md)** | **The deployment guide** — Plesk, MySQL 8.0, no Node on the host, the cron, the backups and the go-live checklist. |
 | [docs/go-live.md](docs/go-live.md) | The go-live checklist (short form). |
 | [docs/backup-restore.md](docs/backup-restore.md) | What to back up, how, and how to restore. |
